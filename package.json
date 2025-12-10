@@ -1,0 +1,21 @@
+{
+  "name": "shajgoj",
+  "version": "1.0.0",
+  "description": "Full-stack e-commerce platform with Next.js frontend and Node.js backend",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sayeedzaman/shajgoj.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/sayeedzaman/shajgoj/issues"
+  },
+  "homepage": "https://github.com/sayeedzaman/shajgoj#readme"
+}
