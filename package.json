@@ -17,5 +17,13 @@
   "bugs": {
     "url": "https://github.com/sayeedzaman/shajgoj/issues"
   },
-  "homepage": "https://github.com/sayeedzaman/shajgoj#readme"
+  "homepage": "https://github.com/sayeedzaman/shajgoj#readme",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "jsonwebtoken": "^9.0.3"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.10"
+  }
 }
