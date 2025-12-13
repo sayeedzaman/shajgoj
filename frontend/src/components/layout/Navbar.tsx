@@ -13,7 +13,7 @@ export default function Navbar() {
   return (
     <nav className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
       {/* Top Banner */}
-      <div className="bg-gradient-to-r from-pink-500 to-purple-600 text-white text-center py-2 text-sm">
+      <div className="bg-gradient-to-r from-red-500 to-purple-600 text-white text-center py-2 text-sm">
         <p>Free Shipping on orders over ৳500! 🎉</p>
       </div>
 
@@ -31,7 +31,7 @@ export default function Navbar() {
               <input
                 type="text"
                 placeholder="Search for products..."
-                className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
               />
               <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
             </div>
@@ -42,7 +42,7 @@ export default function Navbar() {
             {/* Wishlist */}
             <Link
               href="/wishlist"
-              className="hidden sm:flex items-center space-x-1 text-gray-700 hover:text-pink-500 transition-colors"
+              className="hidden sm:flex items-center space-x-1 text-gray-700 hover:text-red-500 transition-colors"
             >
               <Heart className="h-6 w-6" />
               <span className="text-sm">Wishlist</span>
@@ -51,11 +51,11 @@ export default function Navbar() {
             {/* Cart */}
             <Link
               href="/cart"
-              className="flex items-center space-x-1 text-gray-700 hover:text-pink-500 transition-colors relative"
+              className="flex items-center space-x-1 text-gray-700 hover:text-red-500 transition-colors relative"
             >
               <ShoppingCart className="h-6 w-6" />
               <span className="text-sm hidden sm:inline">Cart</span>
-              <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                 0
               </span>
             </Link>
@@ -66,7 +66,7 @@ export default function Navbar() {
                 <>
                   <button
                     onClick={() => setIsProfileOpen(!isProfileOpen)}
-                    className="flex items-center space-x-1 text-gray-700 hover:text-pink-500 transition-colors"
+                    className="flex items-center space-x-1 text-gray-700 hover:text-red-500 transition-colors"
                   >
                     <User className="h-6 w-6" />
                     <span className="text-sm hidden sm:inline">
@@ -117,7 +117,7 @@ export default function Navbar() {
               ) : (
                 <Link
                   href="/login"
-                  className="flex items-center space-x-1 text-gray-700 hover:text-pink-500 transition-colors"
+                  className="flex items-center space-x-1 text-gray-700 hover:text-red-500 transition-colors"
                 >
                   <User className="h-6 w-6" />
                   <span className="text-sm hidden sm:inline">Login</span>
@@ -129,7 +129,7 @@ export default function Navbar() {
             <button
               aria-label='mobile menu'
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden text-gray-700 hover:text-pink-500"
+              className="md:hidden text-gray-700 hover:text-red-500"
               
           
             >
@@ -144,7 +144,7 @@ export default function Navbar() {
             <input
               type="text"
               placeholder="Search for products..."
-              className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-pink-500"
+              className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-red-500"
             />
             <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
           </div>
@@ -157,21 +157,21 @@ export default function Navbar() {
           <div className="px-4 py-4 space-y-3">
             <Link
               href="/category/makeup"
-              className="block text-gray-700 hover:text-pink-500"
+              className="block text-gray-700 hover:text-red-500"
               onClick={() => setIsMenuOpen(false)}
             >
               Makeup
             </Link>
             <Link
               href="/category/skin"
-              className="block text-gray-700 hover:text-pink-500"
+              className="block text-gray-700 hover:text-red-500"
               onClick={() => setIsMenuOpen(false)}
             >
               Skin Care
             </Link>
             <Link
               href="/category/hair"
-              className="block text-gray-700 hover:text-pink-500"
+              className="block text-gray-700 hover:text-red-500"
               onClick={() => setIsMenuOpen(false)}
             >
               Hair Care
@@ -193,31 +193,31 @@ export default function Navbar() {
           <div className="flex items-center justify-center space-x-8 h-12">
             <Link
               href="/category/makeup"
-              className="text-sm font-medium text-gray-700 hover:text-pink-500 transition-colors"
+              className="text-sm font-medium text-gray-700 hover:text-red-500 transition-colors"
             >
               Makeup
             </Link>
             <Link
               href="/category/skin"
-              className="text-sm font-medium text-gray-700 hover:text-pink-500 transition-colors"
+              className="text-sm font-medium text-gray-700 hover:text-red-500 transition-colors"
             >
               Skin Care
             </Link>
             <Link
               href="/category/hair"
-              className="text-sm font-medium text-gray-700 hover:text-pink-500 transition-colors"
+              className="text-sm font-medium text-gray-700 hover:text-red-500 transition-colors"
             >
               Hair Care
             </Link>
             <Link
               href="/category/personal-care"
-              className="text-sm font-medium text-gray-700 hover:text-pink-500 transition-colors"
+              className="text-sm font-medium text-gray-700 hover:text-red-500 transition-colors"
             >
               Personal Care
             </Link>
             <Link
               href="/category/men"
-              className="text-sm font-medium text-gray-700 hover:text-pink-500 transition-colors"
+              className="text-sm font-medium text-gray-700 hover:text-red-500 transition-colors"
             >
               Men
             </Link>

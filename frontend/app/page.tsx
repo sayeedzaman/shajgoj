@@ -6,7 +6,7 @@ import { ShoppingBag, Truck, RotateCcw, Lock, Star } from 'lucide-react';
 
 export default function Home() {
   const categories = [
-    { name: 'Makeup', href: '/category/makeup', color: 'from-pink-400 to-pink-600' },
+    { name: 'Makeup', href: '/category/makeup', color: 'from-red-400 to-red-600' },
     { name: 'Skin Care', href: '/category/skin', color: 'from-purple-400 to-purple-600' },
     { name: 'Hair Care', href: '/category/hair', color: 'from-blue-400 to-blue-600' },
     { name: 'Personal Care', href: '/category/personal-care', color: 'from-indigo-400 to-indigo-600' },
@@ -49,26 +49,13 @@ export default function Home() {
               <p className="text-xl text-gray-600">
                 Shop authentic beauty products with confidence. Fast delivery, easy returns, and secure payments.
               </p>
-              <div className="flex flex-wrap gap-4">
-                <Link
-                  href="/category/makeup"
-                  className="px-8 py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-full font-semibold hover:shadow-lg transform hover:scale-105 transition-all duration-200"
-                >
-                  Shop Now
-                </Link>
-                <Link
-                  href="/sale"
-                  className="px-8 py-3 bg-white text-gray-900 rounded-full font-semibold hover:shadow-lg transform hover:scale-105 transition-all duration-200 border-2 border-gray-200"
-                >
-                  View Sale
-                </Link>
-              </div>
+
             </div>
             <div className="relative h-[400px] animate-slide-in-right">
-              <div className="absolute inset-0 bg-gradient-to-br from-pink-200/50 to-purple-200/50 rounded-3xl blur-3xl"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-red-200/50 to-purple-200/50 rounded-3xl blur-3xl"></div>
               <div className="relative h-full flex items-center justify-center">
                 <div className="w-80 h-80 bg-white rounded-full shadow-2xl flex items-center justify-center">
-                  <ShoppingBag className="h-32 w-32 text-pink-500" />
+                  <ShoppingBag className="h-32 w-32 text-red-500" />
                 </div>
               </div>
             </div>
@@ -85,7 +72,7 @@ export default function Home() {
                 key={index}
                 className="text-center p-6 rounded-xl hover:shadow-xl transition-shadow duration-300 border border-gray-100"
               >
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-pink-100 to-purple-100 rounded-full text-pink-500 mb-4">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-red-100 to-purple-100 rounded-full text-red-500 mb-4">
                   {feature.icon}
                 </div>
                 <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
@@ -134,8 +121,8 @@ export default function Home() {
                 key={item}
                 className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300 group"
               >
-                <div className="aspect-square bg-gradient-to-br from-pink-100 to-purple-100 flex items-center justify-center relative overflow-hidden">
-                  <ShoppingBag className="h-20 w-20 text-pink-300 group-hover:scale-110 transition-transform duration-300" />
+                <div className="aspect-square bg-gradient-to-br from-red-100 to-purple-100 flex items-center justify-center relative overflow-hidden">
+                  <ShoppingBag className="h-20 w-20 text-red-300 group-hover:scale-110 transition-transform duration-300" />
                   <span className="absolute top-4 right-4 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full">
                     -20%
                   </span>
@@ -155,7 +142,7 @@ export default function Home() {
                       <span className="text-lg font-bold text-gray-900">৳800</span>
                       <span className="text-sm text-gray-400 line-through ml-2">৳1000</span>
                     </div>
-                    <button className="px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg text-sm font-semibold hover:shadow-lg transition-all duration-200">
+                    <button className="px-4 py-2 bg-gradient-to-r from-red-500 to-purple-600 text-white rounded-lg text-sm font-semibold hover:shadow-lg transition-all duration-200">
                       Add to Cart
                     </button>
                   </div>
@@ -176,7 +163,7 @@ export default function Home() {
       </section>
 
       {/* Newsletter Section */}
-      <section className="py-16 px-4 bg-gradient-to-r from-pink-500 to-purple-600">
+      <section className="py-16 px-4 bg-gradient-to-r from-red-500 to-purple-600">
         <div className="max-w-4xl mx-auto text-center text-white">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Stay Updated</h2>
           <p className="text-lg mb-8 opacity-90">
@@ -188,7 +175,7 @@ export default function Home() {
               placeholder="Enter your email"
               className="flex-1 px-6 py-3 rounded-full text-gray-900 focus:outline-none focus:ring-2 focus:ring-white"
             />
-            <button className="px-8 py-3 bg-white text-pink-600 rounded-full font-semibold hover:bg-gray-100 transition-colors duration-200">
+            <button className="px-8 py-3 bg-white text-red-600 rounded-full font-semibold hover:bg-gray-100 transition-colors duration-200">
               Subscribe
             </button>
           </div>

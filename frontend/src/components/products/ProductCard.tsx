@@ -31,7 +31,7 @@ export default function ProductCard({
           </div>
         )}
         {product.featured && (
-          <div className="absolute top-2 right-2 bg-pink-500 text-white text-xs font-semibold px-2 py-1 rounded z-10">
+          <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-semibold px-2 py-1 rounded z-10">
             Featured
           </div>
         )}
@@ -84,7 +84,7 @@ export default function ProductCard({
 
         {/* Price Section */}
         <div className="flex items-center gap-2 mb-3">
-          <span className="text-lg font-bold text-pink-600">
+          <span className="text-lg font-bold text-red-600">
             ৳{displayPrice.toFixed(2)}
           </span>
           {hasDiscount && (
@@ -134,7 +134,7 @@ export default function ProductCard({
           <button
             onClick={() => onAddToCart(product.id)}
             disabled={isAddingToCart}
-            className="w-full bg-pink-600 text-white py-2.5 px-4 rounded-md hover:bg-pink-700 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full bg-red-600 text-white py-2.5 px-4 rounded-md hover:bg-red-700 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {isAddingToCart ? (
               <>
