@@ -4,6 +4,9 @@ import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes.js';
 import productRoutes from './routes/product.route.js';
 import cartRoutes from './routes/cart.route.js';
+import categoryRoutes from './routes/category.routes.js';
+import brandRoutes from './routes/brand.routes.js';
+import adminProductRoutes from './routes/admin.product.routes.js';
 
 dotenv.config();
 
@@ -21,6 +24,9 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
+app.use('/api/categories', categoryRoutes);
+app.use('/api/brands', brandRoutes);
+app.use('/api/admin/products', adminProductRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -40,4 +46,40 @@ app.use((req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
+  console.log(`
+Available routes:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📝 Authentication
+  POST   /api/auth/register
+  POST   /api/auth/login
+
+📦 Public Routes
+  GET    /api/products
+  GET    /api/products/featured
+  GET    /api/categories
+  GET    /api/brands
+
+🔐 Admin Routes (Require Authentication)
+  Categories:
+    POST   /api/categories
+    PUT    /api/categories/:id
+    DELETE /api/categories/:id
+  
+  Brands:
+    POST   /api/brands
+    PUT    /api/brands/:id
+    DELETE /api/brands/:id
+  
+  Products:
+    GET    /api/admin/products
+    GET    /api/admin/products/stats
+    GET    /api/admin/products/:id
+    GET    /api/admin/products/category/:categoryId
+    GET    /api/admin/products/brand/:brandId
+    POST   /api/admin/products
+    PUT    /api/admin/products/:id
+    PATCH  /api/admin/products/bulk
+    DELETE /api/admin/products/:id
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  `);
 });

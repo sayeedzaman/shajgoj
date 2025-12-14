@@ -13,16 +13,16 @@ export default function Navbar() {
   return (
     <nav className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
       {/* Top Banner */}
-      <div className="bg-gradient-to-r from-red-500 to-purple-600 text-white text-center py-2 text-sm">
+      {/* <div className="bg-gradient-to-r from-red-500 to-purple-600 text-white text-center py-2 text-sm">
         <p>Free Shipping on orders over ৳500! 🎉</p>
-      </div>
+      </div> */}
 
       {/* Main Navbar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center">
-            <span className="text-2xl font-bold gradient-text">Shajgoj</span>
+            <span className="text-3xl font-extrabold tracking-[0.3em] font-[Oswald]">SHAJGOJ</span>
           </Link>
 
           {/* Search Bar - Desktop */}
