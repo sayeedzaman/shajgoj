@@ -190,7 +190,7 @@ export const adminProductsAPI = {
     return handleResponse<{ message: string }>(response);
   },
 
-  bulkUpdate: async (productIds: string[], updates: any): Promise<{ message: string; count: number }> => {
+  bulkUpdate: async (productIds: string[], updates: UpdateProductRequest): Promise<{ message: string; count: number }> => {
     const response = await fetch(`${API_URL}/api/admin/products/bulk`, {
       method: 'PATCH',
       headers: createHeaders(),
@@ -199,7 +199,7 @@ export const adminProductsAPI = {
     return handleResponse<{ message: string; count: number }>(response);
   },
 
-  getByCategory: async (categoryId: string, params?: { page?: number; limit?: number }): Promise<any> => {
+  getByCategory: async (categoryId: string, params?: { page?: number; limit?: number }): Promise<ProductsAdminResponse> => {
     const searchParams = new URLSearchParams();
     if (params?.page) searchParams.append('page', String(params.page));
     if (params?.limit) searchParams.append('limit', String(params.limit));
@@ -211,10 +211,10 @@ export const adminProductsAPI = {
         headers: createHeaders(),
       }
     );
-    return handleResponse(response);
+    return handleResponse<ProductsAdminResponse>(response);
   },
 
-  getByBrand: async (brandId: string, params?: { page?: number; limit?: number }): Promise<any> => {
+  getByBrand: async (brandId: string, params?: { page?: number; limit?: number }): Promise<ProductsAdminResponse> => {
     const searchParams = new URLSearchParams();
     if (params?.page) searchParams.append('page', String(params.page));
     if (params?.limit) searchParams.append('limit', String(params.limit));
@@ -226,7 +226,7 @@ export const adminProductsAPI = {
         headers: createHeaders(),
       }
     );
-    return handleResponse(response);
+    return handleResponse<ProductsAdminResponse>(response);
   },
 };
 
@@ -237,7 +237,8 @@ export const adminCategoriesAPI = {
       method: 'GET',
       headers: createHeaders(),
     });
-    return handleResponse<Category[]>(response);
+    const data = await handleResponse<{ categories: Category[] }>(response);
+    return data.categories;
   },
 
   getById: async (id: string): Promise<Category> => {
@@ -282,7 +283,8 @@ export const adminBrandsAPI = {
       method: 'GET',
       headers: createHeaders(),
     });
-    return handleResponse<Brand[]>(response);
+    const data = await handleResponse<{ brands: Brand[] }>(response);
+    return data.brands;
   },
 
   getById: async (id: string): Promise<Brand> => {

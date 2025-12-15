@@ -17,7 +17,15 @@ export default function CategoriesPage() {
     slug: '',
     description: '',
     image: '',
+    image2: '',
+    image3: '',
   });
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [image2Preview, setImage2Preview] = useState<string | null>(null);
+  const [image3Preview, setImage3Preview] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingImage2, setUploadingImage2] = useState(false);
+  const [uploadingImage3, setUploadingImage3] = useState(false);
 
   useEffect(() => {
     fetchCategories();
@@ -45,10 +53,18 @@ export default function CategoriesPage() {
         slug: category.slug,
         description: category.description || '',
         image: category.image || '',
+        image2: '',
+        image3: '',
       });
+      setImagePreview(category.image || null);
+      setImage2Preview(null);
+      setImage3Preview(null);
     } else {
       setEditingCategory(null);
-      setFormData({ name: '', slug: '', description: '', image: '' });
+      setFormData({ name: '', slug: '', description: '', image: '', image2: '', image3: '' });
+      setImagePreview(null);
+      setImage2Preview(null);
+      setImage3Preview(null);
     }
     setShowModal(true);
   };
@@ -56,7 +72,10 @@ export default function CategoriesPage() {
   const handleCloseModal = () => {
     setShowModal(false);
     setEditingCategory(null);
-    setFormData({ name: '', slug: '', description: '', image: '' });
+    setFormData({ name: '', slug: '', description: '', image: '', image2: '', image3: '' });
+    setImagePreview(null);
+    setImage2Preview(null);
+    setImage3Preview(null);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -71,6 +90,151 @@ export default function CategoriesPage() {
         .replace(/^-|-$/g, '');
       setFormData((prev) => ({ ...prev, slug }));
     }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image size should be less than 5MB');
+      return;
+    }
+
+    try {
+      setUploadingImage(true);
+
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+
+      // TODO: Upload to actual storage service (Cloudinary, S3, etc.)
+      // For now, we'll use a placeholder or base64
+      // In production, you would upload to a service and get back a URL
+
+      // Simulating upload delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // For now, store as base64 (not recommended for production)
+      // In production, upload to cloud storage and save the URL
+      const base64 = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(file);
+      });
+
+      setFormData((prev) => ({ ...prev, image: base64 }));
+    } catch (err) {
+      alert('Failed to upload image');
+      console.error('Image upload error:', err);
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setImagePreview(null);
+    setFormData((prev) => ({ ...prev, image: '' }));
+  };
+
+  const handleImage2Upload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image size should be less than 5MB');
+      return;
+    }
+
+    try {
+      setUploadingImage2(true);
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImage2Preview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      const base64 = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(file);
+      });
+
+      setFormData((prev) => ({ ...prev, image2: base64 }));
+    } catch (err) {
+      alert('Failed to upload image');
+      console.error('Image upload error:', err);
+    } finally {
+      setUploadingImage2(false);
+    }
+  };
+
+  const handleRemoveImage2 = () => {
+    setImage2Preview(null);
+    setFormData((prev) => ({ ...prev, image2: '' }));
+  };
+
+  const handleImage3Upload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image size should be less than 5MB');
+      return;
+    }
+
+    try {
+      setUploadingImage3(true);
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImage3Preview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      const base64 = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.readAsDataURL(file);
+      });
+
+      setFormData((prev) => ({ ...prev, image3: base64 }));
+    } catch (err) {
+      alert('Failed to upload image');
+      console.error('Image upload error:', err);
+    } finally {
+      setUploadingImage3(false);
+    }
+  };
+
+  const handleRemoveImage3 = () => {
+    setImage3Preview(null);
+    setFormData((prev) => ({ ...prev, image3: '' }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -253,16 +417,182 @@ export default function CategoriesPage() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Image URL
+                  Category Image
                 </label>
-                <input
-                  type="url"
-                  name="image"
-                  value={formData.image}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent"
-                  placeholder="https://example.com/image.jpg"
-                />
+
+                {/* Image Preview */}
+                {imagePreview ? (
+                  <div className="relative mb-3">
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="w-full h-48 object-cover rounded-lg border border-gray-200"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleRemoveImage}
+                      className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-rose-400 transition-colors">
+                    <input
+                      type="file"
+                      id="image-upload"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      disabled={uploadingImage}
+                    />
+                    <label
+                      htmlFor="image-upload"
+                      className="cursor-pointer flex flex-col items-center"
+                    >
+                      <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3">
+                        <svg
+                          className="w-6 h-6 text-gray-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                          />
+                        </svg>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-1">
+                        {uploadingImage ? 'Uploading...' : 'Click to upload image'}
+                      </p>
+                      <p className="text-xs text-gray-400">PNG, JPG up to 5MB</p>
+                    </label>
+                  </div>
+                )}
+              </div>
+
+              {/* Additional Images Grid */}
+              <div className="grid grid-cols-2 gap-4">
+                {/* Image 2 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Additional Image 1
+                  </label>
+
+                  {image2Preview ? (
+                    <div className="relative">
+                      <img
+                        src={image2Preview}
+                        alt="Preview 2"
+                        className="w-full h-32 object-cover rounded-lg border border-gray-200"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleRemoveImage2}
+                        className="absolute top-1 right-1 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-rose-400 transition-colors">
+                      <input
+                        type="file"
+                        id="image2-upload"
+                        accept="image/*"
+                        onChange={handleImage2Upload}
+                        className="hidden"
+                        disabled={uploadingImage2}
+                      />
+                      <label
+                        htmlFor="image2-upload"
+                        className="cursor-pointer flex flex-col items-center"
+                      >
+                        <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center mb-2">
+                          <svg
+                            className="w-4 h-4 text-gray-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                            />
+                          </svg>
+                        </div>
+                        <p className="text-xs text-gray-600 mb-1">
+                          {uploadingImage2 ? 'Uploading...' : 'Upload'}
+                        </p>
+                        <p className="text-[10px] text-gray-400">Max 5MB</p>
+                      </label>
+                    </div>
+                  )}
+                </div>
+
+                {/* Image 3 */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Additional Image 2
+                  </label>
+
+                  {image3Preview ? (
+                    <div className="relative">
+                      <img
+                        src={image3Preview}
+                        alt="Preview 3"
+                        className="w-full h-32 object-cover rounded-lg border border-gray-200"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleRemoveImage3}
+                        className="absolute top-1 right-1 p-1.5 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-rose-400 transition-colors">
+                      <input
+                        type="file"
+                        id="image3-upload"
+                        accept="image/*"
+                        onChange={handleImage3Upload}
+                        className="hidden"
+                        disabled={uploadingImage3}
+                      />
+                      <label
+                        htmlFor="image3-upload"
+                        className="cursor-pointer flex flex-col items-center"
+                      >
+                        <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center mb-2">
+                          <svg
+                            className="w-4 h-4 text-gray-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                            />
+                          </svg>
+                        </div>
+                        <p className="text-xs text-gray-600 mb-1">
+                          {uploadingImage3 ? 'Uploading...' : 'Upload'}
+                        </p>
+                        <p className="text-[10px] text-gray-400">Max 5MB</p>
+                      </label>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="flex items-center gap-3 pt-4">
