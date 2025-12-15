@@ -1,0 +1,43 @@
+### Variables
+@baseUrl = http://localhost:5000
+@token = YOUR_TOKEN_HERE
+
+### 1. Login (Run this first to get token)
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "password123"
+}
+
+### 2. Get Cart (requires login)
+GET {{baseUrl}}/api/cart
+Authorization: Bearer {{token}}
+
+### 3. Add Product to Cart (requires login)
+POST {{baseUrl}}/api/cart/items
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "productId": "YOUR_PRODUCT_ID",
+  "quantity": 2
+}
+
+### 4. Update Cart Item (requires login)
+PUT {{baseUrl}}/api/cart/items/YOUR_CART_ITEM_ID
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "quantity": 5
+}
+
+### 5. Remove Item from Cart (requires login)
+DELETE {{baseUrl}}/api/cart/items/YOUR_CART_ITEM_ID
+Authorization: Bearer {{token}}
+
+### 6. Clear Cart (requires login)
+DELETE {{baseUrl}}/api/cart
+Authorization: Bearer {{token}}
