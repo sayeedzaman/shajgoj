@@ -59,7 +59,7 @@ export const authAPI = {
   },
 
   signup: async (data: SignupRequest): Promise<AuthResponse> => {
-    const response = await fetch(`${API_URL}/api/auth/signup`, {
+    const response = await fetch(`${API_URL}/api/auth/register`, {
       method: 'POST',
       headers: createHeaders(),
       body: JSON.stringify(data),

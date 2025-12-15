@@ -115,13 +115,21 @@ export default function Navbar() {
                   )}
                 </>
               ) : (
-                <Link
-                  href="/login"
-                  className="flex items-center space-x-1 text-gray-700 hover:text-red-500 transition-colors"
-                >
-                  <User className="h-6 w-6" />
-                  <span className="text-sm hidden sm:inline">Login</span>
-                </Link>
+                <div className="flex items-center space-x-3">
+                  <Link
+                    href="/login"
+                    className="flex items-center space-x-1 text-gray-700 hover:text-red-500 transition-colors"
+                  >
+                    <User className="h-6 w-6" />
+                    <span className="text-sm hidden sm:inline">Login</span>
+                  </Link>
+                  <Link
+                    href="/signup"
+                    className="hidden sm:inline text-sm text-gray-700 hover:text-red-500 transition-colors"
+                  >
+                    Sign up
+                  </Link>
+                </div>
               )}
             </div>
 
@@ -183,6 +191,24 @@ export default function Navbar() {
             >
               Sale
             </Link>
+            {!user && (
+              <>
+                <Link
+                  href="/login"
+                  className="block text-gray-700 hover:text-red-500"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/signup"
+                  className="block text-gray-700 hover:text-red-500"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Sign up
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}
