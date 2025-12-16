@@ -1,10 +1,11 @@
-import type { Request, Response } from 'express';
+import type { Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import type { AuthRequest } from '../middleware/auth.middleware.js';
 
 const prisma = new PrismaClient();
 
 // Get user's cart
-export const getCart = async (req: Request, res: Response) => {
+export const getCart = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.userId;
 
@@ -104,7 +105,7 @@ export const getCart = async (req: Request, res: Response) => {
 };
 
 // Add item to cart
-export const addToCart = async (req: Request, res: Response) => {
+export const addToCart = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.userId;
     const { productId, quantity = 1 } = req.body;
@@ -244,7 +245,7 @@ export const addToCart = async (req: Request, res: Response) => {
 };
 
 // Update cart item quantity
-export const updateCartItem = async (req: Request, res: Response) => {
+export const updateCartItem = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.userId;
     const { itemId } = req.params;
@@ -331,8 +332,8 @@ export const updateCartItem = async (req: Request, res: Response) => {
   }
 };
 
-// Remove item from cart (by cart item ID)
-export const removeFromCart = async (req: Request, res: Response) => {
+// Remove item from cart
+export const removeFromCart = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.userId;
     const { itemId } = req.params;
@@ -373,58 +374,8 @@ export const removeFromCart = async (req: Request, res: Response) => {
   }
 };
 
-// 🆕 NEW FUNCTION: Remove item from cart by Product ID
-export const removeFromCartByProductId = async (req: Request, res: Response) => {
-  try {
-    const userId = req.user?.userId;
-    const { productId } = req.params;
-
-    if (!userId) {
-      return res.status(401).json({ error: 'User not authenticated' });
-    }
-
-    if (!productId) {
-      return res.status(400).json({ error: 'Product ID is required' });
-    }
-
-    // Find user's cart
-    const cart = await prisma.cart.findUnique({
-      where: { userId },
-    });
-
-    if (!cart) {
-      return res.status(404).json({ error: 'Cart not found' });
-    }
-
-    // Find cart item with this product
-    const cartItem = await prisma.cartItem.findFirst({
-      where: {
-        cartId: cart.id,
-        productId: productId,
-      },
-    });
-
-    if (!cartItem) {
-      return res.status(404).json({ error: 'Product not found in cart' });
-    }
-
-    // Delete cart item
-    await prisma.cartItem.delete({
-      where: { id: cartItem.id },
-    });
-
-    res.json({ 
-      message: 'Product removed from cart',
-      productId: productId
-    });
-  } catch (error) {
-    console.error('Remove from cart by product ID error:', error);
-    res.status(500).json({ error: 'Failed to remove product from cart' });
-  }
-};
-
 // Clear entire cart
-export const clearCart = async (req: Request, res: Response) => {
+export const clearCart = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.userId;
 

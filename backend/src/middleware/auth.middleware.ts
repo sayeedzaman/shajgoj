@@ -4,6 +4,14 @@ import { JWT_SECRET } from '../config/env.js';
 import type { JwtPayload } from '../types/express.js';
 import type { Role } from '@prisma/client';
 
+// Extended Request type with user information
+export interface AuthRequest extends Request {
+  user?: {
+    userId: string;
+    role: Role;
+  };
+}
+
 export const authenticate = (
   req: Request,
   res: Response,
@@ -47,3 +55,7 @@ export const authorize = (...roles: Role[]) => {
     next();
   };
 };
+
+// Alias for backward compatibility
+export const authenticateToken = authenticate;
+export const checkAdmin = authorize('ADMIN');
