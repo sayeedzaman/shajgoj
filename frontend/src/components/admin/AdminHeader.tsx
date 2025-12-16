@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Search, Bell, Menu, User, Settings, LogOut } from 'lucide-react';
+import Link from 'next/link';
+import { Search, Bell, Menu, User, Settings, LogOut, Home } from 'lucide-react';
 import { useAuth } from '@/src/lib/AuthContext';
 
 interface AdminHeaderProps {
@@ -53,6 +54,24 @@ export default function AdminHeader({ onMenuClick }: AdminHeaderProps) {
 
         {/* Right Section */}
         <div className="flex items-center gap-3">
+          {/* View Website Button */}
+          <Link
+            href="/"
+            className="hidden sm:flex items-center gap-2 px-4 py-2 bg-linear-to-r from-red-500 to-pink-600 text-white rounded-lg hover:from-red-600 hover:to-pink-700 transition-all font-medium text-sm"
+          >
+            <Home className="w-4 h-4" />
+            <span>View Website</span>
+          </Link>
+
+          {/* Mobile Home Button */}
+          <Link
+            href="/"
+            className="sm:hidden p-2 bg-linear-to-r from-red-500 to-pink-600 text-white rounded-lg hover:from-red-600 hover:to-pink-700 transition-all"
+            title="View Website"
+          >
+            <Home className="w-5 h-5" />
+          </Link>
+
           {/* Notifications */}
           <div className="relative">
             <button
