@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
 const generateOrderNumber = (): string => {
   const timestamp = Date.now().toString();
   const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-  return ORD-${timestamp}-${random};
+  return `ORD-${timestamp}-${random}`;
 };
 
 // Create new order
@@ -51,12 +51,12 @@ export const createOrder = async (req: AuthRequest, res: Response): Promise<any>
       });
 
       if (!product) {
-        return res.status(404).json({ error: Product ${item.productId} not found });
+        return res.status(404).json({ error: `Product ${item.productId} not found` });
       }
 
       if (product.stock < item.quantity) {
         return res.status(400).json({
-          error: Insufficient stock for ${product.name}. Only ${product.stock} available,
+          error: `Insufficient stock for ${product.name}. Only ${product.stock} available`,
         });
       }
 
