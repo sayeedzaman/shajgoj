@@ -62,6 +62,13 @@ Available routes:
   GET    /api/brands
 
 🔐 Admin Routes (Require Authentication)
+  Users:
+    GET    /api/auth/admin/users
+    GET    /api/auth/admin/users/:id
+    PUT    /api/auth/admin/users/:id
+    PUT    /api/auth/admin/users/:id/role
+    DELETE /api/auth/admin/users/:id
+
   Categories:
     POST   /api/categories
     PUT    /api/categories/:id
