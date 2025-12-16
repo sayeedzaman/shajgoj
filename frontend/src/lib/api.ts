@@ -8,6 +8,7 @@ import type {
   Cart,
   AddToCartRequest,
   UpdateCartItemRequest,
+  User,
   Category,
   Brand,
 } from '@/src/types/index';
@@ -67,12 +68,12 @@ export const authAPI = {
     return handleResponse<AuthResponse>(response);
   },
 
-  getProfile: async (): Promise<{ user: any }> => {
+  getProfile: async (): Promise<{ user: User }> => {
     const response = await fetch(`${API_URL}/api/auth/profile`, {
       method: 'GET',
       headers: createHeaders(true),
     });
-    return handleResponse<{ user: any }>(response);
+    return handleResponse<{ user: User }>(response);
   },
 };
 

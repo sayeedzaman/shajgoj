@@ -21,7 +21,16 @@ const nextConfig: NextConfig = {
   
   // Optional: Configure image domains if you'll use next/image
   images: {
-    domains: ['localhost'],
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+      },
+      {
+        protocol: 'https',
+        hostname: '**', // Allows any HTTPS domain (for production images from Cloudinary, S3, etc.)
+      },
+    ],
   },
 };
 

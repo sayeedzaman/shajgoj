@@ -57,7 +57,7 @@ export const getCategoryById = async (req: Request, res: Response): Promise<void
 // Create category (Admin only)
 export const createCategory = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { name, slug, description, image } = req.body;
+    const { name, slug, description, image, image2, image3 } = req.body;
 
     if (!name || !slug) {
       res.status(400).json({
@@ -82,6 +82,8 @@ export const createCategory = async (req: Request, res: Response): Promise<void>
         slug,
         description,
         image,
+        image2,
+        image3,
       },
     });
 
@@ -99,7 +101,7 @@ export const createCategory = async (req: Request, res: Response): Promise<void>
 export const updateCategory = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
-    const { name, slug, description, image } = req.body;
+    const { name, slug, description, image, image2, image3 } = req.body;
 
     if (!id) {
       res.status(400).json({ error: 'Category ID is required' });
@@ -132,6 +134,8 @@ export const updateCategory = async (req: Request, res: Response): Promise<void>
     if (slug !== undefined) updateData.slug = slug;
     if (description !== undefined) updateData.description = description;
     if (image !== undefined) updateData.image = image;
+    if (image2 !== undefined) updateData.image2 = image2;
+    if (image3 !== undefined) updateData.image3 = image3;
 
     const category = await prisma.category.update({
       where: { id },

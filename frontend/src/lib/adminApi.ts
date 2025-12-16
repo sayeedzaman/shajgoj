@@ -2,7 +2,17 @@ import type {
   Product,
   Category,
   Brand,
+  Review,
 } from '@/src/types/index';
+
+// OrderItem interface for admin
+export interface OrderItem {
+  id: string;
+  quantity: number;
+  price: number;
+  productId: string;
+  product: Product;
+}
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
@@ -63,8 +73,8 @@ export interface ProductAdminDetail extends Product {
     totalUnitsSold: number;
     totalRevenue: number;
   };
-  reviews: any[];
-  orderItems: any[];
+  reviews: Review[];
+  orderItems: OrderItem[];
 }
 
 export interface InventoryStats {
@@ -109,6 +119,8 @@ export interface CreateCategoryRequest {
   slug: string;
   description?: string;
   image?: string;
+  image2?: string;
+  image3?: string;
 }
 
 export interface CreateBrandRequest {
