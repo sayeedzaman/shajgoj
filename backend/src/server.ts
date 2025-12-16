@@ -7,6 +7,7 @@ import cartRoutes from './routes/cart.route.js';
 import categoryRoutes from './routes/category.routes.js';
 import brandRoutes from './routes/brand.routes.js';
 import adminProductRoutes from './routes/admin.product.routes.js';
+import orderRoutes from './routes/order.routes.js';
 
 dotenv.config();
 
@@ -27,6 +28,7 @@ app.use('/api/cart', cartRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/brands', brandRoutes);
 app.use('/api/admin/products', adminProductRoutes);
+app.use('/api/orders', orderRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
