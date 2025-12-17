@@ -8,7 +8,6 @@ import categoryRoutes from './routes/category.routes.js';
 import brandRoutes from './routes/brand.routes.js';
 import adminProductRoutes from './routes/admin.product.routes.js';
 import orderRoutes from './routes/order.routes.js';
-import addressRoutes from './routes/address.routes.js';
 
 dotenv.config();
 
@@ -30,7 +29,6 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/brands', brandRoutes);
 app.use('/api/admin/products', adminProductRoutes);
 app.use('/api/orders', orderRoutes);
-app.use('/api/addresses', addressRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -99,13 +97,6 @@ Available routes:
     PUT    /api/orders/:id/cancel
     GET    /api/orders/admin/all
     PUT    /api/orders/admin/:id
-
-  Addresses:
-    GET    /api/addresses
-    GET    /api/addresses/:id
-    POST   /api/addresses
-    PUT    /api/addresses/:id
-    DELETE /api/addresses/:id
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   `);
 });
