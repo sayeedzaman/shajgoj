@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { productsAPI, categoriesAPI, brandsAPI } from '@/src/lib/api';
 import { Product, Category, Brand } from '@/src/types/index';
 import ProductCard from '@/src/components/products/ProductCard';
+import ErrorState from '@/src/components/common/ErrorState';
+import EmptyState from '@/src/components/common/EmptyState';
 import { ChevronDown, Filter, X, SlidersHorizontal } from 'lucide-react';
 
 export default function ProductsPage() {
@@ -11,6 +13,7 @@ export default function ProductsPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
 
   // Filter states
@@ -34,6 +37,7 @@ export default function ProductsPage() {
   const fetchProducts = async () => {
     try {
       setLoading(true);
+      setError(null);
       const response = await productsAPI.getAll({
         categoryId: selectedCategory || undefined,
         brandId: selectedBrand || undefined,
@@ -48,6 +52,8 @@ export default function ProductsPage() {
       setTotalPages(response.pagination.totalPages);
     } catch (error) {
       console.error('Error fetching products:', error);
+      setError('No products available to show');
+      setProducts([]);
     } finally {
       setLoading(false);
     }
@@ -237,7 +243,17 @@ export default function ProductsPage() {
             </div>
 
             {/* Products Grid */}
-            {loading ? (
+            {error ? (
+              <div className="bg-white rounded-lg p-12 text-center">
+                <p className="text-gray-600">{error}</p>
+                <button
+                  onClick={fetchProducts}
+                  className="mt-4 px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  Try Again
+                </button>
+              </div>
+            ) : loading ? (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {[...Array(12)].map((_, i) => (
                   <div
@@ -304,18 +320,12 @@ export default function ProductsPage() {
                 )}
               </>
             ) : (
-              <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-                <p className="text-gray-500 text-lg mb-2">No products found</p>
-                <p className="text-gray-400 text-sm mb-4">
-                  Try adjusting your filters or search criteria
-                </p>
-                <button
-                  onClick={clearFilters}
-                  className="text-red-600 hover:text-red-700 font-medium text-sm"
-                >
-                  Clear all filters
-                </button>
-              </div>
+              <EmptyState
+                title="No Products Found"
+                message="We couldn't find any products matching your filters. Try adjusting your search criteria."
+                actionLabel="Clear Filters"
+                actionHref="#"
+              />
             )}
           </main>
         </div>

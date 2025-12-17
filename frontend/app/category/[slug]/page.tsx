@@ -16,6 +16,7 @@ export default function CategoryPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
 
   // Filter states
@@ -46,6 +47,7 @@ export default function CategoryPage() {
       setCategory(foundCategory || null);
     } catch (error) {
       console.error('Error fetching category:', error);
+      setError('No categories available to show');
     }
   };
 
@@ -54,6 +56,7 @@ export default function CategoryPage() {
 
     try {
       setLoading(true);
+      setError(null);
       const response = await productsAPI.getAll({
         categoryId: category.id,
         brandId: selectedBrand || undefined,
@@ -68,6 +71,8 @@ export default function CategoryPage() {
       setTotalPages(response.pagination.totalPages);
     } catch (error) {
       console.error('Error fetching products:', error);
+      setError('No products available to show');
+      setProducts([]);
     } finally {
       setLoading(false);
     }
@@ -255,7 +260,17 @@ export default function CategoryPage() {
             </div>
 
             {/* Products Grid */}
-            {loading ? (
+            {error ? (
+              <div className="bg-white rounded-lg p-12 text-center">
+                <p className="text-gray-600">{error}</p>
+                <button
+                  onClick={fetchProducts}
+                  className="mt-4 px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  Try Again
+                </button>
+              </div>
+            ) : loading ? (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {[...Array(12)].map((_, i) => (
                   <div
