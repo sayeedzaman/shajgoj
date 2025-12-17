@@ -4,21 +4,20 @@ import Link from 'next/link';
 import { Product } from '@/src/types/index';
 import { Heart, ShoppingCart, Star } from 'lucide-react';
 import { useState } from 'react';
+import { useCart } from '@/src/lib/CartContext';
 
 interface ProductCardProps {
   product: Product;
-  onAddToCart?: (productId: string) => void;
-  isAddingToCart?: boolean;
   showAddToCart?: boolean;
 }
 
 export default function ProductCard({
   product,
-  onAddToCart,
-  isAddingToCart = false,
   showAddToCart = true,
 }: ProductCardProps) {
+  const { addToCart, isLoading } = useCart();
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
   const displayPrice = product.salePrice || product.price;
   const hasDiscount = product.salePrice && product.salePrice < product.price;
   const discountPercent = hasDiscount
@@ -34,10 +33,15 @@ export default function ProductCard({
     setIsWishlisted(!isWishlisted);
   };
 
-  const handleAddToCart = (e: React.MouseEvent) => {
+  const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
-    if (onAddToCart) {
-      onAddToCart(product.id);
+    setIsAddingToCart(true);
+    try {
+      await addToCart(product.id, 1);
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+    } finally {
+      setIsAddingToCart(false);
     }
   };
 
