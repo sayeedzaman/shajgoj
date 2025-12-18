@@ -5,13 +5,70 @@ import type {
   Review,
 } from '@/src/types/index';
 
-// OrderItem interface for admin
+// Order Types for Admin
 export interface OrderItem {
   id: string;
   quantity: number;
   price: number;
   productId: string;
-  product: Product;
+  product: {
+    id: string;
+    name: string;
+    slug: string;
+    images: string[];
+    price: number;
+    salePrice: number | null;
+  };
+}
+
+export interface Order {
+  id: string;
+  orderNumber: string;
+  status: 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
+  total: number;
+  createdAt: string;
+  updatedAt: string;
+  user: {
+    id: string;
+    firstName: string | null;
+    lastName: string | null;
+    email: string;
+    phone: string | null;
+  };
+  address: {
+    id: string;
+    fullName: string;
+    phone: string;
+    addressLine1: string;
+    addressLine2?: string | null;
+    city: string;
+    postalCode: string;
+  };
+  items: OrderItem[];
+}
+
+export interface Customer {
+  id: string;
+  firstName: string | null;
+  lastName: string | null;
+  email: string;
+  phone: string | null;
+  role: 'USER' | 'ADMIN';
+  createdAt: string;
+  updatedAt: string;
+  _count: {
+    orders: number;
+    reviews: number;
+  };
+  totalSpent?: number;
+}
+
+export interface PaginationResponse {
+  currentPage: number;
+  totalPages: number;
+  total: number;
+  hasNext: boolean;
+  hasPrev: boolean;
 }
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
@@ -112,7 +169,7 @@ export interface CreateProductRequest {
   brandSlug?: string;
 }
 
-export interface UpdateProductRequest extends Partial<CreateProductRequest> {}
+export type UpdateProductRequest = Partial<CreateProductRequest>;
 
 export interface CreateCategoryRequest {
   name: string;
@@ -334,10 +391,95 @@ export const adminBrandsAPI = {
   },
 };
 
+// Admin Orders API
+export const adminOrdersAPI = {
+  getAll: async (params?: {
+    page?: number;
+    limit?: number;
+    status?: string;
+    search?: string;
+  }): Promise<{ orders: Order[]; pagination: PaginationResponse }> => {
+    const searchParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          searchParams.append(key, String(value));
+        }
+      });
+    }
+
+    const response = await fetch(
+      `${API_URL}/api/orders/admin/all${searchParams.toString() ? `?${searchParams.toString()}` : ''}`,
+      {
+        method: 'GET',
+        headers: createHeaders(),
+      }
+    );
+    return handleResponse<{ orders: Order[]; pagination: PaginationResponse }>(response);
+  },
+
+  getById: async (id: string): Promise<Order> => {
+    const response = await fetch(`${API_URL}/api/orders/${id}`, {
+      method: 'GET',
+      headers: createHeaders(),
+    });
+    return handleResponse<Order>(response);
+  },
+
+  updateStatus: async (
+    id: string,
+    status: 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED'
+  ): Promise<{ message: string; order: Order }> => {
+    const response = await fetch(`${API_URL}/api/orders/admin/${id}`, {
+      method: 'PUT',
+      headers: createHeaders(),
+      body: JSON.stringify({ status }),
+    });
+    return handleResponse<{ message: string; order: Order }>(response);
+  },
+};
+
+// Admin Customers API
+export const adminCustomersAPI = {
+  getAll: async (params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+  }): Promise<{ customers: Customer[]; pagination: PaginationResponse }> => {
+    const searchParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          searchParams.append(key, String(value));
+        }
+      });
+    }
+
+    const response = await fetch(
+      `${API_URL}/api/admin/customers${searchParams.toString() ? `?${searchParams.toString()}` : ''}`,
+      {
+        method: 'GET',
+        headers: createHeaders(),
+      }
+    );
+    return handleResponse<{ customers: Customer[]; pagination: PaginationResponse }>(response);
+  },
+
+  getById: async (id: string): Promise<Customer & { orders: Order[] }> => {
+    const response = await fetch(`${API_URL}/api/admin/customers/${id}`, {
+      method: 'GET',
+      headers: createHeaders(),
+    });
+    return handleResponse<Customer & { orders: Order[] }>(response);
+  },
+};
+
 export const adminAPI = {
   products: adminProductsAPI,
   categories: adminCategoriesAPI,
   brands: adminBrandsAPI,
+  orders: adminOrdersAPI,
+  customers: adminCustomersAPI,
 };
 
 export default adminAPI;

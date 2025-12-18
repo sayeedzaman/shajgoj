@@ -1,93 +1,81 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Package, Search, Filter, Eye, Truck, CheckCircle, XCircle, Clock, ChevronDown } from 'lucide-react';
+import { ShoppingBag, Search, Filter, ChevronDown, Eye, Package } from 'lucide-react';
+import { adminAPI, type Order } from '@/src/lib/adminApi';
 
-interface Order {
-  id: string;
-  orderNumber: string;
-  customerName: string;
-  customerEmail: string;
-  total: number;
-  status: 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
-  itemCount: number;
-  createdAt: string;
-  shippingAddress: string;
-}
-
-export default function OrdersPage() {
+export default function OrderManagementPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('ALL');
+  const [statusFilter, setStatusFilter] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const ordersPerPage = 10;
+  const [totalPages, setTotalPages] = useState(1);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [showModal, setShowModal] = useState(false);
 
-  // Mock data - replace with actual API call
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      const mockOrders: Order[] = [
-        {
-          id: '1',
-          orderNumber: 'ORD-2025-001',
-          customerName: 'John Doe',
-          customerEmail: 'john@example.com',
-          total: 2500,
-          status: 'PENDING',
-          itemCount: 3,
-          createdAt: '2025-12-17T10:30:00Z',
-          shippingAddress: 'Dhaka, Bangladesh'
-        },
-        {
-          id: '2',
-          orderNumber: 'ORD-2025-002',
-          customerName: 'Jane Smith',
-          customerEmail: 'jane@example.com',
-          total: 1800,
-          status: 'PROCESSING',
-          itemCount: 2,
-          createdAt: '2025-12-16T14:20:00Z',
-          shippingAddress: 'Chittagong, Bangladesh'
-        },
-        {
-          id: '3',
-          orderNumber: 'ORD-2025-003',
-          customerName: 'Bob Johnson',
-          customerEmail: 'bob@example.com',
-          total: 3200,
-          status: 'SHIPPED',
-          itemCount: 5,
-          createdAt: '2025-12-15T09:15:00Z',
-          shippingAddress: 'Sylhet, Bangladesh'
-        },
-        {
-          id: '4',
-          orderNumber: 'ORD-2025-004',
-          customerName: 'Alice Williams',
-          customerEmail: 'alice@example.com',
-          total: 1500,
-          status: 'DELIVERED',
-          itemCount: 2,
-          createdAt: '2025-12-14T16:45:00Z',
-          shippingAddress: 'Rajshahi, Bangladesh'
-        },
-        {
-          id: '5',
-          orderNumber: 'ORD-2025-005',
-          customerName: 'Charlie Brown',
-          customerEmail: 'charlie@example.com',
-          total: 950,
-          status: 'CANCELLED',
-          itemCount: 1,
-          createdAt: '2025-12-13T11:30:00Z',
-          shippingAddress: 'Khulna, Bangladesh'
-        },
-      ];
-      setOrders(mockOrders);
+    fetchOrders();
+  }, [currentPage, searchQuery, statusFilter]);
+
+  const fetchOrders = async () => {
+    try {
+      setLoading(true);
+      const response = await adminAPI.orders.getAll({
+        page: currentPage,
+        limit: 10,
+        search: searchQuery || undefined,
+        status: statusFilter || undefined,
+      });
+      setOrders(response.orders);
+      setTotalPages(response.pagination.totalPages);
+    } catch (error) {
+      showError('Failed to fetch orders');
+      console.error(error);
+    } finally {
       setLoading(false);
-    }, 1000);
-  }, []);
+    }
+  };
+
+  const showSuccess = (message: string) => {
+    setSuccessMessage(message);
+    setTimeout(() => setSuccessMessage(''), 3000);
+  };
+
+  const showError = (message: string) => {
+    setErrorMessage(message);
+    setTimeout(() => setErrorMessage(''), 3000);
+  };
+
+  const handleStatusUpdate = async (orderId: string, newStatus: Order['status']) => {
+    try {
+      await adminAPI.orders.updateStatus(orderId, newStatus);
+      showSuccess('Order status updated successfully');
+      fetchOrders();
+      if (selectedOrder?.id === orderId) {
+        const updatedOrder = await adminAPI.orders.getById(orderId);
+        setSelectedOrder(updatedOrder);
+      }
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        showError(error.message);
+      } else {
+        showError('Failed to update order status');
+      }
+    }
+  };
+
+  const viewOrderDetails = async (order: Order) => {
+    try {
+      const fullOrder = await adminAPI.orders.getById(order.id);
+      setSelectedOrder(fullOrder);
+      setShowModal(true);
+    } catch (error) {
+      showError('Failed to load order details');
+    }
+  };
 
   const getStatusBadge = (status: Order['status']) => {
     const styles = {
@@ -98,46 +86,21 @@ export default function OrdersPage() {
       CANCELLED: 'bg-red-100 text-red-800 border-red-200',
     };
 
-    const icons = {
-      PENDING: Clock,
-      PROCESSING: Package,
-      SHIPPED: Truck,
-      DELIVERED: CheckCircle,
-      CANCELLED: XCircle,
-    };
-
-    const Icon = icons[status];
-
     return (
-      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border ${styles[status]}`}>
-        <Icon className="w-3.5 h-3.5" />
+      <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium border ${styles[status]}`}>
         {status}
       </span>
     );
   };
 
-  const filteredOrders = orders.filter(order => {
-    const matchesSearch =
-      order.orderNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.customerEmail.toLowerCase().includes(searchQuery.toLowerCase());
-
-    const matchesStatus = statusFilter === 'ALL' || order.status === statusFilter;
-
-    return matchesSearch && matchesStatus;
-  });
-
-  const indexOfLastOrder = currentPage * ordersPerPage;
-  const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
-  const currentOrders = filteredOrders.slice(indexOfFirstOrder, indexOfLastOrder);
-  const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
-
-  const orderStats = {
-    total: orders.length,
-    pending: orders.filter(o => o.status === 'PENDING').length,
-    processing: orders.filter(o => o.status === 'PROCESSING').length,
-    shipped: orders.filter(o => o.status === 'SHIPPED').length,
-    delivered: orders.filter(o => o.status === 'DELIVERED').length,
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   };
 
   return (
@@ -145,47 +108,38 @@ export default function OrdersPage() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-          <Package className="w-8 h-8 text-red-600" />
-          Orders Management
+          <ShoppingBag className="w-8 h-8 text-red-600" />
+          Order Management
         </h1>
-        <p className="text-gray-600 mt-2">View and manage customer orders</p>
+        <p className="text-gray-600 mt-2">Manage customer orders and fulfillment</p>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <p className="text-sm text-gray-600">Total Orders</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{orderStats.total}</p>
+      {/* Success/Error Messages */}
+      {successMessage && (
+        <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg">
+          {successMessage}
         </div>
-        <div className="bg-yellow-50 rounded-lg border border-yellow-200 p-4">
-          <p className="text-sm text-yellow-800">Pending</p>
-          <p className="text-2xl font-bold text-yellow-900 mt-1">{orderStats.pending}</p>
+      )}
+      {errorMessage && (
+        <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
+          {errorMessage}
         </div>
-        <div className="bg-blue-50 rounded-lg border border-blue-200 p-4">
-          <p className="text-sm text-blue-800">Processing</p>
-          <p className="text-2xl font-bold text-blue-900 mt-1">{orderStats.processing}</p>
-        </div>
-        <div className="bg-purple-50 rounded-lg border border-purple-200 p-4">
-          <p className="text-sm text-purple-800">Shipped</p>
-          <p className="text-2xl font-bold text-purple-900 mt-1">{orderStats.shipped}</p>
-        </div>
-        <div className="bg-green-50 rounded-lg border border-green-200 p-4">
-          <p className="text-sm text-green-800">Delivered</p>
-          <p className="text-2xl font-bold text-green-900 mt-1">{orderStats.delivered}</p>
-        </div>
-      </div>
+      )}
 
       {/* Filters */}
       <div className="bg-white rounded-lg border border-gray-200 p-4">
-        <div className="flex flex-col md:flex-row gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Search */}
-          <div className="flex-1 relative">
+          <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
               type="text"
-              placeholder="Search by order number, customer name, or email..."
+              placeholder="Search by order number or customer..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
             />
           </div>
@@ -195,10 +149,13 @@ export default function OrdersPage() {
             <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 appearance-none bg-white"
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 appearance-none bg-white"
             >
-              <option value="ALL">All Status</option>
+              <option value="">All Status</option>
               <option value="PENDING">Pending</option>
               <option value="PROCESSING">Processing</option>
               <option value="SHIPPED">Shipped</option>
@@ -217,9 +174,9 @@ export default function OrdersPage() {
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
             <p className="text-gray-600 mt-4">Loading orders...</p>
           </div>
-        ) : currentOrders.length === 0 ? (
+        ) : orders.length === 0 ? (
           <div className="p-12 text-center">
-            <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+            <ShoppingBag className="w-16 h-16 text-gray-300 mx-auto mb-4" />
             <p className="text-gray-600">No orders found</p>
           </div>
         ) : (
@@ -235,7 +192,7 @@ export default function OrdersPage() {
                       Customer
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Items
+                      Date
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Total
@@ -244,47 +201,52 @@ export default function OrdersPage() {
                       Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Date
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {currentOrders.map((order) => (
+                  {orders.map((order) => (
                     <tr key={order.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">{order.orderNumber}</div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="text-sm font-medium text-gray-900">{order.customerName}</div>
-                        <div className="text-sm text-gray-500">{order.customerEmail}</div>
+                        <div className="text-sm text-gray-900">
+                          {order.user.firstName} {order.user.lastName}
+                        </div>
+                        <div className="text-sm text-gray-500">{order.user.email}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{order.itemCount} items</div>
+                        <div className="text-sm text-gray-900">{formatDate(order.createdAt)}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-semibold text-gray-900">৳{order.total.toFixed(2)}</div>
+                        <div className="text-sm font-bold text-red-600">৳{order.total.toFixed(2)}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         {getStatusBadge(order.status)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
-                          {new Date(order.createdAt).toLocaleDateString()}
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => viewOrderDetails(order)}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="View Details"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <select
+                            value={order.status}
+                            onChange={(e) => handleStatusUpdate(order.id, e.target.value as Order['status'])}
+                            className="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-red-500"
+                          >
+                            <option value="PENDING">Pending</option>
+                            <option value="PROCESSING">Processing</option>
+                            <option value="SHIPPED">Shipped</option>
+                            <option value="DELIVERED">Delivered</option>
+                            <option value="CANCELLED">Cancelled</option>
+                          </select>
                         </div>
-                        <div className="text-xs text-gray-500">
-                          {new Date(order.createdAt).toLocaleTimeString()}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right">
-                        <button
-                          className="inline-flex items-center gap-1 px-3 py-1 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
-                        >
-                          <Eye className="w-4 h-4" />
-                          View
-                        </button>
                       </td>
                     </tr>
                   ))}
@@ -296,7 +258,7 @@ export default function OrdersPage() {
             {totalPages > 1 && (
               <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
                 <div className="text-sm text-gray-600">
-                  Showing {indexOfFirstOrder + 1} to {Math.min(indexOfLastOrder, filteredOrders.length)} of {filteredOrders.length} orders
+                  Page {currentPage} of {totalPages}
                 </div>
                 <div className="flex gap-2">
                   <button
@@ -306,19 +268,6 @@ export default function OrdersPage() {
                   >
                     Previous
                   </button>
-                  {[...Array(totalPages)].map((_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setCurrentPage(i + 1)}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium ${
-                        currentPage === i + 1
-                          ? 'bg-red-600 text-white'
-                          : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
-                      }`}
-                    >
-                      {i + 1}
-                    </button>
-                  ))}
                   <button
                     onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                     disabled={currentPage === totalPages}
@@ -332,6 +281,172 @@ export default function OrdersPage() {
           </>
         )}
       </div>
+
+      {/* Order Details Modal */}
+      {showModal && selectedOrder && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-white rounded-lg max-w-4xl w-full my-8">
+            <div className="flex justify-between items-center p-6 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-900">
+                Order Details - {selectedOrder.orderNumber}
+              </h2>
+              <button
+                onClick={() => setShowModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+              {/* Order Info Grid */}
+              <div className="grid grid-cols-2 gap-6">
+                {/* Customer Information */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h3 className="text-sm font-semibold text-gray-700 mb-3">Customer Information</h3>
+                  <div className="space-y-2 text-sm">
+                    <div>
+                      <span className="text-gray-600">Name:</span>
+                      <span className="ml-2 font-medium text-gray-900">
+                        {selectedOrder.user.firstName} {selectedOrder.user.lastName}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Email:</span>
+                      <span className="ml-2 font-medium text-gray-900">{selectedOrder.user.email}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Phone:</span>
+                      <span className="ml-2 font-medium text-gray-900">{selectedOrder.user.phone || 'N/A'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Shipping Address */}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h3 className="text-sm font-semibold text-gray-700 mb-3">Shipping Address</h3>
+                  <div className="space-y-1 text-sm text-gray-900">
+                    <p className="font-medium">{selectedOrder.address.fullName}</p>
+                    <p>{selectedOrder.address.phone}</p>
+                    <p>{selectedOrder.address.addressLine1}</p>
+                    {selectedOrder.address.addressLine2 && <p>{selectedOrder.address.addressLine2}</p>}
+                    <p>{selectedOrder.address.city}, {selectedOrder.address.postalCode}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Order Status & Dates */}
+              <div className="grid grid-cols-3 gap-4">
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h3 className="text-sm font-semibold text-gray-700 mb-2">Status</h3>
+                  {getStatusBadge(selectedOrder.status)}
+                </div>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h3 className="text-sm font-semibold text-gray-700 mb-2">Order Date</h3>
+                  <p className="text-sm text-gray-900">{formatDate(selectedOrder.createdAt)}</p>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h3 className="text-sm font-semibold text-gray-700 mb-2">Last Updated</h3>
+                  <p className="text-sm text-gray-900">{formatDate(selectedOrder.updatedAt)}</p>
+                </div>
+              </div>
+
+              {/* Order Items */}
+              <div>
+                <h3 className="text-sm font-semibold text-gray-700 mb-3">Order Items</h3>
+                <div className="border border-gray-200 rounded-lg overflow-hidden">
+                  <table className="w-full">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Quantity</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200">
+                      {selectedOrder.items.map((item) => (
+                        <tr key={item.id}>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-3">
+                              <div className="w-12 h-12 bg-gray-100 rounded overflow-hidden flex-shrink-0">
+                                {item.product.images && item.product.images[0] ? (
+                                  <img
+                                    src={item.product.images[0]}
+                                    alt={item.product.name}
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center">
+                                    <Package className="w-6 h-6 text-gray-400" />
+                                  </div>
+                                )}
+                              </div>
+                              <div>
+                                <div className="text-sm font-medium text-gray-900">{item.product.name}</div>
+                                <div className="text-xs text-gray-500">{item.product.slug}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-900">৳{item.price.toFixed(2)}</td>
+                          <td className="px-4 py-3 text-sm text-gray-900">{item.quantity}</td>
+                          <td className="px-4 py-3 text-sm font-bold text-red-600">
+                            ৳{(item.price * item.quantity).toFixed(2)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Order Summary */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Subtotal:</span>
+                    <span className="font-medium text-gray-900">৳{selectedOrder.total.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-base font-bold pt-2 border-t border-gray-200">
+                    <span className="text-gray-900">Total:</span>
+                    <span className="text-red-600">৳{selectedOrder.total.toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Update Status */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h3 className="text-sm font-semibold text-gray-700 mb-3">Update Order Status</h3>
+                <div className="flex gap-2">
+                  {['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'].map((status) => (
+                    <button
+                      key={status}
+                      onClick={() => handleStatusUpdate(selectedOrder.id, status as Order['status'])}
+                      disabled={selectedOrder.status === status}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        selectedOrder.status === status
+                          ? 'bg-red-600 text-white cursor-not-allowed'
+                          : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                      }`}
+                    >
+                      {status}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 p-6 border-t border-gray-200">
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
