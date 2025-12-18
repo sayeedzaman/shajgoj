@@ -89,6 +89,14 @@ Available routes:
     PUT    /api/admin/products/:id
     PATCH  /api/admin/products/bulk
     DELETE /api/admin/products/:id
+
+  Orders:
+    POST   /api/orders
+    GET    /api/orders
+    GET    /api/orders/:id
+    PUT    /api/orders/:id/cancel
+    GET    /api/orders/admin/all
+    PUT    /api/orders/admin/:id
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   `);
 });
