@@ -28,9 +28,13 @@ export default function CustomerManagementPage() {
       });
       setCustomers(response.customers);
       setTotalPages(response.pagination.totalPages);
+      setErrorMessage(''); // Clear any previous errors
     } catch (error) {
-      showError('Failed to fetch customers. API endpoint may not be implemented yet.');
-      console.error(error);
+      // API endpoint not implemented yet - show friendly message
+      setCustomers([]);
+      setTotalPages(1);
+      showError('Customer management API is not yet available. This feature will be enabled once the backend endpoint is implemented.');
+      console.warn('Customer API not available:', error);
     } finally {
       setLoading(false);
     }
@@ -109,9 +113,16 @@ export default function CustomerManagementPage() {
         ) : filteredCustomers.length === 0 ? (
           <div className="p-12 text-center">
             <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-600">No customers found</p>
+            <p className="text-gray-600 font-semibold mb-2">No customers found</p>
             <p className="text-sm text-gray-500 mt-2">
-              {errorMessage ? 'Backend API endpoint may not be implemented yet' : 'Try adjusting your search'}
+              {errorMessage ? (
+                <>
+                  The customer management API endpoint needs to be implemented.<br />
+                  <span className="text-xs mt-1 block">Expected endpoint: GET /api/admin/customers</span>
+                </>
+              ) : (
+                'Try adjusting your search'
+              )}
             </p>
           </div>
         ) : (

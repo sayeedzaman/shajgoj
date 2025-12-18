@@ -100,16 +100,17 @@ export const getAllProducts = async (req: Request, res: Response) => {
   }
 };
 
-// Get single product by ID
+// Get single product by ID or Slug
 export const getProductById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
     if (!id) {
-      return res.status(400).json({ error: 'Product ID is required' });
+      return res.status(400).json({ error: 'Product ID or slug is required' });
     }
 
-    const product = await prisma.product.findUnique({
+    // Try to find by ID first, then by slug
+    let product = await prisma.product.findUnique({
       where: { id },
       include: {
         category: {
@@ -141,6 +142,42 @@ export const getProductById = async (req: Request, res: Response) => {
         },
       },
     });
+
+    // If not found by ID, try finding by slug
+    if (!product) {
+      product = await prisma.product.findUnique({
+        where: { slug: id },
+        include: {
+          category: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
+          brand: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
+          reviews: {
+            include: {
+              user: {
+                select: {
+                  firstName: true,
+                  lastName: true,
+                },
+              },
+            },
+            orderBy: {
+              createdAt: 'desc',
+            },
+          },
+        },
+      });
+    }
 
     if (!product) {
       return res.status(404).json({ error: 'Product not found' });

@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/src/lib/AuthContext';
 import { useCart } from '@/src/lib/CartContext';
 import { ShoppingCart, User, Search, Menu, Heart, LogOut } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import type { Category } from '@/src/types';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -15,6 +16,23 @@ export default function Navbar() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/categories`);
+      if (response.ok) {
+        const data = await response.json();
+        setCategories(data.categories || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch categories:', error);
+    }
+  };
 
   return (
     <>
@@ -206,33 +224,22 @@ export default function Navbar() {
         {isMenuOpen && (
           <div className="md:hidden bg-white border-t border-gray-200">
             <div className="px-4 py-4 space-y-3">
+              {categories.slice(0, 6).map((category) => (
+                <Link
+                  key={category.id}
+                  href={`/category/${category.slug}`}
+                  className="block text-gray-700 hover:text-red-500"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {category.name}
+                </Link>
+              ))}
               <Link
-                href="/category/makeup"
+                href="/products"
                 className="block text-gray-700 hover:text-red-500"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Makeup
-              </Link>
-              <Link
-                href="/category/skin"
-                className="block text-gray-700 hover:text-red-500"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Skin Care
-              </Link>
-              <Link
-                href="/category/hair"
-                className="block text-gray-700 hover:text-red-500"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Hair Care
-              </Link>
-              <Link
-                href="/sale"
-                className="block text-red-500 font-semibold"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Sale
+                All Products
               </Link>
               {!user && (
                 <>
@@ -259,42 +266,21 @@ export default function Navbar() {
         {/* Categories Navigation - Desktop */}
         <div className="hidden md:block border-t border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-center space-x-8 h-12">
+            <div className="flex items-center justify-center space-x-8 h-12 overflow-x-auto">
+              {categories.slice(0, 7).map((category) => (
+                <Link
+                  key={category.id}
+                  href={`/category/${category.slug}`}
+                  className="text-sm font-medium text-gray-700 hover:text-red-500 transition-colors whitespace-nowrap"
+                >
+                  {category.name}
+                </Link>
+              ))}
               <Link
-                href="/category/makeup"
-                className="text-sm font-medium text-gray-700 hover:text-red-500 transition-colors"
+                href="/products"
+                className="text-sm font-medium text-gray-700 hover:text-red-500 transition-colors whitespace-nowrap"
               >
-                Makeup
-              </Link>
-              <Link
-                href="/category/skin"
-                className="text-sm font-medium text-gray-700 hover:text-red-500 transition-colors"
-              >
-                Skin Care
-              </Link>
-              <Link
-                href="/category/hair"
-                className="text-sm font-medium text-gray-700 hover:text-red-500 transition-colors"
-              >
-                Hair Care
-              </Link>
-              <Link
-                href="/category/personal-care"
-                className="text-sm font-medium text-gray-700 hover:text-red-500 transition-colors"
-              >
-                Personal Care
-              </Link>
-              <Link
-                href="/category/men"
-                className="text-sm font-medium text-gray-700 hover:text-red-500 transition-colors"
-              >
-                Men
-              </Link>
-              <Link
-                href="/sale"
-                className="text-sm font-semibold text-red-500 hover:text-red-600 transition-colors"
-              >
-                🔥 Sale
+                All Products
               </Link>
             </div>
           </div>

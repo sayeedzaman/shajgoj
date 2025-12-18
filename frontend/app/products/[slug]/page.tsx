@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { productsAPI } from '@/src/lib/api';
 import { Product } from '@/src/types/index';
+import { useCart } from '@/src/lib/CartContext';
 import {
   Heart,
   ShoppingCart,
@@ -22,6 +23,7 @@ export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
   const slug = params?.slug as string;
+  const { addToCart } = useCart();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -49,12 +51,17 @@ export default function ProductDetailPage() {
   };
 
   const handleAddToCart = async () => {
+    if (!product) return;
+
     setAddingToCart(true);
-    // Cart functionality will be implemented later
-    setTimeout(() => {
+    try {
+      await addToCart(product.id, quantity);
+      // Cart will open automatically via CartContext
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+    } finally {
       setAddingToCart(false);
-      alert(`Added ${quantity} item(s) to cart!`);
-    }, 1000);
+    }
   };
 
   if (loading) {
@@ -169,21 +176,23 @@ export default function ProductDetailPage() {
             {images.length > 1 && (
               <div className="grid grid-cols-5 gap-2">
                 {images.map((image, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setSelectedImage(index)}
-                    className={`aspect-square bg-white rounded-lg border-2 overflow-hidden transition-all ${
-                      selectedImage === index
-                        ? 'border-red-500'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    <img
-                      src={image}
-                      alt={`${product.name} - ${index + 1}`}
-                      className="w-full h-full object-contain p-2"
-                    />
-                  </button>
+                  image && (
+                    <button
+                      key={index}
+                      onClick={() => setSelectedImage(index)}
+                      className={`aspect-square bg-white rounded-lg border-2 overflow-hidden transition-all ${
+                        selectedImage === index
+                          ? 'border-red-500'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <img
+                        src={image}
+                        alt={`${product.name} - ${index + 1}`}
+                        className="w-full h-full object-contain p-2"
+                      />
+                    </button>
+                  )
                 ))}
               </div>
             )}
