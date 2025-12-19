@@ -456,23 +456,52 @@ export const adminCustomersAPI = {
     }
 
     const response = await fetch(
-      `${API_URL}/api/admin/customers${searchParams.toString() ? `?${searchParams.toString()}` : ''}`,
+      `${API_URL}/api/auth/admin/users${searchParams.toString() ? `?${searchParams.toString()}` : ''}`,
       {
         method: 'GET',
         headers: createHeaders(),
       }
     );
-    return handleResponse<{ customers: Customer[]; pagination: PaginationResponse }>(response);
+    const data = await handleResponse<{ users: Customer[]; pagination: any }>(response);
+    // Map users to customers and add missing fields
+    const customers = data.users.map(user => ({
+      ...user,
+      _count: {
+        orders: user._count?.orders || 0,
+        reviews: 0, // Backend doesn't track reviews in this endpoint yet
+      },
+      totalSpent: 0, // Backend doesn't calculate this yet
+    }));
+    return {
+      customers,
+      pagination: {
+        currentPage: data.pagination.currentPage,
+        totalPages: data.pagination.totalPages,
+        total: data.pagination.totalUsers,
+        hasNext: data.pagination.hasMore,
+        hasPrev: data.pagination.currentPage > 1,
+      },
+    };
   },
 
   getById: async (id: string): Promise<Customer & { orders: Order[] }> => {
-    const response = await fetch(`${API_URL}/api/admin/customers/${id}`, {
+    const response = await fetch(`${API_URL}/api/auth/admin/users/${id}`, {
       method: 'GET',
       headers: createHeaders(),
     });
-    return handleResponse<Customer & { orders: Order[] }>(response);
+    const user = await handleResponse<Customer & { orders?: Order[] }>(response);
+    // Ensure orders array exists
+    return {
+      ...user,
+      orders: user.orders || [],
+      _count: {
+        orders: user._count?.orders || 0,
+        reviews: user._count?.reviews || 0,
+      },
+      totalSpent: user.totalSpent || 0,
+    };
   },
-};
+}
 
 export const adminAPI = {
   products: adminProductsAPI,

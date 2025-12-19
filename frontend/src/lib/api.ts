@@ -176,7 +176,8 @@ export const categoriesAPI = {
       method: 'GET',
       headers: createHeaders(),
     });
-    return handleResponse<Category[]>(response);
+    const data = await handleResponse<{ categories: Category[] }>(response);
+    return data.categories;
   },
 
   getById: async (id: string): Promise<Category> => {
@@ -195,7 +196,8 @@ export const brandsAPI = {
       method: 'GET',
       headers: createHeaders(),
     });
-    return handleResponse<Brand[]>(response);
+    const data = await handleResponse<{ brands: Brand[] }>(response);
+    return data.brands;
   },
 
   getById: async (id: string): Promise<Brand> => {
