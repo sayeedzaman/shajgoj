@@ -219,6 +219,7 @@ export default function CategoryPage() {
                     value={priceRange[1]}
                     onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
                     className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-red-600"
+                    aria-label="Maximum price"
                   />
                   <div className="flex items-center justify-between text-sm text-gray-600">
                     <span>৳{priceRange[0]}</span>
@@ -240,6 +241,7 @@ export default function CategoryPage() {
                 <div className="flex items-center gap-3">
                   <label className="text-sm text-gray-700 font-medium">Sort by:</label>
                   <select
+                    aria-label="Sort products"
                     value={`${sortBy}-${sortOrder}`}
                     onChange={(e) => {
                       const [sort, order] = e.target.value.split('-');

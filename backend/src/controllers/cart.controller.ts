@@ -4,6 +4,72 @@ import type { AuthRequest } from '../middleware/auth.middleware.js';
 
 const prisma = new PrismaClient();
 
+// Helper: Build cart response for a user
+const buildCartForUser = async (userId: string) => {
+  let cart = await prisma.cart.findUnique({
+    where: { userId },
+    include: {
+      CartItem: {
+        include: {
+          Product: {
+            include: {
+              Category: {
+                select: { id: true, name: true, slug: true },
+              },
+              Brand: {
+                select: { id: true, name: true, slug: true },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!cart) {
+    cart = await prisma.cart.create({
+      data: { userId },
+      include: {
+        CartItem: {
+          include: {
+            Product: {
+              include: {
+                Category: { select: { id: true, name: true, slug: true } },
+                Brand: { select: { id: true, name: true, slug: true } },
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  const items = cart.CartItem.map((item) => ({
+    id: item.id,
+    quantity: item.quantity,
+    cartId: item.cartId,
+    productId: item.productId,
+    product: {
+      ...item.Product,
+      imageUrl: item.Product.images.length > 0 ? item.Product.images[0] : null,
+      category: item.Product.Category,
+      brand: item.Product.Brand,
+    },
+  }));
+
+  const subtotal = items.reduce((sum, item) => {
+    const price = item.product.salePrice || item.product.price;
+    return sum + price * item.quantity;
+  }, 0);
+
+  return {
+    id: cart.id,
+    items,
+    itemCount: items.reduce((sum, item) => sum + item.quantity, 0),
+    subtotal: parseFloat(subtotal.toFixed(2)),
+  };
+};
+
 // Get user's cart
 export const getCart = async (req: AuthRequest, res: Response) => {
   try {
@@ -17,18 +83,18 @@ export const getCart = async (req: AuthRequest, res: Response) => {
     let cart = await prisma.cart.findUnique({
       where: { userId },
       include: {
-        items: {
+        CartItem: {
           include: {
-            product: {
+            Product: {
               include: {
-                category: {
+                Category: {
                   select: {
                     id: true,
                     name: true,
                     slug: true,
                   },
                 },
-                brand: {
+                Brand: {
                   select: {
                     id: true,
                     name: true,
@@ -49,7 +115,7 @@ export const getCart = async (req: AuthRequest, res: Response) => {
           userId,
         },
         include: {
-          items: {
+          cartItems: {
             include: {
               product: {
                 include: {
@@ -75,28 +141,7 @@ export const getCart = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    // Transform cart items to match frontend expectations
-    const transformedItems = cart.items.map((item) => ({
-      ...item,
-      product: {
-        ...item.product,
-        imageUrl: item.product.images.length > 0 ? item.product.images[0] : null,
-      },
-    }));
-
-    // Calculate cart totals
-    const subtotal = transformedItems.reduce((sum, item) => {
-      const price = item.product.salePrice || item.product.price;
-      return sum + price * item.quantity;
-    }, 0);
-
-    const cartData = {
-      id: cart.id,
-      items: transformedItems,
-      itemCount: transformedItems.reduce((sum, item) => sum + item.quantity, 0),
-      subtotal: parseFloat(subtotal.toFixed(2)),
-    };
-
+    const cartData = await buildCartForUser(userId);
     res.json(cartData);
   } catch (error) {
     console.error('Get cart error:', error);
@@ -227,17 +272,20 @@ export const addToCart = async (req: AuthRequest, res: Response) => {
 
     // Transform response
     const transformedItem = {
-      ...cartItem,
+      id: cartItem.id,
+      quantity: cartItem.quantity,
+      cartId: cartItem.cartId,
+      productId: cartItem.productId,
       product: {
-        ...cartItem.product,
-        imageUrl: cartItem.product.images.length > 0 ? cartItem.product.images[0] : null,
+        ...cartItem.Product,
+        imageUrl: cartItem.Product.images.length > 0 ? cartItem.Product.images[0] : null,
+        category: cartItem.Product.Category,
+        brand: cartItem.Product.Brand,
       },
     };
 
-    res.status(201).json({
-      message: 'Product added to cart',
-      cartItem: transformedItem,
-    });
+    const cartData = await buildCartForUser(userId);
+    res.status(201).json(cartData);
   } catch (error) {
     console.error('Add to cart error:', error);
     res.status(500).json({ error: 'Failed to add item to cart' });
@@ -267,8 +315,8 @@ export const updateCartItem = async (req: AuthRequest, res: Response) => {
     const cartItem = await prisma.cartItem.findUnique({
       where: { id: itemId },
       include: {
-        cart: true,
-        product: true,
+        Cart: true,
+        Product: true,
       },
     });
 
@@ -276,14 +324,14 @@ export const updateCartItem = async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ error: 'Cart item not found' });
     }
 
-    if (cartItem.cart.userId !== userId) {
+    if (cartItem.Cart.userId !== userId) {
       return res.status(403).json({ error: 'Unauthorized' });
     }
 
     // Check stock availability
-    if (cartItem.product.stock < quantity) {
+    if (cartItem.Product.stock < quantity) {
       return res.status(400).json({
-        error: `Insufficient stock. Only ${cartItem.product.stock} items available`,
+        error: `Insufficient stock. Only ${cartItem.Product.stock} items available`,
       });
     }
 
@@ -315,17 +363,20 @@ export const updateCartItem = async (req: AuthRequest, res: Response) => {
 
     // Transform response
     const transformedItem = {
-      ...updatedCartItem,
+      id: updatedCartItem.id,
+      quantity: updatedCartItem.quantity,
+      cartId: updatedCartItem.cartId,
+      productId: updatedCartItem.productId,
       product: {
-        ...updatedCartItem.product,
-        imageUrl: updatedCartItem.product.images.length > 0 ? updatedCartItem.product.images[0] : null,
+        ...updatedCartItem.Product,
+        imageUrl: updatedCartItem.Product.images.length > 0 ? updatedCartItem.Product.images[0] : null,
+        category: updatedCartItem.Product.Category,
+        brand: updatedCartItem.Product.Brand,
       },
     };
 
-    res.json({
-      message: 'Cart item updated',
-      cartItem: transformedItem,
-    });
+    const cartData = await buildCartForUser(userId);
+    res.json(cartData);
   } catch (error) {
     console.error('Update cart item error:', error);
     res.status(500).json({ error: 'Failed to update cart item' });
@@ -350,7 +401,7 @@ export const removeFromCart = async (req: AuthRequest, res: Response) => {
     const cartItem = await prisma.cartItem.findUnique({
       where: { id: itemId },
       include: {
-        cart: true,
+        Cart: true,
       },
     });
 
@@ -358,7 +409,7 @@ export const removeFromCart = async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ error: 'Cart item not found' });
     }
 
-    if (cartItem.cart.userId !== userId) {
+    if (cartItem.Cart.userId !== userId) {
       return res.status(403).json({ error: 'Unauthorized' });
     }
 
@@ -367,7 +418,8 @@ export const removeFromCart = async (req: AuthRequest, res: Response) => {
       where: { id: itemId },
     });
 
-    res.json({ message: 'Item removed from cart' });
+    const cartData = await buildCartForUser(userId);
+    res.json(cartData);
   } catch (error) {
     console.error('Remove from cart error:', error);
     res.status(500).json({ error: 'Failed to remove item from cart' });
