@@ -4,163 +4,136 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url = env("DATABASE_URL")
+  url      = "postgresql://neondb_owner:npg_k7PHToSGpM1U@3.218.140.61:5432/neondb?sslmode=require&sslaccept=accept_invalid_certs&options=project%3Dep-patient-mountain-adxib7yv"
 }
 
-
-model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  firstName String?
-  lastName  String?
-  phone     String?
-
-  role      Role     @default(USER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  addresses Address[]
-  orders    Order[]
-  reviews   Review[]
-  cart      Cart?
-}
-
-model Category {
-  id          String    @id @default(uuid())
-  name        String    @unique
-  slug        String    @unique
-  description String?
-  image       String?
-  image2      String?
-  image3      String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-
-  products Product[]
+model Address {
+  id        String  @id
+  fullName  String
+  phone     String
+  address   String
+  city      String
+  state     String
+  zipCode   String
+  isDefault Boolean @default(false)
+  userId    String
+  User      User    @relation(fields: [userId], references: [id])
+  Order     Order[]
 }
 
 model Brand {
-  id        String    @id @default(uuid())
+  id        String    @id
   name      String    @unique
   slug      String    @unique
   logo      String?
   createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-
-  products Product[]
+  updatedAt DateTime
+  Product   Product[]
 }
 
-model Product {
-  id          String   @id @default(uuid())
-  name        String
-  slug        String   @unique
+model Cart {
+  id        String     @id
+  createdAt DateTime   @default(now())
+  updatedAt DateTime
+  userId    String     @unique
+  User      User       @relation(fields: [userId], references: [id])
+  CartItem  CartItem[]
+}
+
+model CartItem {
+  id        String  @id
+  quantity  Int
+  cartId    String
+  productId String
+  Cart      Cart    @relation(fields: [cartId], references: [id])
+  Product   Product @relation(fields: [productId], references: [id])
+}
+
+model Category {
+  id          String    @id
+  name        String    @unique
+  slug        String    @unique
   description String?
-  price       Float
-  salePrice   Float?
-  stock       Int      @default(0)
-  images      String[]
-  featured    Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  categoryId String
-  category   Category @relation(fields: [categoryId], references: [id])
-
-  brandId String?
-  brand   Brand?  @relation(fields: [brandId], references: [id])
-
-  orderItems OrderItem[]
-  reviews    Review[]
-  cartItems  CartItem[]
-}
-
-model Address {
-  id         String  @id @default(uuid())
-  fullName   String
-  phone      String
-  address    String
-  city       String
-  state      String
-  zipCode    String
-  isDefault  Boolean @default(false)
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
-
-  orders Order[]
+  image       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime
+  image2      String?
+  image3      String?
+  Product     Product[]
 }
 
 model Order {
-  id          String      @id @default(uuid())
+  id          String      @id
   orderNumber String      @unique
   status      OrderStatus @default(PENDING)
   total       Float
   createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
-
-  addressId String
-  address   Address @relation(fields: [addressId], references: [id])
-
-  items OrderItem[]
+  updatedAt   DateTime
+  userId      String
+  addressId   String
+  Address     Address     @relation(fields: [addressId], references: [id])
+  User        User        @relation(fields: [userId], references: [id])
+  OrderItem   OrderItem[]
 }
 
 model OrderItem {
-  id       String @id @default(uuid())
-  quantity Int
-  price    Float
-
-  orderId String
-  order   Order  @relation(fields: [orderId], references: [id])
-
+  id        String  @id
+  quantity  Int
+  price     Float
+  orderId   String
   productId String
-  product   Product @relation(fields: [productId], references: [id])
+  Order     Order   @relation(fields: [orderId], references: [id])
+  Product   Product @relation(fields: [productId], references: [id])
+}
+
+model Product {
+  id          String      @id
+  name        String
+  slug        String      @unique
+  description String?
+  price       Float
+  salePrice   Float?
+  stock       Int         @default(0)
+  images      String[]
+  featured    Boolean     @default(false)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime
+  categoryId  String
+  brandId     String?
+  CartItem    CartItem[]
+  OrderItem   OrderItem[]
+  Brand       Brand?      @relation(fields: [brandId], references: [id])
+  Category    Category    @relation(fields: [categoryId], references: [id])
+  Review      Review[]
 }
 
 model Review {
-  id        String   @id @default(uuid())
+  id        String   @id
   rating    Int
   comment   String?
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id])
-
+  updatedAt DateTime
+  userId    String
   productId String
-  product   Product @relation(fields: [productId], references: [id])
+  Product   Product  @relation(fields: [productId], references: [id])
+  User      User     @relation(fields: [userId], references: [id])
 }
 
-model Cart {
-  id        String   @id @default(uuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  userId String @unique
-  user   User   @relation(fields: [userId], references: [id])
-
-  items CartItem[]
+model User {
+  id        String    @id
+  email     String    @unique
+  password  String
+  firstName String?
+  lastName  String?
+  phone     String?
+  role      Role      @default(USER)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime
+  Address   Address[]
+  Cart      Cart?
+  Order     Order[]
+  Review    Review[]
 }
-
-model CartItem {
-  id       String @id @default(uuid())
-  quantity Int
-
-  cartId String
-  cart   Cart   @relation(fields: [cartId], references: [id])
-
-  productId String
-  product   Product @relation(fields: [productId], references: [id])
-}
-
-enum Role {
-  USER
-  ADMIN
-}
-
 
 enum OrderStatus {
   PENDING
@@ -168,4 +141,9 @@ enum OrderStatus {
   SHIPPED
   DELIVERED
   CANCELLED
+}
+
+enum Role {
+  USER
+  ADMIN
 }

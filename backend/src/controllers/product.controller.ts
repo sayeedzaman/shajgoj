@@ -55,14 +55,14 @@ export const getAllProducts = async (req: Request, res: Response) => {
       prisma.product.findMany({
         where,
         include: {
-          category: {
+          Category: {
             select: {
               id: true,
               name: true,
               slug: true,
             },
           },
-          brand: {
+          Brand: {
             select: {
               id: true,
               name: true,
@@ -113,23 +113,23 @@ export const getProductById = async (req: Request, res: Response) => {
     let product = await prisma.product.findUnique({
       where: { id },
       include: {
-        category: {
+        Category: {
           select: {
             id: true,
             name: true,
             slug: true,
           },
         },
-        brand: {
+        Brand: {
           select: {
             id: true,
             name: true,
             slug: true,
           },
         },
-        reviews: {
+        Review: {
           include: {
-            user: {
+            User: {
               select: {
                 firstName: true,
                 lastName: true,
@@ -185,16 +185,16 @@ export const getProductById = async (req: Request, res: Response) => {
 
     // Calculate average rating
     const averageRating =
-      product.reviews.length > 0
-        ? product.reviews.reduce((sum, review) => sum + review.rating, 0) /
-          product.reviews.length
+      product.Review.length > 0
+        ? product.Review.reduce((sum, review) => sum + review.rating, 0) /
+          product.Review.length
         : 0;
 
     const transformedProduct = {
       ...product,
       imageUrl: product.images.length > 0 ? product.images[0] : null,
       averageRating: parseFloat(averageRating.toFixed(1)),
-      totalReviews: product.reviews.length,
+      totalReviews: product.Review.length,
     };
 
     res.json(transformedProduct);

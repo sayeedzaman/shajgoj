@@ -11,7 +11,7 @@ export const getAllCategories = async (req: Request, res: Response): Promise<voi
     const categories = await prisma.category.findMany({
       include: {
         _count: {
-          select: { products: true },
+          select: { Product: true },
         },
       },
       orderBy: { name: 'asc' },
@@ -37,7 +37,7 @@ export const getCategoryById = async (req: Request, res: Response): Promise<void
       where: { id },
       include: {
         _count: {
-          select: { products: true },
+          select: { Product: true },
         },
       },
     });
@@ -165,7 +165,7 @@ export const deleteCategory = async (req: Request, res: Response): Promise<void>
     const category = await prisma.category.findUnique({
       where: { id },
       include: {
-        products: true,
+        Product: true,
       },
     });
 
@@ -202,7 +202,7 @@ export const getAllBrands = async (req: Request, res: Response): Promise<void> =
     const brands = await prisma.brand.findMany({
       include: {
         _count: {
-          select: { products: true },
+          select: { Product: true },
         },
       },
       orderBy: { name: 'asc' },
@@ -228,7 +228,7 @@ export const getBrandById = async (req: Request, res: Response): Promise<void> =
       where: { id },
       include: {
         _count: {
-          select: { products: true },
+          select: { Product: true },
         },
       },
     });
@@ -347,7 +347,7 @@ export const deleteBrand = async (req: Request, res: Response): Promise<void> =>
     const brand = await prisma.brand.findUnique({
       where: { id },
       include: {
-        products: true,
+        Product: true,
       },
     });
 

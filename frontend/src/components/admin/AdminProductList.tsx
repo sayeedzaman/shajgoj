@@ -19,7 +19,7 @@ export default function AdminProductList() {
     setError(null);
     try {
       const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/admin/products`, {
+      const res = await fetch('/api/admin/products', {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
       if (!res.ok) throw new Error('Failed to fetch products');
@@ -40,7 +40,7 @@ export default function AdminProductList() {
     if (!confirm('Delete this product?')) return;
     try {
       const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/admin/products/${id}`, {
+      const res = await fetch(`/api/admin/products/${id}`, {
         method: 'DELETE',
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });

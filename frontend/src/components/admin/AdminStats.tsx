@@ -13,7 +13,7 @@ export default function AdminStats() {
       setError(null);
       try {
         const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/admin/products/stats`, {
+        const res = await fetch('/api/admin/products/stats', {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
         if (!res.ok) throw new Error('Failed to fetch stats');
