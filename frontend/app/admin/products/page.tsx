@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Package, Plus, Search, Edit, Trash2, Filter, ChevronDown, X, Upload, Image as ImageIcon } from 'lucide-react';
 import { adminAPI, type CreateProductRequest } from '@/src/lib/adminApi';
+import { useAuth } from '@/src/lib/AuthContext';
 import type { Product, Category, Brand } from '@/src/types';
 
 export default function ProductManagementPage() {
@@ -34,14 +35,22 @@ export default function ProductManagementPage() {
   });
 
   const [imagePreviews, setImagePreviews] = useState<string[]>(['', '', '']);
+  const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
-    fetchProducts();
+    if (!authLoading && user?.role === 'ADMIN') {
+      fetchProducts();
+    }
+    // Public endpoints; fine to call regardless
     fetchCategories();
     fetchBrands();
-  }, [currentPage, searchQuery, categoryFilter, brandFilter]);
+  }, [authLoading, user, currentPage, searchQuery, categoryFilter, brandFilter]);
 
   const fetchProducts = async () => {
+    if (authLoading || !user || user.role !== 'ADMIN') {
+      // Wait until auth is ready and user is admin
+      return;
+    }
     try {
       setLoading(true);
       const response = await adminAPI.products.getAll({
@@ -54,8 +63,9 @@ export default function ProductManagementPage() {
       setProducts(response.products);
       setTotalPages(response.pagination.totalPages);
     } catch (error) {
-      showError('Failed to fetch products');
-      console.error(error);
+      const message = error instanceof Error ? error.message : 'Failed to fetch products';
+      showError(message);
+      console.error('Failed to fetch products:', error);
     } finally {
       setLoading(false);
     }

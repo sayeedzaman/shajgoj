@@ -96,10 +96,29 @@ const createHeaders = (): HeadersInit => {
 // Helper function to handle API errors
 const handleResponse = async <T>(response: Response): Promise<T> => {
   if (!response.ok) {
-    const error = await response.json().catch(() => ({
-      message: 'An error occurred',
-    }));
-    throw new Error(error.message || error.error || `HTTP error! status: ${response.status}`);
+    // Try to parse JSON; if that fails, use text fallback
+    let errorMessage = '';
+    try {
+      const data = await response.json();
+      errorMessage = data.message || data.error || '';
+    } catch {
+      try {
+        const text = await response.text();
+        errorMessage = text;
+      } catch {
+        errorMessage = '';
+      }
+    }
+
+    // Friendly messages for common auth cases
+    if (response.status === 401) {
+      throw new Error(errorMessage || 'Unauthorized: Please log in as admin');
+    }
+    if (response.status === 403) {
+      throw new Error(errorMessage || 'Forbidden: Insufficient permissions');
+    }
+
+    throw new Error(errorMessage || `HTTP error! status: ${response.status}`);
   }
   return response.json();
 };

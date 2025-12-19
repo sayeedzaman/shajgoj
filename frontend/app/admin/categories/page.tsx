@@ -340,6 +340,7 @@ export default function CategoryManagementPage() {
               <button
                 onClick={closeModal}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                aria-label ="Close modal"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -366,6 +367,7 @@ export default function CategoryManagementPage() {
                               type="button"
                               onClick={() => removeImage(index)}
                               className="absolute top-2 right-2 p-1 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                              aria-label ="Remove image"
                             >
                               <X className="w-4 h-4" />
                             </button>
@@ -424,6 +426,7 @@ export default function CategoryManagementPage() {
                       });
                     }}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                    aria-label="Category name"
                   />
                 </div>
 
@@ -436,6 +439,7 @@ export default function CategoryManagementPage() {
                     value={formData.slug}
                     onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-gray-50"
+                    aria-label="Category slug"
                   />
                 </div>
 
@@ -448,6 +452,7 @@ export default function CategoryManagementPage() {
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     rows={3}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                    aria-label="Category description"
                   />
                 </div>
               </div>

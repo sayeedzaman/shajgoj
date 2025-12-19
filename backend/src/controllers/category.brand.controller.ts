@@ -1,5 +1,6 @@
 import type{ Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import cloudinary from '../config/cloudinary.js';
 
 const prisma = new PrismaClient();
 
@@ -54,6 +55,38 @@ export const getCategoryById = async (req: Request, res: Response): Promise<void
   }
 };
 
+// Upload category images (Admin only)
+export const uploadCategoryImages = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+
+    if (!files || Object.keys(files).length === 0) {
+      res.status(400).json({ error: 'No images uploaded' });
+      return;
+    }
+
+    const imageUrls: { [key: string]: string } = {};
+
+    if (files.image && files.image[0]) {
+      imageUrls.image = files.image[0].path;
+    }
+    if (files.image2 && files.image2[0]) {
+      imageUrls.image2 = files.image2[0].path;
+    }
+    if (files.image3 && files.image3[0]) {
+      imageUrls.image3 = files.image3[0].path;
+    }
+
+    res.status(200).json({
+      message: 'Images uploaded successfully',
+      urls: imageUrls,
+    });
+  } catch (error) {
+    console.error('Upload category images error:', error);
+    res.status(500).json({ error: 'Failed to upload images' });
+  }
+};
+
 // Create category (Admin only)
 export const createCategory = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -80,11 +113,11 @@ export const createCategory = async (req: Request, res: Response): Promise<void>
       data: {
         name,
         slug,
-        description,
-        image,
-        image2,
-        image3,
-      },
+        description: description || null,
+        image: image || null,
+        image2: image2 || null,
+        image3: image3 || null,
+      } as any,
     });
 
     res.status(201).json({
@@ -174,7 +207,7 @@ export const deleteCategory = async (req: Request, res: Response): Promise<void>
       return;
     }
 
-    if (category.products.length > 0) {
+    if (category.Product.length > 0) {
       res.status(400).json({
         error: 'Cannot delete category with existing products',
       });
@@ -245,6 +278,26 @@ export const getBrandById = async (req: Request, res: Response): Promise<void> =
   }
 };
 
+// Upload brand logo (Admin only)
+export const uploadBrandLogo = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const file = req.file;
+
+    if (!file) {
+      res.status(400).json({ error: 'No logo uploaded' });
+      return;
+    }
+
+    res.status(200).json({
+      message: 'Logo uploaded successfully',
+      url: file.path,
+    });
+  } catch (error) {
+    console.error('Upload brand logo error:', error);
+    res.status(500).json({ error: 'Failed to upload logo' });
+  }
+};
+
 // Create brand (Admin only)
 export const createBrand = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -272,7 +325,7 @@ export const createBrand = async (req: Request, res: Response): Promise<void> =>
         name,
         slug,
         logo,
-      },
+      } as any,
     });
 
     res.status(201).json({
@@ -356,7 +409,7 @@ export const deleteBrand = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    if (brand.products.length > 0) {
+    if (brand.Product.length > 0) {
       res.status(400).json({
         error: 'Cannot delete brand with existing products',
       });
