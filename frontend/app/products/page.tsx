@@ -84,11 +84,6 @@ export default function ProductsPage() {
     setCurrentPage(1);
   };
 
-  const handleAddToCart = async (productId: string) => {
-    console.log('Add to cart:', productId);
-    // Cart functionality will be implemented later
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 py-6">
@@ -276,7 +271,6 @@ export default function ProductsPage() {
                     <ProductCard
                       key={product.id}
                       product={product}
-                      onAddToCart={handleAddToCart}
                       showAddToCart={true}
                     />
                   ))}

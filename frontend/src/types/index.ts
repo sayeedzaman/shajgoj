@@ -150,3 +150,57 @@ export interface ProductFilters {
   page?: number;
   limit?: number;
 }
+
+// Address Types
+export interface Address {
+  id: string;
+  fullName: string;
+  phone: string;
+  address: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  isDefault: boolean;
+  userId: string;
+}
+
+export interface CreateAddressRequest {
+  fullName: string;
+  phone: string;
+  address: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  isDefault?: boolean;
+}
+
+// Order Types
+export interface Order {
+  id: string;
+  orderNumber: string;
+  status: 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
+  total: number;
+  createdAt: string;
+  updatedAt: string;
+  userId: string;
+  addressId: string;
+  address?: Address;
+  items: OrderItem[];
+}
+
+export interface OrderItem {
+  id: string;
+  quantity: number;
+  price: number;
+  orderId: string;
+  productId: string;
+  product: Product;
+}
+
+export interface CreateOrderRequest {
+  addressId: string;
+  items: {
+    productId: string;
+    quantity: number;
+  }[];
+}

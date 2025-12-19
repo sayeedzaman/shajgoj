@@ -11,6 +11,10 @@ import type {
   User,
   Category,
   Brand,
+  Order,
+  CreateOrderRequest,
+  Address,
+  CreateAddressRequest,
 } from '@/src/types/index';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
@@ -107,7 +111,8 @@ export const productsAPI = {
   },
 
   getBySlug: async (slug: string): Promise<Product> => {
-    const response = await fetch(`${API_URL}/api/products/slug/${slug}`, {
+    // Try fetching by slug parameter first
+    const response = await fetch(`${API_URL}/api/products/${slug}`, {
       method: 'GET',
       headers: createHeaders(),
     });
@@ -177,7 +182,7 @@ export const categoriesAPI = {
       headers: createHeaders(),
     });
     const data = await handleResponse<{ categories: Category[] }>(response);
-    return data.categories;
+    return data.categories || [];
   },
 
   getById: async (id: string): Promise<Category> => {
@@ -197,7 +202,7 @@ export const brandsAPI = {
       headers: createHeaders(),
     });
     const data = await handleResponse<{ brands: Brand[] }>(response);
-    return data.brands;
+    return data.brands || [];
   },
 
   getById: async (id: string): Promise<Brand> => {
@@ -209,12 +214,97 @@ export const brandsAPI = {
   },
 };
 
+// Orders API
+export const ordersAPI = {
+  create: async (data: CreateOrderRequest): Promise<Order> => {
+    const response = await fetch(`${API_URL}/api/orders`, {
+      method: 'POST',
+      headers: createHeaders(true),
+      body: JSON.stringify(data),
+    });
+    return handleResponse<Order>(response);
+  },
+
+  getUserOrders: async (): Promise<Order[]> => {
+    const response = await fetch(`${API_URL}/api/orders`, {
+      method: 'GET',
+      headers: createHeaders(true),
+    });
+    const data = await handleResponse<{ orders: Order[] }>(response);
+    return data.orders || [];
+  },
+
+  getById: async (id: string): Promise<Order> => {
+    const response = await fetch(`${API_URL}/api/orders/${id}`, {
+      method: 'GET',
+      headers: createHeaders(true),
+    });
+    return handleResponse<Order>(response);
+  },
+
+  cancel: async (id: string): Promise<Order> => {
+    const response = await fetch(`${API_URL}/api/orders/${id}/cancel`, {
+      method: 'PUT',
+      headers: createHeaders(true),
+    });
+    return handleResponse<Order>(response);
+  },
+};
+
+// Addresses API
+export const addressesAPI = {
+  getAll: async (): Promise<Address[]> => {
+    const response = await fetch(`${API_URL}/api/addresses`, {
+      method: 'GET',
+      headers: createHeaders(true),
+    });
+    const data = await handleResponse<{ addresses: Address[] }>(response);
+    return data.addresses || [];
+  },
+
+  getById: async (id: string): Promise<Address> => {
+    const response = await fetch(`${API_URL}/api/addresses/${id}`, {
+      method: 'GET',
+      headers: createHeaders(true),
+    });
+    return handleResponse<Address>(response);
+  },
+
+  create: async (data: CreateAddressRequest): Promise<Address> => {
+    const response = await fetch(`${API_URL}/api/addresses`, {
+      method: 'POST',
+      headers: createHeaders(true),
+      body: JSON.stringify(data),
+    });
+    return handleResponse<Address>(response);
+  },
+
+  update: async (id: string, data: Partial<CreateAddressRequest>): Promise<Address> => {
+    const response = await fetch(`${API_URL}/api/addresses/${id}`, {
+      method: 'PUT',
+      headers: createHeaders(true),
+      body: JSON.stringify(data),
+    });
+    return handleResponse<Address>(response);
+  },
+
+  delete: async (id: string): Promise<{ message: string }> => {
+    const response = await fetch(`${API_URL}/api/addresses/${id}`, {
+      method: 'DELETE',
+      headers: createHeaders(true),
+    });
+    return handleResponse<{ message: string }>(response);
+  },
+};
+
 export const api = {
   auth: authAPI,
   products: productsAPI,
   cart: cartAPI,
   categories: categoriesAPI,
   brands: brandsAPI,
+  orders: ordersAPI,
+  addresses: addressesAPI,
 };
 
 export default api;
