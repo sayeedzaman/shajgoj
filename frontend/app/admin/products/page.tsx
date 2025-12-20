@@ -304,6 +304,7 @@ export default function ProductManagementPage() {
                 setCurrentPage(1);
               }}
               className="w-full pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 appearance-none bg-white"
+              aria-label="Filter by category"
             >
               <option value="">All Categories</option>
               {categories.map((cat) => (
@@ -311,6 +312,7 @@ export default function ProductManagementPage() {
                   {cat.name}
                 </option>
               ))}
+
             </select>
             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
           </div>
@@ -325,6 +327,7 @@ export default function ProductManagementPage() {
                 setCurrentPage(1);
               }}
               className="w-full pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 appearance-none bg-white"
+              aria-label="Filter by brand"
             >
               <option value="">All Brands</option>
               {brands.map((brand) => (
@@ -404,7 +407,7 @@ export default function ProductManagementPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{product.category.name}</div>
+                        <div className="text-sm text-gray-900">{product.category?.name}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">{product.brand?.name || '-'}</div>
@@ -498,8 +501,10 @@ export default function ProductManagementPage() {
                 {editingProduct ? 'Edit Product' : 'Add New Product'}
               </h2>
               <button
+                type="button"
                 onClick={closeModal}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                title="Close"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -526,6 +531,7 @@ export default function ProductManagementPage() {
                               type="button"
                               onClick={() => removeImage(index)}
                               className="absolute top-2 right-2 p-1 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                              title="Remove image"
                             >
                               <X className="w-4 h-4" />
                             </button>
@@ -549,16 +555,24 @@ export default function ProductManagementPage() {
                             accept="image/*"
                             onChange={(e) => handleImageUpload(index, e)}
                             className="hidden"
+                            title={`Upload image ${index + 1}`}
+                            aria-label={`Upload image ${index + 1}`}
                           />
                         </label>
                       </div>
 
+                      <label htmlFor={`image-url-${index}`} className="block text-xs font-medium text-gray-700 mb-1">
+                        Image {index + 1} URL
+                      </label>
                       <input
+                        id={`image-url-${index}`}
                         type="text"
-                        placeholder="Or paste image URL"
+                        placeholder={`Image ${index + 1} URL`}
                         value={imagePreviews[index]}
                         onChange={(e) => handleImageUrlChange(index, e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-red-500"
+                        aria-label={`Image ${index + 1} URL`}
+                        title={`Image ${index + 1} URL`}
                       />
                     </div>
                   ))}
@@ -584,6 +598,7 @@ export default function ProductManagementPage() {
                       });
                     }}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                    aria-label ="Product Name"
                   />
                 </div>
 
@@ -596,6 +611,7 @@ export default function ProductManagementPage() {
                     value={formData.slug}
                     onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-gray-50"
+                    aria-label ="Product Slug"
                   />
                 </div>
 
@@ -608,6 +624,7 @@ export default function ProductManagementPage() {
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     rows={3}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                    aria-label="Product Description"
                   />
                 </div>
 
@@ -620,9 +637,10 @@ export default function ProductManagementPage() {
                     required
                     min="0"
                     step="0.01"
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) })}
+                    value={formData.price || ''}
+                    onChange={(e) => setFormData({ ...formData, price: e.target.value ? parseFloat(e.target.value) : 0 })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                    aria-label="Regular Price"
                   />
                 </div>
 
@@ -637,6 +655,7 @@ export default function ProductManagementPage() {
                     value={formData.salePrice || ''}
                     onChange={(e) => setFormData({ ...formData, salePrice: e.target.value ? parseFloat(e.target.value) : undefined })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                    aria-label="Sale Price"
                   />
                 </div>
 
@@ -648,9 +667,10 @@ export default function ProductManagementPage() {
                     type="number"
                     required
                     min="0"
-                    value={formData.stock}
-                    onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) })}
+                    value={formData.stock || ''}
+                    onChange={(e) => setFormData({ ...formData, stock: e.target.value ? parseInt(e.target.value) : 0 })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                    aria-label="Stock Quantity"
                   />
                 </div>
 
@@ -663,6 +683,7 @@ export default function ProductManagementPage() {
                     value={formData.categoryId}
                     onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                    aria-label="Product Category"
                   >
                     <option value="">Select Category</option>
                     {categories.map((cat) => (
@@ -681,6 +702,7 @@ export default function ProductManagementPage() {
                     value={formData.brandId}
                     onChange={(e) => setFormData({ ...formData, brandId: e.target.value })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                    aria-label="Product Brand"
                   >
                     <option value="">No Brand</option>
                     {brands.map((brand) => (

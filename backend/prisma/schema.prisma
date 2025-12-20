@@ -4,11 +4,11 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = "postgresql://neondb_owner:npg_k7PHToSGpM1U@3.218.140.61:5432/neondb?sslmode=require&sslaccept=accept_invalid_certs&options=project%3Dep-patient-mountain-adxib7yv"
+  url      = env("DATABASE_URL")
 }
 
 model Address {
-  id        String  @id
+  id        String  @id @default(uuid())
   fullName  String
   phone     String
   address   String
@@ -22,26 +22,26 @@ model Address {
 }
 
 model Brand {
-  id        String    @id
+  id        String    @id @default(uuid())
   name      String    @unique
   slug      String    @unique
   logo      String?
   createdAt DateTime  @default(now())
-  updatedAt DateTime
+  updatedAt DateTime  @updatedAt
   Product   Product[]
 }
 
 model Cart {
-  id        String     @id
+  id        String     @id @default(uuid())
   createdAt DateTime   @default(now())
-  updatedAt DateTime
+  updatedAt DateTime   @updatedAt
   userId    String     @unique
   User      User       @relation(fields: [userId], references: [id])
   CartItem  CartItem[]
 }
 
 model CartItem {
-  id        String  @id
+  id        String  @id @default(uuid())
   quantity  Int
   cartId    String
   productId String
@@ -50,25 +50,25 @@ model CartItem {
 }
 
 model Category {
-  id          String    @id
+  id          String    @id @default(uuid())
   name        String    @unique
   slug        String    @unique
   description String?
   image       String?
   createdAt   DateTime  @default(now())
-  updatedAt   DateTime
+  updatedAt   DateTime  @updatedAt
   image2      String?
   image3      String?
   Product     Product[]
 }
 
 model Order {
-  id          String      @id
+  id          String      @id @default(uuid())
   orderNumber String      @unique
   status      OrderStatus @default(PENDING)
   total       Float
   createdAt   DateTime    @default(now())
-  updatedAt   DateTime
+  updatedAt   DateTime    @updatedAt
   userId      String
   addressId   String
   Address     Address     @relation(fields: [addressId], references: [id])
@@ -77,7 +77,7 @@ model Order {
 }
 
 model OrderItem {
-  id        String  @id
+  id        String  @id @default(uuid())
   quantity  Int
   price     Float
   orderId   String
@@ -87,7 +87,7 @@ model OrderItem {
 }
 
 model Product {
-  id          String      @id
+  id          String      @id @default(uuid())
   name        String
   slug        String      @unique
   description String?
@@ -97,7 +97,7 @@ model Product {
   images      String[]
   featured    Boolean     @default(false)
   createdAt   DateTime    @default(now())
-  updatedAt   DateTime
+  updatedAt   DateTime    @updatedAt
   categoryId  String
   brandId     String?
   CartItem    CartItem[]
@@ -108,11 +108,11 @@ model Product {
 }
 
 model Review {
-  id        String   @id
+  id        String   @id @default(uuid())
   rating    Int
   comment   String?
   createdAt DateTime @default(now())
-  updatedAt DateTime
+  updatedAt DateTime @updatedAt
   userId    String
   productId String
   Product   Product  @relation(fields: [productId], references: [id])

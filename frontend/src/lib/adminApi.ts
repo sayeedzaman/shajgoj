@@ -316,6 +316,30 @@ export const adminProductsAPI = {
     );
     return handleResponse<ProductsAdminResponse>(response);
   },
+  uploadImages: async (files: File[]): Promise<{ urls: string[]; count: number }> => {
+    const formData = new FormData();
+    
+    files.forEach(file => {
+      formData.append('images', file);
+    });
+
+    const token = getAuthToken();
+    const response = await fetch(`${API_URL}/api/admin/products/upload-images`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        // Don't set Content-Type - browser will set it with boundary
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Upload failed' }));
+      throw new Error(error.message || 'Failed to upload images');
+    }
+
+    return response.json();
+  },
 };
 
 // Admin Categories API

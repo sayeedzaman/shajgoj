@@ -197,6 +197,7 @@ export default function ProductsPage() {
                     value={priceRange[1]}
                     onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
                     className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-red-600"
+                    aria-label="Maximum Price"
                   />
                   <div className="flex items-center justify-between text-sm text-gray-600">
                     <span>৳{priceRange[0]}</span>
@@ -225,6 +226,7 @@ export default function ProductsPage() {
                       setSortOrder(order as 'asc' | 'desc');
                     }}
                     className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                    aria-label="Sort Products By"
                   >
                     <option value="createdAt-desc">Newest First</option>
                     <option value="createdAt-asc">Oldest First</option>

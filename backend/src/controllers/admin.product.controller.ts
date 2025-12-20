@@ -1,5 +1,6 @@
-import type{ Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import cloudinary from '../config/cloudinary.js';
 
 const prisma = new PrismaClient();
 
@@ -50,6 +51,31 @@ async function resolveBrandId(brandIdentifier: string): Promise<string | null> {
 
   return brand?.id || null;
 }
+
+// Upload product images to Cloudinary (Admin only)
+export const uploadProductImages = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const files = req.files as Express.Multer.File[];
+
+    if (!files || files.length === 0) {
+      res.status(400).json({ error: 'No images uploaded' });
+      return;
+    }
+
+    // Files are already uploaded to Cloudinary by multer middleware
+    // Extract the URLs from the uploaded files
+    const imageUrls = files.map(file => file.path);
+
+    res.status(200).json({
+      message: 'Images uploaded successfully',
+      urls: imageUrls,
+      count: imageUrls.length,
+    });
+  } catch (error) {
+    console.error('Upload product images error:', error);
+    res.status(500).json({ error: 'Failed to upload images' });
+  }
+};
 
 // Get all products with filtering (Admin view)
 export const getAllProductsAdmin = async (req: Request, res: Response): Promise<void> => {
@@ -111,12 +137,14 @@ export const getAllProductsAdmin = async (req: Request, res: Response): Promise<
       prisma.product.findMany({
         where,
         include: {
-          category: true,
-          brand: true,
+          Category: true,
+          Brand: true,
+          OrderItem: true,
+          Review: true,
           _count: {
             select: {
-              reviews: true,
-              orderItems: true,
+              Review: true,
+              OrderItem: true,
             },
           },
         },
@@ -146,7 +174,7 @@ export const getAllProductsAdmin = async (req: Request, res: Response): Promise<
           ...product,
           averageRating: parseFloat(averageRating.toFixed(1)),
           totalReviews: reviews.length,
-          totalOrders: product._count.orderItems,
+          totalOrders: product._count.OrderItem,
         };
       })
     );
@@ -180,11 +208,11 @@ export const getProductByIdAdmin = async (req: Request, res: Response): Promise<
     const product = await prisma.product.findUnique({
       where: { id },
       include: {
-        category: true,
-        brand: true,
-        reviews: {
+        Category: true,
+        Brand: true,
+        Review: {
           include: {
-            user: {
+            User: {
               select: {
                 id: true,
                 email: true,
@@ -195,9 +223,9 @@ export const getProductByIdAdmin = async (req: Request, res: Response): Promise<
           },
           orderBy: { createdAt: 'desc' },
         },
-        orderItems: {
+        OrderItem: {
           include: {
-            order: {
+            Order: {
               select: {
                 id: true,
                 orderNumber: true,
@@ -216,18 +244,20 @@ export const getProductByIdAdmin = async (req: Request, res: Response): Promise<
     }
 
     // Calculate statistics
+    const totalOrderItems: Array<{ price: number; quantity: number }> = product.OrderItem || [];
+    
     const averageRating =
-      product.reviews.length > 0
-        ? product.reviews.reduce((sum, r) => sum + r.rating, 0) /
-          product.reviews.length
+      product.Review.length > 0
+        ? product.Review.reduce((sum, r) => sum + r.rating, 0) /
+          product.Review.length
         : 0;
 
-    const totalRevenue = product.orderItems.reduce(
-      (sum, item) => sum + item.price * item.quantity,
+    const totalRevenue = totalOrderItems.reduce(
+      (sum: number, item: { price: number; quantity: number; }) => sum + item.price * item.quantity,
       0
     );
 
-    const totalUnitsSold = product.orderItems.reduce(
+    const totalUnitsSold = totalOrderItems.reduce(
       (sum, item) => sum + item.quantity,
       0
     );
@@ -236,9 +266,9 @@ export const getProductByIdAdmin = async (req: Request, res: Response): Promise<
       ...product,
       stats: {
         averageRating: parseFloat(averageRating.toFixed(1)),
-        totalReviews: product.reviews.length,
-        totalOrders: product.orderItems.length,
-        totalUnitsSold,
+        totalReviews: (product.Review as any[]).length,
+        totalOrders: (product.OrderItem as any[]).length,
+        totalUnitsSold: totalUnitsSold,
         totalRevenue: parseFloat(totalRevenue.toFixed(2)),
       },
     });
@@ -258,14 +288,14 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
       price,
       salePrice,
       stock,
-      images,
+      images, // Array of Cloudinary URLs
       featured,
       categoryId,
-      categoryName,  // NEW: Accept category name
-      categorySlug,  // NEW: Accept category slug
+      categoryName,
+      categorySlug,
       brandId,
-      brandName,     // NEW: Accept brand name
-      brandSlug,     // NEW: Accept brand slug
+      brandName,
+      brandSlug,
     } = req.body;
 
     // Validate required fields
@@ -280,20 +310,6 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
     if (!categoryId && !categoryName && !categorySlug) {
       res.status(400).json({
         error: 'Must provide either categoryId, categoryName, or categorySlug',
-      });
-      return;
-    }
-
-    // Validate price
-    if (price <= 0) {
-      res.status(400).json({ error: 'Price must be greater than 0' });
-      return;
-    }
-
-    // Validate sale price if provided
-    if (salePrice && salePrice >= price) {
-      res.status(400).json({
-        error: 'Sale price must be less than regular price',
       });
       return;
     }
@@ -326,7 +342,7 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
-    // Verify category exists
+    // Check if category exists
     const category = await prisma.category.findUnique({
       where: { id: finalCategoryId },
     });
@@ -338,7 +354,7 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
 
     // Resolve brand ID (optional)
     let finalBrandId: string | null = null;
-
+    
     if (brandId) {
       finalBrandId = brandId;
     } else if (brandName) {
@@ -347,37 +363,34 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
       finalBrandId = await resolveBrandId(brandSlug);
     }
 
-    // Verify brand exists (if provided)
+    // Check if brand exists (if provided)
     if (finalBrandId) {
       const brand = await prisma.brand.findUnique({
         where: { id: finalBrandId },
       });
 
       if (!brand) {
-        res.status(404).json({ 
-          error: 'Brand not found. Please check the brand identifier.' 
-        });
+        res.status(404).json({ error: 'Brand not found' });
         return;
       }
     }
 
-    // Create product
     const product = await prisma.product.create({
       data: {
         name,
         slug,
-        description,
+        description: description || null,
         price: parseFloat(price),
         salePrice: salePrice ? parseFloat(salePrice) : null,
         stock: stock ? parseInt(stock) : 0,
-        images: images || [],
+        images: images || [], // Store Cloudinary URLs
         featured: featured === true || featured === 'true',
         categoryId: finalCategoryId,
         brandId: finalBrandId,
       },
       include: {
-        category: true,
-        brand: true,
+        Category: true,
+        Brand: true,
       },
     });
 
@@ -391,10 +404,16 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
   }
 };
 
-// Update product - ACCEPTS BOTH ID AND NAME
+// Update product (Admin only) - ENHANCED
 export const updateProduct = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
+
+    if (!id) {
+      res.status(400).json({ error: 'Product ID is required' });
+      return;
+    }
+
     const {
       name,
       slug,
@@ -402,20 +421,15 @@ export const updateProduct = async (req: Request, res: Response): Promise<void> 
       price,
       salePrice,
       stock,
-      images,
+      images, // Array of Cloudinary URLs
       featured,
       categoryId,
-      categoryName,  // NEW: Accept category name
-      categorySlug,  // NEW: Accept category slug
+      categoryName,
+      categorySlug,
       brandId,
-      brandName,     // NEW: Accept brand name
-      brandSlug,     // NEW: Accept brand slug
+      brandName,
+      brandSlug,
     } = req.body;
-
-    if (!id) {
-      res.status(400).json({ error: 'Product ID is required' });
-      return;
-    }
 
     // Check if product exists
     const existingProduct = await prisma.product.findUnique({
@@ -439,24 +453,18 @@ export const updateProduct = async (req: Request, res: Response): Promise<void> 
       }
     }
 
-    // Validate sale price if being updated
-    if (price && salePrice && salePrice >= price) {
-      res.status(400).json({
-        error: 'Sale price must be less than regular price',
-      });
-      return;
-    }
-
     // Build update data
     const updateData: any = {};
-    if (name) updateData.name = name;
-    if (slug) updateData.slug = slug;
+    if (name !== undefined) updateData.name = name;
+    if (slug !== undefined) updateData.slug = slug;
     if (description !== undefined) updateData.description = description;
-    if (price) updateData.price = parseFloat(price);
-    if (salePrice !== undefined) updateData.salePrice = salePrice ? parseFloat(salePrice) : null;
+    if (price !== undefined) updateData.price = parseFloat(price);
+    if (salePrice !== undefined)
+      updateData.salePrice = salePrice ? parseFloat(salePrice) : null;
     if (stock !== undefined) updateData.stock = parseInt(stock);
-    if (images !== undefined) updateData.images = images;
-    if (featured !== undefined) updateData.featured = featured;
+    if (images !== undefined) updateData.images = images; // Update with new Cloudinary URLs
+    if (featured !== undefined)
+      updateData.featured = featured === true || featured === 'true';
 
     // Resolve category ID if provided
     if (categoryId || categoryName || categorySlug) {
@@ -492,23 +500,15 @@ export const updateProduct = async (req: Request, res: Response): Promise<void> 
         finalBrandId = await resolveBrandId(brandSlug);
       }
 
-      if (brandId && !finalBrandId) {
-        res.status(404).json({ 
-          error: 'Brand not found. Please check the brand identifier.' 
-        });
-        return;
-      }
-
       updateData.brandId = finalBrandId;
     }
 
-    // Update product
     const product = await prisma.product.update({
       where: { id },
       data: updateData,
       include: {
-        category: true,
-        brand: true,
+        Category: true,
+        Brand: true,
       },
     });
 
@@ -522,23 +522,21 @@ export const updateProduct = async (req: Request, res: Response): Promise<void> 
   }
 };
 
-// Delete product
+// Delete product (Admin only)
 export const deleteProduct = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
 
     if (!id) {
-        throw new Error('Product ID is required');
+      res.status(400).json({ error: 'Product ID is required' });
+      return;
     }
-
 
     // Check if product exists
     const product = await prisma.product.findUnique({
       where: { id },
       include: {
-        orderItems: true,
-        reviews: true,
-        cartItems: true,
+        OrderItem: true,
       },
     });
 
@@ -547,16 +545,25 @@ export const deleteProduct = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
-    // Check if product has orders
-    if (product.orderItems.length > 0) {
-      res.status(400).json({
-        error:
-          'Cannot delete product with existing orders. Consider marking it as out of stock instead.',
-      });
-      return;
+    // Optional: Delete images from Cloudinary
+    if (product.images && product.images.length > 0) {
+      try {
+        const deletePromises = product.images.map((imageUrl: string) => {
+          // Extract public_id from Cloudinary URL
+          const urlParts = imageUrl.split('/');
+          const filename = urlParts[urlParts.length - 1];
+          if (!filename) return Promise.resolve();
+          const publicId = `shajgoj/${filename.split('.')[0]}`;
+          return cloudinary.uploader.destroy(publicId);
+        });
+        await Promise.all(deletePromises);
+      } catch (imageError) {
+        console.error('Error deleting images from Cloudinary:', imageError);
+        // Continue with product deletion even if image deletion fails
+      }
     }
 
-    // Delete related data first
+    // Delete related data and product
     await prisma.$transaction([
       // Delete cart items
       prisma.cartItem.deleteMany({
@@ -669,8 +676,8 @@ export const getProductsByCategory = async (req: Request, res: Response): Promis
     const skip = (pageNum - 1) * limitNum;
 
     if (!categoryId) {
-        res.status(400).json({ error: 'Category ID is required' });
-        return;
+      res.status(400).json({ error: 'Category ID is required' });
+      return;
     }
 
     // Resolve category ID from name, slug, or ID
@@ -696,8 +703,8 @@ export const getProductsByCategory = async (req: Request, res: Response): Promis
       prisma.product.findMany({
         where: { categoryId: finalCategoryId },
         include: {
-          category: true,
-          brand: true,
+          Category: true,
+          Brand: true,
         },
         skip,
         take: limitNum,
@@ -732,8 +739,8 @@ export const getProductsByBrand = async (req: Request, res: Response): Promise<v
     const skip = (pageNum - 1) * limitNum;
     
     if (!brandId) {
-        res.status(400).json({ error: 'Brand ID is required' });
-        return;
+      res.status(400).json({ error: 'Brand ID is required' });
+      return;
     }
 
     // Resolve brand ID from name, slug, or ID
@@ -759,8 +766,8 @@ export const getProductsByBrand = async (req: Request, res: Response): Promise<v
       prisma.product.findMany({
         where: { brandId: finalBrandId },
         include: {
-          category: true,
-          brand: true,
+          Category: true,
+          Brand: true,
         },
         skip,
         take: limitNum,

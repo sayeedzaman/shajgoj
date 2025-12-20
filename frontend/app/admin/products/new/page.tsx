@@ -2,13 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Upload, X } from 'lucide-react';
+import { ArrowLeft, Upload, X, Image as ImageIcon } from 'lucide-react';
 import { adminProductsAPI, adminCategoriesAPI, adminBrandsAPI } from '@/src/lib/adminApi';
 import type { Category, Brand } from '@/src/types/index';
 
 export default function NewProductPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [uploadingImages, setUploadingImages] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -22,11 +23,12 @@ export default function NewProductPage() {
     stock: '',
     categoryId: '',
     brandId: '',
-    images: [] as string[],
+    images: [] as string[], // Cloudinary URLs
     featured: false,
   });
 
-  const [imageInput, setImageInput] = useState('');
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
 
   useEffect(() => {
     fetchCategoriesAndBrands();
@@ -65,18 +67,47 @@ export default function NewProductPage() {
     }
   };
 
-  const addImage = () => {
-    if (imageInput && !formData.images.includes(imageInput)) {
-      setFormData((prev) => ({
-        ...prev,
-        images: [...prev.images, imageInput],
-      }));
-      setImageInput('');
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    
+    if (files.length === 0) return;
+
+    // Validate file types
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+    const invalidFiles = files.filter(file => !validTypes.includes(file.type));
+    
+    if (invalidFiles.length > 0) {
+      setError('Only JPEG, PNG, WEBP and GIF images are allowed');
+      return;
     }
+
+    // Validate file sizes (5MB max)
+    const oversizedFiles = files.filter(file => file.size > 5 * 1024 * 1024);
+    if (oversizedFiles.length > 0) {
+      setError('Some files exceed the 5MB size limit');
+      return;
+    }
+
+    setSelectedFiles(prev => [...prev, ...files]);
+
+    // Create preview URLs
+    const newPreviewUrls = files.map(file => URL.createObjectURL(file));
+    setPreviewUrls(prev => [...prev, ...newPreviewUrls]);
+
+    // Clear error
+    setError(null);
   };
 
-  const removeImage = (index: number) => {
-    setFormData((prev) => ({
+  const removeSelectedImage = (index: number) => {
+    // Revoke the object URL to free memory
+    URL.revokeObjectURL(previewUrls[index]);
+    
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+    setPreviewUrls(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const removeUploadedImage = (index: number) => {
+    setFormData(prev => ({
       ...prev,
       images: prev.images.filter((_, i) => i !== index),
     }));
@@ -95,6 +126,17 @@ export default function NewProductPage() {
     try {
       setLoading(true);
 
+      // Step 1: Upload images to Cloudinary if any files selected
+      let cloudinaryUrls: string[] = [...formData.images]; // Keep existing URLs
+      
+      if (selectedFiles.length > 0) {
+        setUploadingImages(true);
+        const uploadResult = await adminProductsAPI.uploadImages(selectedFiles);
+        cloudinaryUrls = [...cloudinaryUrls, ...uploadResult.urls];
+        setUploadingImages(false);
+      }
+
+      // Step 2: Create product with Cloudinary URLs
       const productData: any = {
         name: formData.name,
         slug: formData.slug,
@@ -104,14 +146,19 @@ export default function NewProductPage() {
         stock: formData.stock ? parseInt(formData.stock) : 0,
         categoryId: formData.categoryId,
         brandId: formData.brandId || undefined,
-        images: formData.images,
+        images: cloudinaryUrls,
         featured: formData.featured,
       };
 
       await adminProductsAPI.create(productData);
+      
+      // Clean up preview URLs
+      previewUrls.forEach(url => URL.revokeObjectURL(url));
+      
       router.push('/admin/products');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create product');
+      setUploadingImages(false);
     } finally {
       setLoading(false);
     }
@@ -124,6 +171,7 @@ export default function NewProductPage() {
         <button
           onClick={() => router.back()}
           className="p-2 hover:bg-gray-100 rounded-lg"
+          aria-label="Go Back"
         >
           <ArrowLeft className="w-5 h-5 text-gray-600" />
         </button>
@@ -136,6 +184,12 @@ export default function NewProductPage() {
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <p className="text-red-800">{error}</p>
+        </div>
+      )}
+
+      {uploadingImages && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p className="text-blue-800">📤 Uploading images to Cloudinary...</p>
         </div>
       )}
 
@@ -263,6 +317,7 @@ export default function NewProductPage() {
                 onChange={handleChange}
                 required
                 className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                aria-label="Category"
               >
                 <option value="">Select Category</option>
                 {categories.map((cat) => (
@@ -282,6 +337,7 @@ export default function NewProductPage() {
                 value={formData.brandId}
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                aria-label="Brand"
               >
                 <option value="">Select Brand (Optional)</option>
                 {brands.map((brand) => (
@@ -294,46 +350,94 @@ export default function NewProductPage() {
           </div>
         </div>
 
-        {/* Images */}
+        {/* Images - UPDATED WITH FILE UPLOAD */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Product Images</h2>
 
           <div className="space-y-4">
-            <div className="flex gap-2">
+            {/* File Upload Input */}
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
               <input
-                type="url"
-                value={imageInput}
-                onChange={(e) => setImageInput(e.target.value)}
-                className="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent"
-                placeholder="Enter image URL"
+                type="file"
+                id="image-upload"
+                multiple
+                accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+                onChange={handleFileSelect}
+                className="hidden"
               />
-              <button
-                type="button"
-                onClick={addImage}
-                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              <label
+                htmlFor="image-upload"
+                className="cursor-pointer flex flex-col items-center gap-2"
               >
-                <Upload className="w-5 h-5" />
-              </button>
+                <ImageIcon className="w-12 h-12 text-gray-400" />
+                <p className="text-sm font-medium text-gray-700">
+                  Click to upload images
+                </p>
+                <p className="text-xs text-gray-500">
+                  JPEG, PNG, WEBP, GIF up to 5MB each
+                </p>
+              </label>
             </div>
 
+            {/* Preview Selected Files (Not yet uploaded) */}
+            {previewUrls.length > 0 && (
+              <div>
+                <p className="text-sm font-medium text-gray-700 mb-2">
+                  Selected Images ({selectedFiles.length})
+                </p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {previewUrls.map((url, index) => (
+                    <div key={index} className="relative group">
+                      <img
+                        src={url}
+                        alt={`Preview ${index + 1}`}
+                        className="w-full h-32 object-cover rounded-lg border-2 border-yellow-300"
+                      />
+                      <div className="absolute top-1 left-1 bg-yellow-500 text-white text-xs px-2 py-1 rounded">
+                        Not uploaded
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeSelectedImage(index)}
+                        className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        aria-label={`Remove selected image ${index + 1}`}
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Already Uploaded Images (Cloudinary URLs) */}
             {formData.images.length > 0 && (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {formData.images.map((img, index) => (
-                  <div key={index} className="relative group">
-                    <img
-                      src={img}
-                      alt={`Product ${index + 1}`}
-                      className="w-full h-32 object-cover rounded-lg"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeImage(index)}
-                      className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
+              <div>
+                <p className="text-sm font-medium text-gray-700 mb-2">
+                  Uploaded Images ({formData.images.length})
+                </p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {formData.images.map((img, index) => (
+                    <div key={index} className="relative group">
+                      <img
+                        src={img}
+                        alt={`Uploaded ${index + 1}`}
+                        className="w-full h-32 object-cover rounded-lg border-2 border-green-300"
+                      />
+                      <div className="absolute top-1 left-1 bg-green-500 text-white text-xs px-2 py-1 rounded">
+                        ✓ Uploaded
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeUploadedImage(index)}
+                        className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        aria-label={`Remove uploaded image ${index + 1}`}
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
@@ -369,10 +473,10 @@ export default function NewProductPage() {
           </button>
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || uploadingImages}
             className="px-6 py-2 bg-gradient-to-r from-rose-500 to-pink-600 text-white rounded-lg hover:from-rose-600 hover:to-pink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Creating...' : 'Create Product'}
+            {uploadingImages ? 'Uploading Images...' : loading ? 'Creating...' : 'Create Product'}
           </button>
         </div>
       </form>

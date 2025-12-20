@@ -9,14 +9,27 @@ import {
   getProductsByCategory,
   getProductsByBrand,
   getInventoryStats,
+  uploadProductImages,
 } from '../controllers/admin.product.controller.js';
 import { authenticate, authorize } from '../middleware/auth.middleware.js';
+import { upload } from '../middleware/upload.js';
 
 const router = express.Router();
 
 // All routes require admin authentication
 router.use(authenticate);
 router.use(authorize('ADMIN'));
+
+/**
+ * @route   POST /api/admin/products/upload-images
+ * @desc    Upload product images to Cloudinary
+ * @access  Admin
+ */
+router.post(
+  '/upload-images',
+  upload.array('images', 5), // Allow up to 5 images
+  uploadProductImages
+);
 
 /**
  * @route   GET /api/admin/products

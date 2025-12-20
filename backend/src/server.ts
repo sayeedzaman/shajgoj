@@ -20,7 +20,10 @@ app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:3000',
   credentials: true,
 }));
-app.use(express.json());
+
+// UPDATED: Increase payload limit
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -52,8 +55,8 @@ app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
   console.log(`
 Available routes:
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📝 Authentication
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔐 Authentication
   POST   /api/auth/register
   POST   /api/auth/login
 
@@ -63,7 +66,7 @@ Available routes:
   GET    /api/categories
   GET    /api/brands
 
-🔐 Admin Routes (Require Authentication)
+🔒 Admin Routes (Require Authentication)
   Users:
     GET    /api/auth/admin/users
     GET    /api/auth/admin/users/:id
@@ -82,6 +85,7 @@ Available routes:
     DELETE /api/brands/:id
   
   Products:
+    POST   /api/admin/products/upload-images  👈 IMAGE UPLOAD
     GET    /api/admin/products
     GET    /api/admin/products/stats
     GET    /api/admin/products/:id
@@ -99,6 +103,6 @@ Available routes:
     PUT    /api/orders/:id/cancel
     GET    /api/orders/admin/all
     PUT    /api/orders/admin/:id
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   `);
 });
