@@ -9,7 +9,7 @@ interface OrderItem {
   id: string;
   quantity: number;
   price: number;
-  product: {
+  Product: {
     id: string;
     name: string;
     slug: string;
@@ -26,16 +26,16 @@ interface Order {
   total: number;
   createdAt: string;
   updatedAt: string;
-  address: {
+  Address: {
     id: string;
     fullName: string;
     phone: string;
-    addressLine1: string;
-    addressLine2?: string | null;
+    address: string;
     city: string;
-    postalCode: string;
+    state: string;
+    zipCode: string;
   };
-  items: OrderItem[];
+  OrderItem: OrderItem[];
 }
 
 export default function OrdersPage() {
@@ -75,7 +75,7 @@ export default function OrdersPage() {
       }
 
       const data = await response.json();
-      setOrders(data);
+      setOrders(data.orders);
     } catch (error) {
       console.error('Error fetching orders:', error);
       setErrorMessage('Failed to load orders. Please try again.');
@@ -230,13 +230,13 @@ export default function OrdersPage() {
                 {/* Order Items Preview */}
                 <div className="p-6">
                   <div className="flex flex-wrap gap-4">
-                    {order.items.slice(0, 3).map((item) => (
+                    {order.OrderItem.slice(0, 3).map((item) => (
                       <div key={item.id} className="flex items-center gap-3">
                         <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                          {item.product.images && item.product.images[0] ? (
+                          {item.Product.images && item.Product.images[0] ? (
                             <img
-                              src={item.product.images[0]}
-                              alt={item.product.name}
+                              src={item.Product.images[0]}
+                              alt={item.Product.name}
                               className="w-full h-full object-cover"
                             />
                           ) : (
@@ -247,15 +247,15 @@ export default function OrdersPage() {
                         </div>
                         <div>
                           <p className="text-sm font-medium text-gray-900 line-clamp-1">
-                            {item.product.name}
+                            {item.Product.name}
                           </p>
                           <p className="text-xs text-gray-500">Qty: {item.quantity}</p>
                         </div>
                       </div>
                     ))}
-                    {order.items.length > 3 && (
+                    {order.OrderItem.length > 3 && (
                       <div className="flex items-center text-sm text-gray-600">
-                        +{order.items.length - 3} more items
+                        +{order.OrderItem.length - 3} more items
                       </div>
                     )}
                   </div>
@@ -314,11 +314,10 @@ export default function OrdersPage() {
                 <div className="bg-gray-50 rounded-lg p-4">
                   <h3 className="text-sm font-semibold text-gray-700 mb-3">Shipping Address</h3>
                   <div className="space-y-1 text-sm text-gray-900">
-                    <p className="font-medium">{selectedOrder.address.fullName}</p>
-                    <p>{selectedOrder.address.phone}</p>
-                    <p>{selectedOrder.address.addressLine1}</p>
-                    {selectedOrder.address.addressLine2 && <p>{selectedOrder.address.addressLine2}</p>}
-                    <p>{selectedOrder.address.city}, {selectedOrder.address.postalCode}</p>
+                    <p className="font-medium">{selectedOrder.Address.fullName}</p>
+                    <p>{selectedOrder.Address.phone}</p>
+                    <p>{selectedOrder.Address.address}</p>
+                    <p>{selectedOrder.Address.city}, {selectedOrder.Address.state} {selectedOrder.Address.zipCode}</p>
                   </div>
                 </div>
 
@@ -336,15 +335,15 @@ export default function OrdersPage() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-200">
-                        {selectedOrder.items.map((item) => (
+                        {selectedOrder.OrderItem.map((item) => (
                           <tr key={item.id}>
                             <td className="px-4 py-3">
                               <div className="flex items-center gap-3">
                                 <div className="w-12 h-12 bg-gray-100 rounded overflow-hidden flex-shrink-0">
-                                  {item.product.images && item.product.images[0] ? (
+                                  {item.Product.images && item.Product.images[0] ? (
                                     <img
-                                      src={item.product.images[0]}
-                                      alt={item.product.name}
+                                      src={item.Product.images[0]}
+                                      alt={item.Product.name}
                                       className="w-full h-full object-cover"
                                     />
                                   ) : (
@@ -355,10 +354,10 @@ export default function OrdersPage() {
                                 </div>
                                 <div>
                                   <Link
-                                    href={`/products/${item.product.slug}`}
+                                    href={`/products/${item.Product.slug}`}
                                     className="text-sm font-medium text-gray-900 hover:text-red-600"
                                   >
-                                    {item.product.name}
+                                    {item.Product.name}
                                   </Link>
                                 </div>
                               </div>

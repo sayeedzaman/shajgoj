@@ -29,7 +29,7 @@ export const getCart = async (req: AuthRequest, res: Response) => {
                     slug: true,
                   },
                 },
-                brand: {
+                Brand: {
                   select: {
                     id: true,
                     name: true,
@@ -61,7 +61,7 @@ export const getCart = async (req: AuthRequest, res: Response) => {
                       slug: true,
                     },
                   },
-                  brand: {
+                  Brand: {
                     select: {
                       id: true,
                       name: true,
@@ -78,16 +78,21 @@ export const getCart = async (req: AuthRequest, res: Response) => {
 
     // Transform cart items to match frontend expectations
     const transformedItems = cart.CartItem.map((item) => ({
-      ...item,
-      Product: {
+      id: item.id,
+      quantity: item.quantity,
+      productId: item.productId,
+      cartId: item.cartId,
+      product: {
         ...item.Product,
         imageUrl: item.Product.images.length > 0 ? item.Product.images[0] : null,
+        brand: item.Product.Brand,
+        category: item.Product.Category,
       },
     }));
 
     // Calculate cart totals
     const subtotal = transformedItems.reduce((sum, item) => {
-      const price = item.Product.salePrice || item.Product.price;
+      const price = item.product.salePrice || item.product.price;
       return sum + price * item.quantity;
     }, 0);
 
@@ -159,8 +164,6 @@ export const addToCart = async (req: AuthRequest, res: Response) => {
       },
     });
 
-    let cartItem;
-
     if (existingCartItem) {
       // Update quantity if item exists
       const newQuantity = existingCartItem.quantity + qty;
@@ -171,75 +174,67 @@ export const addToCart = async (req: AuthRequest, res: Response) => {
         });
       }
 
-      cartItem = await prisma.cartItem.update({
+      await prisma.cartItem.update({
         where: { id: existingCartItem.id },
         data: { quantity: newQuantity },
-        include: {
-          Product: {
-            include: {
-              Category: {
-                select: {
-                  id: true,
-                  name: true,
-                  slug: true,
-                },
-              },
-              brand: {
-                select: {
-                  id: true,
-                  name: true,
-                  slug: true,
-                },
-              },
-            },
-          },
-        },
       });
     } else {
       // Create new cart item
-      cartItem = await prisma.cartItem.create({
+      await prisma.cartItem.create({
         data: {
           id: uuidv4(),
           cartId: cart.id,
           productId,
           quantity: qty,
         },
-        include: {
-          Product: {
-            include: {
-              Category: {
-                select: {
-                  id: true,
-                  name: true,
-                  slug: true,
-                },
-              },
-              Brand: {
-                select: {
-                  id: true,
-                  name: true,
-                  slug: true,
-                },
+      });
+    }
+
+    // Get the updated cart with all items
+    const updatedCart = await prisma.cart.findUnique({
+      where: { id: cart.id },
+      include: {
+        CartItem: {
+          include: {
+            Product: {
+              include: {
+                Category: true,
+                Brand: true,
               },
             },
           },
         },
-      });
-    }
-
-    // Transform response
-    const transformedItem = {
-      ...cartItem,
-      Product: {
-        ...cartItem.Product,
-        imageUrl: cartItem.Product.images.length > 0 ? cartItem.Product.images[0] : null,
       },
+    });
+
+    // Transform cart items to match frontend expectations
+    const transformedItems = updatedCart!.CartItem.map((item) => ({
+      id: item.id,
+      quantity: item.quantity,
+      productId: item.productId,
+      cartId: item.cartId,
+      product: {
+        ...item.Product,
+        imageUrl: item.Product.images.length > 0 ? item.Product.images[0] : null,
+        brand: item.Product.Brand,
+        category: item.Product.Category,
+      },
+    }));
+
+    // Calculate cart totals
+    const subtotal = transformedItems.reduce((sum, item) => {
+      const price = item.product.salePrice || item.product.price;
+      return sum + price * item.quantity;
+    }, 0);
+
+    const cartData = {
+      id: updatedCart!.id,
+      items: transformedItems,
+      itemCount: transformedItems.reduce((sum, item) => sum + item.quantity, 0),
+      subtotal: parseFloat(subtotal.toFixed(2)),
     };
 
-    res.status(201).json({
-      message: 'Product added to cart',
-      cartItem: transformedItem,
-    });
+    res.json(cartData);
   } catch (error) {
     console.error('Add to cart error:', error);
     res.status(500).json({ error: 'Failed to add item to cart' });
@@ -290,24 +285,21 @@ export const updateCartItem = async (req: AuthRequest, res: Response) => {
     }
 
     // Update cart item
-    const updatedCartItem = await prisma.cartItem.update({
+    await prisma.cartItem.update({
       where: { id: itemId },
       data: { quantity: parseInt(quantity) },
+    });
+
+    // Get the updated cart with all items
+    const updatedCart = await prisma.cart.findUnique({
+      where: { id: cartItem.Cart.id },
       include: {
-        Product: {
+        CartItem: {
           include: {
-            Category: {
-              select: {
-                id: true,
-                name: true,
-                slug: true,
-              },
-            },
-            brand: {
-              select: {
-                id: true,
-                name: true,
-                slug: true,
+            Product: {
+              include: {
+                Category: true,
+                Brand: true,
               },
             },
           },
@@ -315,19 +307,34 @@ export const updateCartItem = async (req: AuthRequest, res: Response) => {
       },
     });
 
-    // Transform response
-    const transformedItem = {
-      ...updatedCartItem,
-      Product: {
-        ...updatedCartItem.Product,
-        imageUrl: updatedCartItem.Product.images.length > 0 ? updatedCartItem.Product.images[0] : null,
+    // Transform cart items to match frontend expectations
+    const transformedItems = updatedCart!.CartItem.map((item) => ({
+      id: item.id,
+      quantity: item.quantity,
+      productId: item.productId,
+      cartId: item.cartId,
+      product: {
+        ...item.Product,
+        imageUrl: item.Product.images.length > 0 ? item.Product.images[0] : null,
+        brand: item.Product.Brand,
+        category: item.Product.Category,
       },
+    }));
+
+    // Calculate cart totals
+    const subtotal = transformedItems.reduce((sum, item) => {
+      const price = item.product.salePrice || item.product.price;
+      return sum + price * item.quantity;
+    }, 0);
+
+    const cartData = {
+      id: updatedCart!.id,
+      items: transformedItems,
+      itemCount: transformedItems.reduce((sum, item) => sum + item.quantity, 0),
+      subtotal: parseFloat(subtotal.toFixed(2)),
     };
 
-    res.json({
-      message: 'Cart item updated',
-      cartItem: transformedItem,
-    });
+    res.json(cartData);
   } catch (error) {
     console.error('Update cart item error:', error);
     res.status(500).json({ error: 'Failed to update cart item' });
@@ -369,7 +376,51 @@ export const removeFromCart = async (req: AuthRequest, res: Response) => {
       where: { id: itemId },
     });
 
-    res.json({ message: 'Item removed from cart' });
+    // Get the updated cart with all items
+    const updatedCart = await prisma.cart.findUnique({
+      where: { id: cartItem.Cart.id },
+      include: {
+        CartItem: {
+          include: {
+            Product: {
+              include: {
+                Category: true,
+                Brand: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // Transform cart items to match frontend expectations
+    const transformedItems = updatedCart!.CartItem.map((item) => ({
+      id: item.id,
+      quantity: item.quantity,
+      productId: item.productId,
+      cartId: item.cartId,
+      product: {
+        ...item.Product,
+        imageUrl: item.Product.images.length > 0 ? item.Product.images[0] : null,
+        brand: item.Product.Brand,
+        category: item.Product.Category,
+      },
+    }));
+
+    // Calculate cart totals
+    const subtotal = transformedItems.reduce((sum, item) => {
+      const price = item.product.salePrice || item.product.price;
+      return sum + price * item.quantity;
+    }, 0);
+
+    const cartData = {
+      id: updatedCart!.id,
+      items: transformedItems,
+      itemCount: transformedItems.reduce((sum, item) => sum + item.quantity, 0),
+      subtotal: parseFloat(subtotal.toFixed(2)),
+    };
+
+    res.json(cartData);
   } catch (error) {
     console.error('Remove from cart error:', error);
     res.status(500).json({ error: 'Failed to remove item from cart' });

@@ -117,10 +117,10 @@ export default function ProductDetailPage() {
           <ChevronRight className="w-4 h-4" />
           <Link href="/products" className="hover:text-red-600">Products</Link>
           <ChevronRight className="w-4 h-4" />
-          {product.category && (
+          {product.Category && (
             <>
-              <Link href={`/category/${product.category.slug}`} className="hover:text-red-600">
-                {product.category.name}
+              <Link href={`/category/${product.Category.slug}`} className="hover:text-red-600">
+                {product.Category.name}
               </Link>
               <ChevronRight className="w-4 h-4" />
             </>
@@ -201,9 +201,9 @@ export default function ProductDetailPage() {
           {/* Product Info */}
           <div className="space-y-6">
             {/* Brand */}
-            {product.brand && (
+            {product.Brand && (
               <p className="text-sm text-gray-600 uppercase tracking-wide font-medium">
-                {product.brand.name}
+                {product.Brand.name}
               </p>
             )}
 

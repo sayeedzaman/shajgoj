@@ -22,6 +22,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
       {/* Cart Sidebar */}
       {!isAdminPage && (
         <CartSidebar
+          key={JSON.stringify(cart?.items.map(i => ({ id: i.id, qty: i.quantity })) || [])}
           isOpen={isCartOpen}
           onClose={closeCart}
           cartItems={cart?.items || []}

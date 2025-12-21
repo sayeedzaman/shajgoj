@@ -41,9 +41,9 @@ export default function OrderDetailPage() {
       setLoading(true);
       const data = await ordersAPI.getById(orderId);
       setOrder(data);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error fetching order:', error);
-      setError(error.message || 'Failed to load order');
+      setError(error instanceof Error ? error.message : 'Failed to load order');
     } finally {
       setLoading(false);
     }
@@ -128,7 +128,7 @@ export default function OrderDetailPage() {
                   Order Placed Successfully!
                 </h2>
                 <p className="text-green-700 mb-4">
-                  Thank you for your order. We've received your order and will start processing it soon.
+                  Thank you for your order. We&apos;ve received your order and will start processing it soon.
                 </p>
                 <div className="flex items-center gap-2 text-sm text-green-700">
                   <span className="font-semibold">Order Number:</span>
@@ -198,17 +198,17 @@ export default function OrderDetailPage() {
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
                 <ShoppingBag className="w-5 h-5" />
-                Order Items ({order.items.length})
+                Order Items ({order.OrderItem.length})
               </h2>
 
               <div className="space-y-4">
-                {order.items.map((item) => (
+                {order.OrderItem.map((item) => (
                   <div key={item.id} className="flex gap-4 pb-4 border-b border-gray-200 last:border-0">
                     <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                      {item.product.imageUrl || item.product.images?.[0] ? (
+                      {item.Product.imageUrl || item.Product.images?.[0] ? (
                         <img
-                          src={item.product.imageUrl || item.product.images[0]}
-                          alt={item.product.name}
+                          src={item.Product.imageUrl || item.Product.images[0]}
+                          alt={item.Product.name}
                           className="w-full h-full object-contain"
                         />
                       ) : (
@@ -219,14 +219,14 @@ export default function OrderDetailPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <Link
-                        href={`/products/${item.product.slug}`}
+                        href={`/products/${item.Product.slug}`}
                         className="font-semibold text-gray-900 hover:text-red-600 line-clamp-2 block mb-1"
                       >
-                        {item.product.name}
+                        {item.Product.name}
                       </Link>
-                      {item.product.brand && (
+                      {item.Product.Brand && (
                         <p className="text-sm text-gray-500 mb-2">
-                          {item.product.brand.name}
+                          {item.Product.Brand.name}
                         </p>
                       )}
                       <div className="flex items-center gap-4">
@@ -335,13 +335,13 @@ export default function OrderDetailPage() {
                 <MapPin className="w-5 h-5" />
                 Delivery Address
               </h2>
-              {order.address && (
+              {order.Address && (
                 <div className="text-sm text-gray-600 space-y-1">
-                  <p className="font-semibold text-gray-900">{order.address.fullName}</p>
-                  <p>{order.address.phone}</p>
-                  <p>{order.address.address}</p>
+                  <p className="font-semibold text-gray-900">{order.Address.fullName}</p>
+                  <p>{order.Address.phone}</p>
+                  <p>{order.Address.address}</p>
                   <p>
-                    {order.address.city}, {order.address.state} - {order.address.zipCode}
+                    {order.Address.city}, {order.Address.state} - {order.Address.zipCode}
                   </p>
                 </div>
               )}
@@ -354,7 +354,7 @@ export default function OrderDetailPage() {
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Subtotal</span>
                   <span className="font-medium text-gray-900">
-                    ৳{order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2)}
+                    ৳{order.OrderItem.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2)}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">

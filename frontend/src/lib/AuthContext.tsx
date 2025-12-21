@@ -88,6 +88,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     localStorage.removeItem('token');
     setUser(null);
     setError(null);
+
+    // Redirect to home page for privacy
+    if (typeof window !== 'undefined') {
+      window.location.href = '/';
+    }
   };
 
   const clearError = () => {

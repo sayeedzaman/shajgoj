@@ -9,8 +9,10 @@ import {
   getProductsByCategory,
   getProductsByBrand,
   getInventoryStats,
+  uploadProductImages,
 } from '../controllers/admin.product.controller.js';
 import { authenticate, authorize } from '../middleware/auth.middleware.js';
+import { upload } from '../middleware/upload.js';
 
 const router = express.Router();
 
@@ -52,6 +54,13 @@ router.get('/brand/:brandId', getProductsByBrand);
  * @access  Admin
  */
 router.get('/:id', getProductByIdAdmin);
+
+/**
+ * @route   POST /api/admin/products/upload-images
+ * @desc    Upload product images to Cloudinary
+ * @access  Admin
+ */
+router.post('/upload-images', upload.array('images', 5), uploadProductImages);
 
 /**
  * @route   POST /api/admin/products

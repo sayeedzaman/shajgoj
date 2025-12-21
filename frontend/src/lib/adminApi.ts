@@ -11,7 +11,7 @@ export interface OrderItem {
   quantity: number;
   price: number;
   productId: string;
-  product: {
+  Product: {
     id: string;
     name: string;
     slug: string;
@@ -28,23 +28,23 @@ export interface Order {
   total: number;
   createdAt: string;
   updatedAt: string;
-  user: {
+  User: {
     id: string;
     firstName: string | null;
     lastName: string | null;
     email: string;
     phone: string | null;
   };
-  address: {
+  Address: {
     id: string;
     fullName: string;
     phone: string;
-    addressLine1: string;
-    addressLine2?: string | null;
+    address: string;
     city: string;
-    postalCode: string;
+    state: string;
+    zipCode: string;
   };
-  items: OrderItem[];
+  OrderItem: OrderItem[];
 }
 
 export interface Customer {
@@ -96,29 +96,41 @@ const createHeaders = (): HeadersInit => {
 // Helper function to handle API errors
 const handleResponse = async <T>(response: Response): Promise<T> => {
   if (!response.ok) {
+    // Log the status code first
+    console.error(`❌ HTTP ${response.status} Error from ${response.url}`);
+
     // Try to parse JSON; if that fails, use text fallback
     let errorMessage = '';
     try {
       const data = await response.json();
       errorMessage = data.message || data.error || '';
+      console.error('📄 API Error Response:', data);
     } catch {
       try {
         const text = await response.text();
         errorMessage = text;
+        console.error('📝 API Error Text:', text);
       } catch {
         errorMessage = '';
+        console.error('⚠️  No error details available from server');
       }
     }
 
     // Friendly messages for common auth cases
     if (response.status === 401) {
-      throw new Error(errorMessage || 'Unauthorized: Please log in as admin');
+      const msg = errorMessage || 'Unauthorized: Please log in as admin';
+      console.error('🔒 Auth Error (401):', msg);
+      throw new Error(msg);
     }
     if (response.status === 403) {
-      throw new Error(errorMessage || 'Forbidden: Insufficient permissions');
+      const msg = errorMessage || 'Forbidden: Insufficient permissions';
+      console.error('🚫 Permission Error (403):', msg);
+      throw new Error(msg);
     }
 
-    throw new Error(errorMessage || `HTTP error! status: ${response.status}`);
+    const msg = errorMessage || `HTTP error! status: ${response.status}`;
+    console.error(`💥 Final Error (${response.status}):`, msg);
+    throw new Error(msg);
   }
   return response.json();
 };
@@ -126,8 +138,8 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
 // Types
 export interface ProductsAdminResponse {
   products: Array<Product & {
-    category: Category;
-    brand?: Brand | null;
+    Category: Category;
+    Brand?: Brand | null;
     averageRating: number;
     totalReviews: number;
     totalOrders: number;
@@ -253,11 +265,22 @@ export const adminProductsAPI = {
   },
 
   create: async (data: CreateProductRequest): Promise<{ message: string; product: Product }> => {
+    console.log('🚀 Creating product with data:', data);
+    console.log('📦 Request body:', JSON.stringify(data, null, 2));
+
+    const headers = createHeaders();
+    console.log('🔑 Request headers:', headers);
+    console.log('🌐 API URL:', `${API_URL}/api/admin/products`);
+
     const response = await fetch(`${API_URL}/api/admin/products`, {
       method: 'POST',
-      headers: createHeaders(),
+      headers: headers,
       body: JSON.stringify(data),
     });
+
+    console.log('📡 Response status:', response.status);
+    console.log('📡 Response headers:', Object.fromEntries(response.headers.entries()));
+
     return handleResponse<{ message: string; product: Product }>(response);
   },
 
@@ -522,12 +545,68 @@ export const adminCustomersAPI = {
   },
 }
 
+// Image Upload API
+export const uploadAPI = {
+  // Upload product images (up to 5 images)
+  uploadProductImages: async (files: File[]): Promise<{ urls: string[] }> => {
+    const formData = new FormData();
+    files.forEach(file => {
+      formData.append('images', file);
+    });
+
+    const response = await fetch(`${API_URL}/api/admin/products/upload-images`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${getAuthToken()}`,
+      },
+      body: formData,
+    });
+
+    return handleResponse<{ urls: string[] }>(response);
+  },
+
+  // Upload category images
+  uploadCategoryImages: async (files: { image?: File; image2?: File; image3?: File }): Promise<{ image?: string; image2?: string; image3?: string }> => {
+    const formData = new FormData();
+    if (files.image) formData.append('image', files.image);
+    if (files.image2) formData.append('image2', files.image2);
+    if (files.image3) formData.append('image3', files.image3);
+
+    const response = await fetch(`${API_URL}/api/categories/upload-images`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${getAuthToken()}`,
+      },
+      body: formData,
+    });
+
+    return handleResponse<{ image?: string; image2?: string; image3?: string }>(response);
+  },
+
+  // Upload brand logo
+  uploadBrandLogo: async (file: File): Promise<{ url: string }> => {
+    const formData = new FormData();
+    formData.append('logo', file);
+
+    const response = await fetch(`${API_URL}/api/brands/upload-logo`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${getAuthToken()}`,
+      },
+      body: formData,
+    });
+
+    return handleResponse<{ url: string }>(response);
+  },
+};
+
 export const adminAPI = {
   products: adminProductsAPI,
   categories: adminCategoriesAPI,
   brands: adminBrandsAPI,
   orders: adminOrdersAPI,
   customers: adminCustomersAPI,
+  upload: uploadAPI,
 };
 
 export default adminAPI;

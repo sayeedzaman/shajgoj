@@ -169,8 +169,8 @@ export const getAllUsers = async (req: Request, res: Response): Promise<void> =>
           updatedAt: true,
           _count: {
             select: {
-              orders: true,
-              addresses: true,
+              Order: true,
+              Address: true,
             },
           },
         },
@@ -218,8 +218,8 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
         role: true,
         createdAt: true,
         updatedAt: true,
-        addresses: true,
-        orders: {
+        Address: true,
+        Order: {
           select: {
             id: true,
             orderNumber: true,
@@ -233,9 +233,9 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
         },
         _count: {
           select: {
-            orders: true,
-            addresses: true,
-            reviews: true,
+            Order: true,
+            Address: true,
+            Review: true,
           },
         },
       },

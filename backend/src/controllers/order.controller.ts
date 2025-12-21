@@ -78,17 +78,17 @@ export const createOrder = async (req: AuthRequest, res: Response): Promise<any>
         addressId: addressId,
         total: parseFloat(total.toFixed(2)),
         status: 'PENDING',
-        items: {
+        OrderItem: {
           create: orderItems,
         },
       },
       include: {
-        items: {
+        OrderItem: {
           include: {
-            product: true,
+            Product: true,
           },
         },
-        address: true,
+        Address: true,
       },
     });
 
@@ -134,9 +134,9 @@ export const getUserOrders = async (req: AuthRequest, res: Response): Promise<an
     const orders = await prisma.order.findMany({
       where: { userId: userId },
       include: {
-        items: {
+        OrderItem: {
           include: {
-            product: {
+            Product: {
               select: {
                 id: true,
                 name: true,
@@ -148,14 +148,14 @@ export const getUserOrders = async (req: AuthRequest, res: Response): Promise<an
             },
           },
         },
-        address: true,
+        Address: true,
       },
       orderBy: {
         createdAt: 'desc',
       },
     });
 
-    res.json(orders);
+    res.json({ orders });
   } catch (error) {
     console.error('Get user orders error:', error);
     res.status(500).json({ error: 'Failed to fetch orders' });
@@ -182,18 +182,18 @@ export const getOrderById = async (req: AuthRequest, res: Response): Promise<any
         userId: userId,
       },
       include: {
-        items: {
+        OrderItem: {
           include: {
-            product: {
+            Product: {
               include: {
-                category: true,
-                brand: true,
+                Category: true,
+                Brand: true,
               },
             },
           },
         },
-        address: true,
-        user: {
+        Address: true,
+        User: {
           select: {
             id: true,
             email: true,
@@ -236,7 +236,7 @@ export const cancelOrder = async (req: AuthRequest, res: Response): Promise<any>
         userId: userId,
       },
       include: {
-        items: true,
+        OrderItem: true,
       },
     });
 
@@ -250,22 +250,22 @@ export const cancelOrder = async (req: AuthRequest, res: Response): Promise<any>
       });
     }
 
-    // Update order status
+    // Update order status and get updated order with relations
     const updatedOrder = await prisma.order.update({
       where: { id: id },
       data: { status: 'CANCELLED' },
       include: {
-        items: {
+        OrderItem: {
           include: {
-            product: true,
+            Product: true,
           },
         },
-        address: true,
+        Address: true,
       },
     });
 
     // Restore product stock
-    for (const item of order.items) {
+    for (const item of updatedOrder.OrderItem) {
       await prisma.product.update({
         where: { id: item.productId },
         data: {
@@ -302,9 +302,9 @@ export const getAllOrders = async (req: AuthRequest, res: Response): Promise<any
       prisma.order.findMany({
         where,
         include: {
-          items: {
+          OrderItem: {
             include: {
-              product: {
+              Product: {
                 select: {
                   id: true,
                   name: true,
@@ -314,8 +314,8 @@ export const getAllOrders = async (req: AuthRequest, res: Response): Promise<any
               },
             },
           },
-          address: true,
-          user: {
+          Address: true,
+          User: {
             select: {
               id: true,
               email: true,
@@ -379,13 +379,13 @@ export const updateOrderStatus = async (req: AuthRequest, res: Response): Promis
       where: { id: id },
       data: { status: status as any },
       include: {
-        items: {
+        OrderItem: {
           include: {
-            product: true,
+            Product: true,
           },
         },
-        address: true,
-        user: {
+        Address: true,
+        User: {
           select: {
             id: true,
             email: true,

@@ -158,9 +158,9 @@ export default function ProductCard({
       {/* Product Info */}
       <div className="p-4 flex flex-col flex-1">
         {/* Brand */}
-        {product.brand && (
+        {product.Brand && (
           <p className="text-xs text-gray-500 mb-1 uppercase tracking-wide font-medium">
-            {product.brand.name}
+            {product.Brand.name}
           </p>
         )}
 

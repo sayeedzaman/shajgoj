@@ -11,6 +11,7 @@ export default function ProductManagementPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [brandFilter, setBrandFilter] = useState('');
@@ -35,6 +36,8 @@ export default function ProductManagementPage() {
   });
 
   const [imagePreviews, setImagePreviews] = useState<string[]>(['', '', '']);
+  const [imageFiles, setImageFiles] = useState<(File | null)[]>([null, null, null]);
+  const [uploadingImages, setUploadingImages] = useState(false);
   const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
@@ -102,16 +105,18 @@ export default function ProductManagementPage() {
   const handleImageUpload = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Store the file for later upload
+      const newFiles = [...imageFiles];
+      newFiles[index] = file;
+      setImageFiles(newFiles);
+
+      // Create preview
       const reader = new FileReader();
       reader.onloadend = () => {
         const result = reader.result as string;
         const newPreviews = [...imagePreviews];
         newPreviews[index] = result;
         setImagePreviews(newPreviews);
-
-        const newImages = [...(formData.images || [])];
-        newImages[index] = result;
-        setFormData({ ...formData, images: newImages.filter(img => img) });
       };
       reader.readAsDataURL(file);
     }
@@ -199,32 +204,103 @@ export default function ProductManagementPage() {
       brandId: '',
     });
     setImagePreviews(['', '', '']);
+    setImageFiles([null, null, null]);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.name || !formData.price || !formData.categoryId) {
-      showError('Please fill all required fields');
+    // Validate required fields
+    if (!formData.name || !formData.slug || !formData.price || !formData.categoryId) {
+      showError('Please fill all required fields (name, slug, price, category)');
+      console.error('Missing required fields:', {
+        name: formData.name,
+        slug: formData.slug,
+        price: formData.price,
+        categoryId: formData.categoryId
+      });
+      return;
+    }
+
+    // Validate price is a positive number
+    if (formData.price <= 0) {
+      showError('Price must be greater than 0');
       return;
     }
 
     try {
+      setSubmitting(true);
+
+      // Upload images to Cloudinary first if there are any files
+      let uploadedImageUrls: string[] = [];
+      const filesToUpload = imageFiles.filter((f): f is File => f !== null);
+
+      if (filesToUpload.length > 0) {
+        try {
+          setUploadingImages(true);
+          const uploadResult = await adminAPI.upload.uploadProductImages(filesToUpload);
+          uploadedImageUrls = uploadResult.urls;
+          console.log('Uploaded images to Cloudinary:', uploadedImageUrls);
+        } catch (error) {
+          console.error('Image upload error:', error);
+          showError('Failed to upload images. Please try again.');
+          setUploadingImages(false);
+          setSubmitting(false);
+          return;
+        } finally {
+          setUploadingImages(false);
+        }
+      }
+
+      // Also include any manually entered URLs (from the URL input field)
+      const manualUrls = imagePreviews
+        .filter((url, i) => url && !url.startsWith('data:image') && !imageFiles[i]);
+
+      const allImageUrls = [...uploadedImageUrls, ...manualUrls].filter(url => url);
+
+      // Clean the data - remove undefined/null optional fields and convert to proper types
+      const cleanedData: CreateProductRequest = {
+        name: formData.name.trim(),
+        slug: formData.slug.trim(),
+        description: formData.description?.trim() || undefined,
+        price: Number(formData.price),
+        stock: formData.stock ? Number(formData.stock) : 0,
+        images: allImageUrls,
+        featured: formData.featured || false,
+        categoryId: formData.categoryId.trim(),
+      };
+
+      // Only add optional fields if they have values
+      if (formData.salePrice && formData.salePrice > 0 && formData.salePrice < formData.price) {
+        cleanedData.salePrice = Number(formData.salePrice);
+      }
+
+      if (formData.brandId && formData.brandId.trim()) {
+        cleanedData.brandId = formData.brandId.trim();
+      }
+
+      console.log('Submitting product:', cleanedData);
+
       if (editingProduct) {
-        await adminAPI.products.update(editingProduct.id, formData);
+        const result = await adminAPI.products.update(editingProduct.id, cleanedData);
+        console.log('Update result:', result);
         showSuccess('Product updated successfully');
       } else {
-        await adminAPI.products.create(formData);
+        const result = await adminAPI.products.create(cleanedData);
+        console.log('Create result:', result);
         showSuccess('Product created successfully');
       }
       closeModal();
       fetchProducts();
     } catch (error: unknown) {
+      console.error('Submit error:', error);
       if (error instanceof Error) {
         showError(error.message);
       } else {
         showError('Failed to save product');
       }
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -404,10 +480,10 @@ export default function ProductManagementPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{product.category.name}</div>
+                        <div className="text-sm text-gray-900">{product.Category.name}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{product.brand?.name || '-'}</div>
+                        <div className="text-sm text-gray-900">{product.Brand?.name || '-'}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex flex-col">
@@ -620,8 +696,8 @@ export default function ProductManagementPage() {
                     required
                     min="0"
                     step="0.01"
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) })}
+                    value={formData.price || ''}
+                    onChange={(e) => setFormData({ ...formData, price: e.target.value ? parseFloat(e.target.value) : 0 })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
                   />
                 </div>
@@ -636,8 +712,23 @@ export default function ProductManagementPage() {
                     step="0.01"
                     value={formData.salePrice || ''}
                     onChange={(e) => setFormData({ ...formData, salePrice: e.target.value ? parseFloat(e.target.value) : undefined })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                    className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
+                      formData.salePrice && formData.price && formData.salePrice >= formData.price
+                        ? 'border-red-500 focus:ring-red-500'
+                        : 'border-gray-300 focus:ring-red-500'
+                    }`}
                   />
+                  {formData.salePrice && formData.price && formData.salePrice >= formData.price && (
+                    <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                      <span>⚠️</span>
+                      <span>Sale price must be less than regular price (৳{formData.price})</span>
+                    </p>
+                  )}
+                  {!formData.salePrice && (
+                    <p className="mt-1 text-sm text-gray-500">
+                      Optional: Leave empty if no discount
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -648,8 +739,8 @@ export default function ProductManagementPage() {
                     type="number"
                     required
                     min="0"
-                    value={formData.stock}
-                    onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) })}
+                    value={formData.stock || ''}
+                    onChange={(e) => setFormData({ ...formData, stock: e.target.value ? parseInt(e.target.value) : 0 })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
                   />
                 </div>
@@ -717,9 +808,13 @@ export default function ProductManagementPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                  disabled={submitting || uploadingImages || (formData.salePrice !== undefined && formData.price > 0 && formData.salePrice >= formData.price)}
+                  className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
-                  {editingProduct ? 'Update Product' : 'Create Product'}
+                  {(submitting || uploadingImages) && (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  )}
+                  {uploadingImages ? 'Uploading images...' : (submitting ? 'Saving...' : (editingProduct ? 'Update Product' : 'Create Product'))}
                 </button>
               </div>
             </form>

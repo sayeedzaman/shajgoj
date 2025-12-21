@@ -66,7 +66,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           cartItems.push({
             id: `guest-${item.productId}`,
             quantity: item.quantity,
-            product,
+            product: {
+              ...product,
+              brand: product.Brand,
+              category: product.Category,
+            },
             cartId: 'guest-cart',
             productId: item.productId,
           });
@@ -202,7 +206,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           const newItem: CartItem = {
             id: `guest-${productId}`,
             quantity,
-            product,
+            product: {
+              ...product,
+              brand: product.Brand,
+              category: product.Category,
+            },
             cartId: 'guest-cart',
             productId,
           };

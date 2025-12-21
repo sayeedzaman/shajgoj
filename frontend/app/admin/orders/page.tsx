@@ -213,9 +213,9 @@ export default function OrderManagementPage() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-sm text-gray-900">
-                          {order.user.firstName} {order.user.lastName}
+                          {order.User.firstName} {order.User.lastName}
                         </div>
-                        <div className="text-sm text-gray-500">{order.user.email}</div>
+                        <div className="text-sm text-gray-500">{order.User.email}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">{formatDate(order.createdAt)}</div>
@@ -308,16 +308,16 @@ export default function OrderManagementPage() {
                     <div>
                       <span className="text-gray-600">Name:</span>
                       <span className="ml-2 font-medium text-gray-900">
-                        {selectedOrder.user.firstName} {selectedOrder.user.lastName}
+                        {selectedOrder.User.firstName} {selectedOrder.User.lastName}
                       </span>
                     </div>
                     <div>
                       <span className="text-gray-600">Email:</span>
-                      <span className="ml-2 font-medium text-gray-900">{selectedOrder.user.email}</span>
+                      <span className="ml-2 font-medium text-gray-900">{selectedOrder.User.email}</span>
                     </div>
                     <div>
                       <span className="text-gray-600">Phone:</span>
-                      <span className="ml-2 font-medium text-gray-900">{selectedOrder.user.phone || 'N/A'}</span>
+                      <span className="ml-2 font-medium text-gray-900">{selectedOrder.User.phone || 'N/A'}</span>
                     </div>
                   </div>
                 </div>
@@ -326,11 +326,10 @@ export default function OrderManagementPage() {
                 <div className="bg-gray-50 rounded-lg p-4">
                   <h3 className="text-sm font-semibold text-gray-700 mb-3">Shipping Address</h3>
                   <div className="space-y-1 text-sm text-gray-900">
-                    <p className="font-medium">{selectedOrder.address.fullName}</p>
-                    <p>{selectedOrder.address.phone}</p>
-                    <p>{selectedOrder.address.addressLine1}</p>
-                    {selectedOrder.address.addressLine2 && <p>{selectedOrder.address.addressLine2}</p>}
-                    <p>{selectedOrder.address.city}, {selectedOrder.address.postalCode}</p>
+                    <p className="font-medium">{selectedOrder.Address.fullName}</p>
+                    <p>{selectedOrder.Address.phone}</p>
+                    <p>{selectedOrder.Address.address}</p>
+                    <p>{selectedOrder.Address.city}, {selectedOrder.Address.state} {selectedOrder.Address.zipCode}</p>
                   </div>
                 </div>
               </div>
@@ -365,15 +364,15 @@ export default function OrderManagementPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
-                      {selectedOrder.items.map((item) => (
+                      {selectedOrder.OrderItem.map((item) => (
                         <tr key={item.id}>
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-3">
                               <div className="w-12 h-12 bg-gray-100 rounded overflow-hidden flex-shrink-0">
-                                {item.product.images && item.product.images[0] ? (
+                                {item.Product.images && item.Product.images[0] ? (
                                   <img
-                                    src={item.product.images[0]}
-                                    alt={item.product.name}
+                                    src={item.Product.images[0]}
+                                    alt={item.Product.name}
                                     className="w-full h-full object-cover"
                                   />
                                 ) : (
@@ -383,8 +382,8 @@ export default function OrderManagementPage() {
                                 )}
                               </div>
                               <div>
-                                <div className="text-sm font-medium text-gray-900">{item.product.name}</div>
-                                <div className="text-xs text-gray-500">{item.product.slug}</div>
+                                <div className="text-sm font-medium text-gray-900">{item.Product.name}</div>
+                                <div className="text-xs text-gray-500">{item.Product.slug}</div>
                               </div>
                             </div>
                           </td>

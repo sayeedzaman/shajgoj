@@ -43,9 +43,9 @@ export interface Product {
   imageUrl: string | null;
   featured: boolean;
   categoryId: string;
-  category: Category;
+  Category: Category;
   brandId: string | null;
-  brand: Brand | null;
+  Brand: Brand | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -71,7 +71,10 @@ export interface Review {
 export interface CartItem {
   id: string;
   quantity: number;
-  product: Product;
+  product: Product & {
+    brand: Brand | null;
+    category: Category;
+  };
   cartId: string;
   productId: string;
 }
@@ -184,8 +187,8 @@ export interface Order {
   updatedAt: string;
   userId: string;
   addressId: string;
-  address?: Address;
-  items: OrderItem[];
+  Address?: Address;
+  OrderItem: OrderItem[];
 }
 
 export interface OrderItem {
@@ -194,7 +197,7 @@ export interface OrderItem {
   price: number;
   orderId: string;
   productId: string;
-  product: Product;
+  Product: Product;
 }
 
 export interface CreateOrderRequest {

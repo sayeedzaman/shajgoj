@@ -17,7 +17,7 @@ import type {
   CreateAddressRequest,
 } from '@/src/types/index';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
 // Helper function to get auth token
 const getAuthToken = (): string | null => {
@@ -47,7 +47,9 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
     const error = await response.json().catch(() => ({
       message: 'An error occurred',
     }));
-    throw new Error(error.message || `HTTP error! status: ${response.status}`);
+    const errorMessage = error.message || `HTTP error! status: ${response.status}`;
+    console.error(`API Error (${response.status}):`, errorMessage, error);
+    throw new Error(errorMessage);
   }
   return response.json();
 };
@@ -55,11 +57,14 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
 // Auth API
 export const authAPI = {
   login: async (data: LoginRequest): Promise<AuthResponse> => {
+    console.log('🔐 Attempting login with:', { email: data.email });
+    console.log('🌐 API URL:', API_URL);
     const response = await fetch(`${API_URL}/api/auth/login`, {
       method: 'POST',
       headers: createHeaders(),
       body: JSON.stringify(data),
     });
+    console.log('📡 Login response status:', response.status);
     return handleResponse<AuthResponse>(response);
   },
 

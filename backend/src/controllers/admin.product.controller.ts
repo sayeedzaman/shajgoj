@@ -111,12 +111,12 @@ export const getAllProductsAdmin = async (req: Request, res: Response): Promise<
       prisma.product.findMany({
         where,
         include: {
-          category: true,
-          brand: true,
+          Category: true,
+          Brand: true,
           _count: {
             select: {
-              reviews: true,
-              orderItems: true,
+              Review: true,
+              OrderItem: true,
             },
           },
         },
@@ -146,7 +146,7 @@ export const getAllProductsAdmin = async (req: Request, res: Response): Promise<
           ...product,
           averageRating: parseFloat(averageRating.toFixed(1)),
           totalReviews: reviews.length,
-          totalOrders: product._count.orderItems,
+          totalOrders: product._count.OrderItem,
         };
       })
     );
@@ -180,11 +180,11 @@ export const getProductByIdAdmin = async (req: Request, res: Response): Promise<
     const product = await prisma.product.findUnique({
       where: { id },
       include: {
-        category: true,
-        brand: true,
-        reviews: {
+        Category: true,
+        Brand: true,
+        Review: {
           include: {
-            user: {
+            User: {
               select: {
                 id: true,
                 email: true,
@@ -195,9 +195,9 @@ export const getProductByIdAdmin = async (req: Request, res: Response): Promise<
           },
           orderBy: { createdAt: 'desc' },
         },
-        orderItems: {
+        OrderItem: {
           include: {
-            order: {
+            Order: {
               select: {
                 id: true,
                 orderNumber: true,
@@ -217,17 +217,17 @@ export const getProductByIdAdmin = async (req: Request, res: Response): Promise<
 
     // Calculate statistics
     const averageRating =
-      product.reviews.length > 0
-        ? product.reviews.reduce((sum, r) => sum + r.rating, 0) /
-          product.reviews.length
+      product.Review.length > 0
+        ? product.Review.reduce((sum, r) => sum + r.rating, 0) /
+          product.Review.length
         : 0;
 
-    const totalRevenue = product.orderItems.reduce(
+    const totalRevenue = product.OrderItem.reduce(
       (sum, item) => sum + item.price * item.quantity,
       0
     );
 
-    const totalUnitsSold = product.orderItems.reduce(
+    const totalUnitsSold = product.OrderItem.reduce(
       (sum, item) => sum + item.quantity,
       0
     );
@@ -236,8 +236,8 @@ export const getProductByIdAdmin = async (req: Request, res: Response): Promise<
       ...product,
       stats: {
         averageRating: parseFloat(averageRating.toFixed(1)),
-        totalReviews: product.reviews.length,
-        totalOrders: product.orderItems.length,
+        totalReviews: product.Review.length,
+        totalOrders: product.OrderItem.length,
         totalUnitsSold,
         totalRevenue: parseFloat(totalRevenue.toFixed(2)),
       },
@@ -376,8 +376,8 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
         brandId: finalBrandId,
       },
       include: {
-        category: true,
-        brand: true,
+        Category: true,
+        Brand: true,
       },
     });
 
@@ -507,8 +507,8 @@ export const updateProduct = async (req: Request, res: Response): Promise<void> 
       where: { id },
       data: updateData,
       include: {
-        category: true,
-        brand: true,
+        Category: true,
+        Brand: true,
       },
     });
 
@@ -536,9 +536,9 @@ export const deleteProduct = async (req: Request, res: Response): Promise<void> 
     const product = await prisma.product.findUnique({
       where: { id },
       include: {
-        orderItems: true,
-        reviews: true,
-        cartItems: true,
+        OrderItem: true,
+        Review: true,
+        CartItem: true,
       },
     });
 
@@ -548,7 +548,7 @@ export const deleteProduct = async (req: Request, res: Response): Promise<void> 
     }
 
     // Check if product has orders
-    if (product.orderItems.length > 0) {
+    if (product.OrderItem.length > 0) {
       res.status(400).json({
         error:
           'Cannot delete product with existing orders. Consider marking it as out of stock instead.',
@@ -696,8 +696,8 @@ export const getProductsByCategory = async (req: Request, res: Response): Promis
       prisma.product.findMany({
         where: { categoryId: finalCategoryId },
         include: {
-          category: true,
-          brand: true,
+          Category: true,
+          Brand: true,
         },
         skip,
         take: limitNum,
@@ -759,8 +759,8 @@ export const getProductsByBrand = async (req: Request, res: Response): Promise<v
       prisma.product.findMany({
         where: { brandId: finalBrandId },
         include: {
-          category: true,
-          brand: true,
+          Category: true,
+          Brand: true,
         },
         skip,
         take: limitNum,
@@ -845,5 +845,27 @@ export const getInventoryStats = async (req: Request, res: Response): Promise<vo
   } catch (error) {
     console.error('Get inventory stats error:', error);
     res.status(500).json({ error: 'Failed to fetch inventory statistics' });
+  }
+};
+
+// Upload product images
+export const uploadProductImages = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const files = req.files as Express.Multer.File[];
+
+    if (!files || files.length === 0) {
+      res.status(400).json({ error: 'No images uploaded' });
+      return;
+    }
+
+    const imageUrls = files.map(file => file.path);
+
+    res.status(200).json({
+      message: 'Images uploaded successfully',
+      urls: imageUrls,
+    });
+  } catch (error) {
+    console.error('Upload product images error:', error);
+    res.status(500).json({ error: 'Failed to upload images' });
   }
 };

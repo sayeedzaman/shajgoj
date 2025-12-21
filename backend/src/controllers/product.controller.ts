@@ -148,23 +148,23 @@ export const getProductById = async (req: Request, res: Response) => {
       product = await prisma.product.findUnique({
         where: { slug: id },
         include: {
-          category: {
+          Category: {
             select: {
               id: true,
               name: true,
               slug: true,
             },
           },
-          brand: {
+          Brand: {
             select: {
               id: true,
               name: true,
               slug: true,
             },
           },
-          reviews: {
+          Review: {
             include: {
-              user: {
+              User: {
                 select: {
                   firstName: true,
                   lastName: true,
@@ -270,8 +270,8 @@ export const createProduct = async (req: Request, res: Response) => {
         brandId: brandId || null,
       },
       include: {
-        category: true,
-        brand: true,
+        Category: true,
+        Brand: true,
       },
     });
 
@@ -343,8 +343,8 @@ export const updateProduct = async (req: Request, res: Response) => {
       where: { id },
       data: updateData,
       include: {
-        category: true,
-        brand: true,
+        Category: true,
+        Brand: true,
       },
     });
 
@@ -393,14 +393,14 @@ export const getFeaturedProducts = async (req: Request, res: Response) => {
     const products = await prisma.product.findMany({
       where: { featured: true },
       include: {
-        category: {
+        Category: {
           select: {
             id: true,
             name: true,
             slug: true,
           },
         },
-        brand: {
+        Brand: {
           select: {
             id: true,
             name: true,

@@ -22,6 +22,8 @@ export default function CategoryManagementPage() {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [uploadingImages, setUploadingImages] = useState(false);
 
   const [formData, setFormData] = useState<CategoryFormData>({
     name: '',
@@ -33,6 +35,7 @@ export default function CategoryManagementPage() {
   });
 
   const [imagePreviews, setImagePreviews] = useState<string[]>(['', '', '']);
+  const [imageFiles, setImageFiles] = useState<(File | null)[]>([null, null, null]);
 
   useEffect(() => {
     fetchCategories();
@@ -64,20 +67,18 @@ export default function CategoryManagementPage() {
   const handleImageUpload = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Store the file for later upload
+      const newFiles = [...imageFiles];
+      newFiles[index] = file;
+      setImageFiles(newFiles);
+
+      // Create preview for display only
       const reader = new FileReader();
       reader.onloadend = () => {
         const result = reader.result as string;
         const newPreviews = [...imagePreviews];
         newPreviews[index] = result;
         setImagePreviews(newPreviews);
-
-        if (index === 0) {
-          setFormData({ ...formData, image: result });
-        } else if (index === 1) {
-          setFormData({ ...formData, image2: result });
-        } else {
-          setFormData({ ...formData, image3: result });
-        }
       };
       reader.readAsDataURL(file);
     }
@@ -161,6 +162,7 @@ export default function CategoryManagementPage() {
       image3: '',
     });
     setImagePreviews(['', '', '']);
+    setImageFiles([null, null, null]);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -172,11 +174,50 @@ export default function CategoryManagementPage() {
     }
 
     try {
+      setSubmitting(true);
+
+      // Upload images to Cloudinary first if there are any files
+      let uploadedImageUrls: { image?: string; image2?: string; image3?: string } = {};
+      const hasFilesToUpload = imageFiles.some((f) => f !== null);
+
+      if (hasFilesToUpload) {
+        try {
+          setUploadingImages(true);
+          const files: { image?: File; image2?: File; image3?: File } = {};
+          if (imageFiles[0]) files.image = imageFiles[0];
+          if (imageFiles[1]) files.image2 = imageFiles[1];
+          if (imageFiles[2]) files.image3 = imageFiles[2];
+
+          const uploadResult = await adminAPI.upload.uploadCategoryImages(files);
+          uploadedImageUrls = uploadResult;
+          console.log('Uploaded category images to Cloudinary:', uploadedImageUrls);
+        } catch (error) {
+          console.error('Image upload error:', error);
+          showError('Failed to upload images. Please try again.');
+          return;
+        } finally {
+          setUploadingImages(false);
+        }
+      }
+
+      // Merge uploaded URLs with existing formData, prioritizing Cloudinary URLs
+      const finalData: CategoryFormData = {
+        ...formData,
+        image: uploadedImageUrls.image || formData.image,
+        image2: uploadedImageUrls.image2 || formData.image2,
+        image3: uploadedImageUrls.image3 || formData.image3,
+      };
+
+      // Filter out base64 strings from final data
+      if (finalData.image?.startsWith('data:image')) finalData.image = '';
+      if (finalData.image2?.startsWith('data:image')) finalData.image2 = '';
+      if (finalData.image3?.startsWith('data:image')) finalData.image3 = '';
+
       if (editingCategory) {
-        await adminAPI.categories.update(editingCategory.id, formData);
+        await adminAPI.categories.update(editingCategory.id, finalData);
         showSuccess('Category updated successfully');
       } else {
-        await adminAPI.categories.create(formData);
+        await adminAPI.categories.create(finalData);
         showSuccess('Category created successfully');
       }
       closeModal();
@@ -187,6 +228,8 @@ export default function CategoryManagementPage() {
       } else {
         showError('Failed to save category');
       }
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -468,9 +511,13 @@ export default function CategoryManagementPage() {
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                  disabled={submitting || uploadingImages}
+                  className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
-                  {editingCategory ? 'Update Category' : 'Create Category'}
+                  {(submitting || uploadingImages) && (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  )}
+                  {uploadingImages ? 'Uploading images...' : (submitting ? 'Saving...' : (editingCategory ? 'Update Category' : 'Create Category'))}
                 </button>
               </div>
             </form>
