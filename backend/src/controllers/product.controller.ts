@@ -385,13 +385,26 @@ export const deleteProduct = async (req: Request, res: Response) => {
   }
 };
 
-// Get featured products
+// Get featured products based on latest uploads
 export const getFeaturedProducts = async (req: Request, res: Response) => {
   try {
     const { limit = '8' } = req.query;
 
-    const products = await prisma.product.findMany({
-      where: { featured: true },
+    // Calculate date 7 days ago
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    // Calculate today's start (midnight)
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+
+    // Step 1: Try to get products uploaded TODAY
+    let products = await prisma.product.findMany({
+      where: {
+        createdAt: {
+          gte: todayStart, // Greater than or equal to today's start
+        },
+      },
       include: {
         Category: {
           select: {
@@ -408,20 +421,158 @@ export const getFeaturedProducts = async (req: Request, res: Response) => {
           },
         },
       },
-      take: parseInt(limit as string),
       orderBy: {
-        createdAt: 'desc',
+        createdAt: 'desc', // Latest first
       },
+      take: parseInt(limit as string),
     });
+
+    let featuredReason = 'Uploaded today';
+
+    // Step 2: If no products today, get products from last 7 days
+    if (products.length === 0) {
+      products = await prisma.product.findMany({
+        where: {
+          createdAt: {
+            gte: sevenDaysAgo, // Within last 7 days
+          },
+        },
+        include: {
+          Category: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
+          Brand: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        take: parseInt(limit as string),
+      });
+      featuredReason = 'Recent upload (last 7 days)';
+    }
+
+    // Step 3: If still no products, get the absolute latest products (no date filter)
+    if (products.length === 0) {
+      products = await prisma.product.findMany({
+        include: {
+          Category: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
+          Brand: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        take: parseInt(limit as string),
+      });
+      featuredReason = 'Latest available';
+    }
 
     const transformedProducts = products.map((product) => ({
       ...product,
       imageUrl: product.images.length > 0 ? product.images[0] : null,
+      featuredReason,
     }));
 
     res.json(transformedProducts);
   } catch (error) {
     console.error('Get featured products error:', error);
     res.status(500).json({ error: 'Failed to fetch featured products' });
+  }
+};
+
+// Get top selling products
+export const getTopSellingProducts = async (req: Request, res: Response) => {
+  try {
+    const { limit = '10' } = req.query;
+
+    // Step 1: Use Prisma groupBy to aggregate sales data
+    const topSellingData = await prisma.orderItem.groupBy({
+      by: ['productId'],
+      where: {
+        Order: {
+          status: {
+            in: ['DELIVERED', 'SHIPPED'], // Only count completed orders
+          },
+        },
+      },
+      _sum: {
+        quantity: true, // Total units sold
+      },
+      _count: {
+        id: true, // Number of times ordered
+      },
+      orderBy: {
+        _sum: {
+          quantity: 'desc', // Sort by most sold
+        },
+      },
+      take: parseInt(limit as string),
+    });
+
+    // Step 2: Fetch full product details for top sellers
+    const topSellingProducts = await Promise.all(
+      topSellingData.map(async (item) => {
+        const product = await prisma.product.findUnique({
+          where: { id: item.productId },
+          include: {
+            Category: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+              },
+            },
+            Brand: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+              },
+            },
+          },
+        });
+
+        if (!product) return null;
+
+        return {
+          ...product,
+          totalSold: item._sum.quantity || 0,
+          orderCount: item._count.id,
+          imageUrl: product.images.length > 0 ? product.images[0] : null,
+        };
+      })
+    );
+
+    // Filter out any null products (in case product was deleted)
+    const validProducts = topSellingProducts.filter((p) => p !== null);
+
+    res.json({
+      topSellingProducts: validProducts,
+      count: validProducts.length,
+    });
+  } catch (error) {
+    console.error('Get top selling products error:', error);
+    res.status(500).json({ error: 'Failed to fetch top selling products' });
   }
 };

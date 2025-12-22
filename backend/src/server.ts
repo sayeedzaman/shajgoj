@@ -60,6 +60,7 @@ Available routes:
 📦 Public Routes
   GET    /api/products
   GET    /api/products/featured
+  GET    /api/products/top-selling
   GET    /api/categories
   GET    /api/brands
 
