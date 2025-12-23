@@ -10,6 +10,7 @@ import adminProductRoutes from './routes/admin.product.routes.js';
 import orderRoutes from './routes/order.routes.js';
 import addressRoutes from './routes/address.routes.js';
 import analyticsRoutes from './routes/analytics.routes.js';
+import wishlistRoutes from './routes/wishlist.routes.js';
 
 dotenv.config();
 
@@ -27,6 +28,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
+app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/brands', brandRoutes);
 app.use('/api/admin/products', adminProductRoutes);
@@ -65,6 +67,12 @@ Available routes:
   GET    /api/products/top-selling
   GET    /api/categories
   GET    /api/brands
+
+💚 Wishlist (Require Authentication)
+  GET    /api/wishlist
+  POST   /api/wishlist/items
+  DELETE /api/wishlist/items/:productId
+  DELETE /api/wishlist
 
 🔐 Admin Routes (Require Authentication)
   Users:

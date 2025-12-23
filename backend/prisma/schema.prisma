@@ -87,24 +87,25 @@ model OrderItem {
 }
 
 model Product {
-  id          String      @id @default(uuid())
-  name        String
-  slug        String      @unique
-  description String?
-  price       Float
-  salePrice   Float?
-  stock       Int         @default(0)
-  images      String[]
-  featured    Boolean     @default(false)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  categoryId  String
-  brandId     String?
-  CartItem    CartItem[]
-  OrderItem   OrderItem[]
-  Brand       Brand?      @relation(fields: [brandId], references: [id])
-  Category    Category    @relation(fields: [categoryId], references: [id])
-  Review      Review[]
+  id           String         @id @default(uuid())
+  name         String
+  slug         String         @unique
+  description  String?
+  price        Float
+  salePrice    Float?
+  stock        Int            @default(0)
+  images       String[]
+  featured     Boolean        @default(false)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  categoryId   String
+  brandId      String?
+  CartItem     CartItem[]
+  OrderItem    OrderItem[]
+  WishlistItem WishlistItem[]
+  Brand        Brand?         @relation(fields: [brandId], references: [id])
+  Category     Category       @relation(fields: [categoryId], references: [id])
+  Review       Review[]
 }
 
 model Review {
@@ -133,6 +134,27 @@ model User {
   Cart      Cart?
   Order     Order[]
   Review    Review[]
+  Wishlist  Wishlist?
+}
+
+model Wishlist {
+  id           String         @id @default(uuid())
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  userId       String         @unique
+  User         User           @relation(fields: [userId], references: [id])
+  WishlistItem WishlistItem[]
+}
+
+model WishlistItem {
+  id         String   @id @default(uuid())
+  wishlistId String
+  productId  String
+  createdAt  DateTime @default(now())
+  Wishlist   Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
+  Product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([wishlistId, productId])
 }
 
 enum OrderStatus {
