@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Package, ShoppingCart, DollarSign, AlertTriangle, TrendingUp } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
 import StatCard from '@/src/components/admin/StatCard';
@@ -331,9 +332,12 @@ export default function AdminDashboard() {
                       <span className="text-sm text-gray-600">{order.date}</span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <button className="text-sm font-medium text-rose-600 hover:text-rose-700 transition-colors">
+                      <Link
+                        href={`/admin/orders`}
+                        className="text-sm font-medium text-rose-600 hover:text-rose-700 transition-colors"
+                      >
                         View Details
-                      </button>
+                      </Link>
                     </td>
                   </tr>
                 ))
