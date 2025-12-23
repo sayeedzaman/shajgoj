@@ -1,10 +1,11 @@
 import multer from 'multer';
-import { CloudinaryStorage } from 'multer-storage-cloudinary';
+import CloudinaryStorage from 'multer-storage-cloudinary';
 import cloudinary from '../config/cloudinary.js';
+import type { Request } from 'express';
 
-const storage = new CloudinaryStorage({
+const storage = CloudinaryStorage({
   cloudinary: cloudinary,
-  params: async (req, file) => {
+  params: async (req: Request, file: Express.Multer.File) => {
     return {
       folder: 'shajgoj',
       allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'gif'],

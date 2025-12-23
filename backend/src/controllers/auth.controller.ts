@@ -28,6 +28,15 @@ export const register = async (req: Request, res: Response) => {
         password: hashedPassword,
         phone,
         role: Role.USER
+      } as any,
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        password: true,
+        phone: true,
+        role: true
       }
     });
 

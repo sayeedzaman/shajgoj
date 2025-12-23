@@ -6,6 +6,7 @@ import {
   updateProduct,
   deleteProduct,
   getFeaturedProducts,
+  getTopSellingProducts,
 } from '../controllers/product.controller.js';
 import { authenticate, authorize } from '../middleware/auth.middleware.js';
 
@@ -14,6 +15,7 @@ const router = express.Router();
 // Public routes
 router.get('/', getAllProducts);
 router.get('/featured', getFeaturedProducts);
+router.get('/top-selling', getTopSellingProducts);
 router.get('/:id', getProductById);
 
 // Admin routes
