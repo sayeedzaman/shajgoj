@@ -1,7 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Tag, Search, Plus, Edit, Trash2, Clock, Percent, Gift, Filter, ChevronDown, X, Upload, Image as ImageIcon } from 'lucide-react';
+import { Tag, Search, Plus, Edit, Trash2, Clock, Percent, Gift, Filter, ChevronDown, X, Upload, Image as ImageIcon, Package, Sparkles } from 'lucide-react';
+
+interface Product {
+  id: string;
+  name: string;
+  slug: string;
+  imageUrl: string;
+  price: number;
+  salePrice?: number;
+}
 
 interface Offer {
   id: string;
@@ -9,6 +18,13 @@ interface Offer {
   code: string;
   description?: string;
   imageUrl?: string;
+  // Link options - either custom URL or specific product
+  linkType: 'url' | 'product'; // Type of link
+  link?: string; // Custom URL (e.g., /sales, /category/makeup)
+  productId?: string; // Specific product ID to link to
+  productName?: string; // Product name (for display in admin)
+  productImage?: string; // Product image (for display in admin)
+  type: 'hero' | 'deal' | 'brand' | 'limited'; // Type of offer for homepage sections
   discountType: 'PERCENTAGE' | 'FIXED';
   discountValue: number;
   minPurchase: number;
@@ -19,6 +35,13 @@ interface Offer {
   usageCount: number;
   status: 'ACTIVE' | 'EXPIRED' | 'SCHEDULED';
   displayOnHomepage: boolean;
+  priority: number; // Order of display (higher = shows first)
+  // Visual styling options for striking offer cards
+  backgroundColor?: string; // Gradient classes like 'from-pink-500 to-purple-600'
+  textColor?: string; // Text color classes like 'text-white'
+  badgeColor?: string; // Badge color classes like 'bg-yellow-400 text-purple-900'
+  borderStyle?: 'wavy' | 'rounded' | 'sharp' | 'irregular';
+  cardStyle?: 'gradient' | 'solid' | 'image';
 }
 
 export default function OffersPage() {
@@ -32,12 +55,25 @@ export default function OffersPage() {
   const [imagePreview, setImagePreview] = useState<string>('');
   const offersPerPage = 10;
 
+  // Product search state
+  const [products, setProducts] = useState<Product[]>([]);
+  const [productSearchQuery, setProductSearchQuery] = useState('');
+  const [showProductSearch, setShowProductSearch] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [productSearchLoading, setProductSearchLoading] = useState(false);
+
   // Form state
   const [formData, setFormData] = useState({
     name: '',
     code: '',
     description: '',
     imageUrl: '',
+    linkType: 'url' as 'url' | 'product',
+    link: '', // Custom URL
+    productId: '',
+    productName: '',
+    productImage: '',
+    type: 'deal' as 'hero' | 'deal' | 'brand' | 'limited',
     discountType: 'PERCENTAGE' as 'PERCENTAGE' | 'FIXED',
     discountValue: 0,
     minPurchase: 0,
@@ -46,6 +82,13 @@ export default function OffersPage() {
     endDate: '',
     usageLimit: 100,
     displayOnHomepage: false,
+    priority: 1,
+    // Visual styling options
+    backgroundColor: 'from-red-500 via-pink-500 to-rose-600',
+    textColor: 'text-white',
+    badgeColor: 'bg-yellow-400 text-red-900',
+    borderStyle: 'wavy' as 'wavy' | 'rounded' | 'sharp' | 'irregular',
+    cardStyle: 'gradient' as 'gradient' | 'solid' | 'image',
   });
 
   // Load offers from localStorage on mount
@@ -62,6 +105,9 @@ export default function OffersPage() {
           code: 'NEWYEAR2025',
           description: 'Start the new year with amazing discounts!',
           imageUrl: 'https://images.unsplash.com/photo-1607083206869-4c7672e72a8a?w=800',
+          linkType: 'url',
+          link: '/sales',
+          type: 'hero',
           discountType: 'PERCENTAGE',
           discountValue: 25,
           minPurchase: 1000,
@@ -71,7 +117,8 @@ export default function OffersPage() {
           usageLimit: 1000,
           usageCount: 342,
           status: 'ACTIVE',
-          displayOnHomepage: true
+          displayOnHomepage: true,
+          priority: 10
         },
         {
           id: '2',
@@ -79,6 +126,9 @@ export default function OffersPage() {
           code: 'WELCOME50',
           description: 'Get ৳50 off on your first order',
           imageUrl: 'https://images.unsplash.com/photo-1557821552-17105176677c?w=800',
+          linkType: 'url',
+          link: '/offers',
+          type: 'deal',
           discountType: 'FIXED',
           discountValue: 50,
           minPurchase: 200,
@@ -87,7 +137,8 @@ export default function OffersPage() {
           usageLimit: 5000,
           usageCount: 1823,
           status: 'ACTIVE',
-          displayOnHomepage: true
+          displayOnHomepage: true,
+          priority: 5
         },
       ];
       setOffers(mockOffers);
@@ -110,6 +161,12 @@ export default function OffersPage() {
         code: offer.code,
         description: offer.description || '',
         imageUrl: offer.imageUrl || '',
+        linkType: offer.linkType || 'url',
+        link: offer.link || '',
+        productId: offer.productId || '',
+        productName: offer.productName || '',
+        productImage: offer.productImage || '',
+        type: offer.type || 'deal',
         discountType: offer.discountType,
         discountValue: offer.discountValue,
         minPurchase: offer.minPurchase,
@@ -118,8 +175,24 @@ export default function OffersPage() {
         endDate: offer.endDate,
         usageLimit: offer.usageLimit,
         displayOnHomepage: offer.displayOnHomepage,
+        priority: offer.priority || 1,
+        // Visual styling options
+        backgroundColor: offer.backgroundColor || 'from-red-500 via-pink-500 to-rose-600',
+        textColor: offer.textColor || 'text-white',
+        badgeColor: offer.badgeColor || 'bg-yellow-400 text-red-900',
+        borderStyle: offer.borderStyle || 'wavy',
+        cardStyle: offer.cardStyle || 'gradient',
       });
       setImagePreview(offer.imageUrl || '');
+      if (offer.productId && offer.productName) {
+        setSelectedProduct({
+          id: offer.productId,
+          name: offer.productName,
+          slug: '',
+          imageUrl: offer.productImage || '',
+          price: 0,
+        });
+      }
     } else {
       setEditingOffer(null);
       setFormData({
@@ -127,6 +200,12 @@ export default function OffersPage() {
         code: '',
         description: '',
         imageUrl: '',
+        linkType: 'url',
+        link: '',
+        productId: '',
+        productName: '',
+        productImage: '',
+        type: 'deal',
         discountType: 'PERCENTAGE',
         discountValue: 0,
         minPurchase: 0,
@@ -135,8 +214,16 @@ export default function OffersPage() {
         endDate: '',
         usageLimit: 100,
         displayOnHomepage: false,
+        priority: 1,
+        // Visual styling options
+        backgroundColor: 'from-red-500 via-pink-500 to-rose-600',
+        textColor: 'text-white',
+        badgeColor: 'bg-yellow-400 text-red-900',
+        borderStyle: 'wavy',
+        cardStyle: 'gradient',
       });
       setImagePreview('');
+      setSelectedProduct(null);
     }
     setIsModalOpen(true);
   };
@@ -149,6 +236,12 @@ export default function OffersPage() {
       code: '',
       description: '',
       imageUrl: '',
+      linkType: 'url',
+      link: '',
+      productId: '',
+      productName: '',
+      productImage: '',
+      type: 'deal',
       discountType: 'PERCENTAGE',
       discountValue: 0,
       minPurchase: 0,
@@ -157,8 +250,86 @@ export default function OffersPage() {
       endDate: '',
       usageLimit: 100,
       displayOnHomepage: false,
+      priority: 1,
+      // Visual styling options
+      backgroundColor: 'from-red-500 via-pink-500 to-rose-600',
+      textColor: 'text-white',
+      badgeColor: 'bg-yellow-400 text-red-900',
+      borderStyle: 'wavy',
+      cardStyle: 'gradient',
     });
     setImagePreview('');
+    setSelectedProduct(null);
+    setProductSearchQuery('');
+    setShowProductSearch(false);
+  };
+
+  // Search products from Prisma database
+  useEffect(() => {
+    const searchProducts = async () => {
+      if (productSearchQuery.length >= 2) {
+        setProductSearchLoading(true);
+        try {
+          // Fetch from Prisma-powered backend API
+          const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+          const response = await fetch(`${apiUrl}/api/products?search=${encodeURIComponent(productSearchQuery)}&limit=10`);
+
+          if (response.ok) {
+            const data = await response.json();
+            // Transform backend response to match our Product interface
+            const transformedProducts = (data.products || []).map((p: any) => ({
+              id: p.id,
+              name: p.name,
+              slug: p.slug,
+              imageUrl: p.images?.[0] || '',
+              price: p.price,
+              salePrice: p.salePrice,
+            }));
+            setProducts(transformedProducts);
+            setShowProductSearch(true);
+          }
+        } catch (apiError) {
+          console.error('Error fetching products from database:', apiError);
+          setProducts([]);
+          setShowProductSearch(false);
+        } finally {
+          setProductSearchLoading(false);
+        }
+      } else {
+        setProducts([]);
+        setShowProductSearch(false);
+        setProductSearchLoading(false);
+      }
+    };
+
+    // Debounce search to avoid too many API calls
+    const timeoutId = setTimeout(() => {
+      searchProducts();
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [productSearchQuery]);
+
+  const handleProductSelect = (product: Product) => {
+    setSelectedProduct(product);
+    setFormData({
+      ...formData,
+      productId: product.id,
+      productName: product.name,
+      productImage: product.imageUrl,
+    });
+    setShowProductSearch(false);
+    setProductSearchQuery('');
+  };
+
+  const handleRemoveProduct = () => {
+    setSelectedProduct(null);
+    setFormData({
+      ...formData,
+      productId: '',
+      productName: '',
+      productImage: '',
+    });
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -476,7 +647,7 @@ export default function OffersPage() {
 
       {/* Create/Edit Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-white/30 backdrop-blur-md flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
               <h2 className="text-2xl font-bold text-gray-900">
@@ -567,6 +738,209 @@ export default function OffersPage() {
                 />
               </div>
 
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Offer Type*
+                    <span className="text-xs text-gray-500 ml-2">(Appearance on homepage)</span>
+                  </label>
+                  <select
+                    required
+                    value={formData.type}
+                    onChange={(e) => setFormData({ ...formData, type: e.target.value as 'hero' | 'deal' | 'brand' | 'limited' })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                  >
+                    <option value="hero">Hero Banner (Top Slider)</option>
+                    <option value="deal">Deal Card (Deals Section)</option>
+                    <option value="brand">Brand Ad (Brands Section)</option>
+                    <option value="limited">Limited Offer (Limited Time Section)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Priority*
+                    <span className="text-xs text-gray-500 ml-2">(Higher number = shows first)</span>
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min="1"
+                    max="100"
+                    value={formData.priority}
+                    onChange={(e) => setFormData({ ...formData, priority: Number(e.target.value) })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                    placeholder="1-100"
+                  />
+                </div>
+              </div>
+
+              {/* Link Type & Destination */}
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 bg-gray-50">
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  Where should this banner/offer redirect to?*
+                </label>
+
+                {/* Link Type Selector */}
+                <div className="flex gap-4 mb-4">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, linkType: 'url', productId: '', productName: '', productImage: '' })}
+                    className={`flex-1 py-3 px-4 rounded-lg border-2 transition-all ${
+                      formData.linkType === 'url'
+                        ? 'border-red-500 bg-red-50 text-red-700'
+                        : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                    }`}
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                      <Tag className="w-5 h-5" />
+                      <span className="font-medium">Custom URL</span>
+                    </div>
+                    <p className="text-xs mt-1 opacity-75">Link to category, sales page, etc.</p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormData({ ...formData, linkType: 'product', link: '' });
+                      setSelectedProduct(null);
+                    }}
+                    className={`flex-1 py-3 px-4 rounded-lg border-2 transition-all ${
+                      formData.linkType === 'product'
+                        ? 'border-red-500 bg-red-50 text-red-700'
+                        : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                    }`}
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                      <Package className="w-5 h-5" />
+                      <span className="font-medium">Specific Product</span>
+                    </div>
+                    <p className="text-xs mt-1 opacity-75">Link to a product page</p>
+                  </button>
+                </div>
+
+                {/* Custom URL Input */}
+                {formData.linkType === 'url' && (
+                  <div>
+                    <input
+                      type="text"
+                      value={formData.link}
+                      onChange={(e) => setFormData({ ...formData, link: e.target.value })}
+                      placeholder="/sales or /products/category-name or https://..."
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Examples: <code className="bg-gray-100 px-1 rounded">/sales</code>, <code className="bg-gray-100 px-1 rounded">/products</code>, <code className="bg-gray-100 px-1 rounded">/category/makeup</code>
+                    </p>
+                  </div>
+                )}
+
+                {/* Product Selection */}
+                {formData.linkType === 'product' && (
+                  <div>
+                    {selectedProduct ? (
+                      /* Selected Product Display */
+                      <div className="border border-green-300 rounded-lg p-3 bg-green-50">
+                        <div className="flex items-center gap-3">
+                          {selectedProduct.imageUrl && (
+                            <img
+                              src={selectedProduct.imageUrl}
+                              alt={selectedProduct.name}
+                              className="w-16 h-16 object-cover rounded border border-gray-300"
+                            />
+                          )}
+                          <div className="flex-1">
+                            <p className="font-semibold text-gray-900">{selectedProduct.name}</p>
+                            <p className="text-sm text-gray-600">Product ID: {selectedProduct.id}</p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleRemoveProduct}
+                            className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+                          >
+                            <X className="w-5 h-5" />
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      /* Product Search */
+                      <div>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            value={productSearchQuery}
+                            onChange={(e) => {
+                              setProductSearchQuery(e.target.value);
+                              setShowProductSearch(true);
+                            }}
+                            onFocus={() => setShowProductSearch(true)}
+                            placeholder="Search for a product by name..."
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                          />
+                          {productSearchLoading ? (
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                              <div className="w-5 h-5 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+                            </div>
+                          ) : (
+                            <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                          )}
+                        </div>
+
+                        {/* Loading State */}
+                        {productSearchLoading && productSearchQuery.length >= 2 && (
+                          <div className="mt-2 border border-gray-300 rounded-lg bg-white shadow-lg p-6 text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              <div className="w-5 h-5 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+                              <p className="text-sm text-gray-600">Searching products...</p>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Search Results Dropdown */}
+                        {!productSearchLoading && showProductSearch && products.length > 0 && (
+                          <div className="mt-2 border border-gray-300 rounded-lg bg-white shadow-lg max-h-64 overflow-y-auto">
+                            {products.map((product) => (
+                              <button
+                                key={product.id}
+                                type="button"
+                                onClick={() => handleProductSelect(product)}
+                                className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0"
+                              >
+                                {product.imageUrl && (
+                                  <img
+                                    src={product.imageUrl}
+                                    alt={product.name}
+                                    className="w-12 h-12 object-cover rounded border border-gray-200"
+                                  />
+                                )}
+                                <div className="flex-1 text-left">
+                                  <p className="font-medium text-gray-900">{product.name}</p>
+                                  <p className="text-sm text-gray-600">
+                                    ৳{product.salePrice || product.price}
+                                    {product.salePrice && (
+                                      <span className="line-through ml-2 text-gray-400">
+                                        ৳{product.price}
+                                      </span>
+                                    )}
+                                  </p>
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+
+                        {!productSearchLoading && showProductSearch && productSearchQuery.length >= 2 && products.length === 0 && (
+                          <p className="text-sm text-gray-500 mt-2">No products found. Try a different search term.</p>
+                        )}
+
+                        {productSearchQuery.length > 0 && productSearchQuery.length < 2 && (
+                          <p className="text-xs text-gray-500 mt-1">Type at least 2 characters to search...</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Discount Type*</label>
@@ -650,6 +1024,167 @@ export default function OffersPage() {
                     onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
                   />
+                </div>
+              </div>
+
+              {/* Visual Styling Options */}
+              <div className="border-2 border-dashed border-purple-300 rounded-lg p-4 bg-purple-50">
+                <h4 className="text-sm font-semibold text-purple-900 mb-3 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4" />
+                  Card Visual Styling (For Homepage)
+                </h4>
+                <p className="text-xs text-purple-700 mb-4">Customize how this offer card appears on the homepage</p>
+
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  {/* Card Style */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Card Style</label>
+                    <select
+                      value={formData.cardStyle}
+                      onChange={(e) => setFormData({ ...formData, cardStyle: e.target.value as 'gradient' | 'solid' | 'image' })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                    >
+                      <option value="gradient">Gradient Background</option>
+                      <option value="solid">Solid Color</option>
+                      <option value="image">Image Background</option>
+                    </select>
+                  </div>
+
+                  {/* Border Style */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Border Style</label>
+                    <select
+                      value={formData.borderStyle}
+                      onChange={(e) => setFormData({ ...formData, borderStyle: e.target.value as 'wavy' | 'rounded' | 'sharp' | 'irregular' })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                    >
+                      <option value="wavy">Wavy (Irregular Rounded)</option>
+                      <option value="rounded">Smooth Rounded</option>
+                      <option value="sharp">Sharp Corners</option>
+                      <option value="irregular">Highly Irregular</option>
+                    </select>
+                  </div>
+                </div>
+
+                {/* Color Presets */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Background Color Preset</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, backgroundColor: 'from-red-500 via-pink-500 to-rose-600' })}
+                      className="p-3 rounded-lg bg-gradient-to-br from-red-500 via-pink-500 to-rose-600 border-2 border-white shadow-md hover:scale-105 transition-transform"
+                      title="Red to Rose"
+                    >
+                      <span className="text-white text-xs font-bold">Default</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, backgroundColor: 'from-orange-400 via-red-500 to-pink-600' })}
+                      className="p-3 rounded-lg bg-gradient-to-br from-orange-400 via-red-500 to-pink-600 border-2 border-white shadow-md hover:scale-105 transition-transform"
+                      title="Orange to Pink"
+                    >
+                      <span className="text-white text-xs font-bold">Warm</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, backgroundColor: 'from-cyan-400 via-blue-500 to-purple-600' })}
+                      className="p-3 rounded-lg bg-gradient-to-br from-cyan-400 via-blue-500 to-purple-600 border-2 border-white shadow-md hover:scale-105 transition-transform"
+                      title="Cyan to Purple"
+                    >
+                      <span className="text-white text-xs font-bold">Cool</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, backgroundColor: 'from-green-400 via-teal-500 to-cyan-600' })}
+                      className="p-3 rounded-lg bg-gradient-to-br from-green-400 via-teal-500 to-cyan-600 border-2 border-white shadow-md hover:scale-105 transition-transform"
+                      title="Green to Cyan"
+                    >
+                      <span className="text-white text-xs font-bold">Fresh</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, backgroundColor: 'from-yellow-400 via-orange-500 to-red-600' })}
+                      className="p-3 rounded-lg bg-gradient-to-br from-yellow-400 via-orange-500 to-red-600 border-2 border-white shadow-md hover:scale-105 transition-transform"
+                      title="Yellow to Red"
+                    >
+                      <span className="text-white text-xs font-bold">Hot</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, backgroundColor: 'from-purple-400 via-pink-500 to-red-600' })}
+                      className="p-3 rounded-lg bg-gradient-to-br from-purple-400 via-pink-500 to-red-600 border-2 border-white shadow-md hover:scale-105 transition-transform"
+                      title="Purple to Red"
+                    >
+                      <span className="text-white text-xs font-bold">Bold</span>
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">Current: <code className="bg-gray-100 px-1 rounded">{formData.backgroundColor}</code></p>
+                </div>
+
+                {/* Text Color Presets */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Text Color</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, textColor: 'text-white' })}
+                      className="p-2 rounded-lg bg-gray-800 border-2 border-white shadow-md hover:scale-105 transition-transform"
+                    >
+                      <span className="text-white text-xs font-bold">White</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, textColor: 'text-black' })}
+                      className="p-2 rounded-lg bg-gray-100 border-2 border-gray-300 shadow-md hover:scale-105 transition-transform"
+                    >
+                      <span className="text-black text-xs font-bold">Black</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, textColor: 'text-gray-800' })}
+                      className="p-2 rounded-lg bg-gray-200 border-2 border-gray-300 shadow-md hover:scale-105 transition-transform"
+                    >
+                      <span className="text-gray-800 text-xs font-bold">Dark Gray</span>
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">Current: <code className="bg-gray-100 px-1 rounded">{formData.textColor}</code></p>
+                </div>
+
+                {/* Badge Color Presets */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Discount Badge Color</label>
+                  <div className="grid grid-cols-4 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, badgeColor: 'bg-yellow-400 text-purple-900' })}
+                      className="p-2 rounded-lg bg-yellow-400 text-purple-900 border-2 border-white shadow-md hover:scale-105 transition-transform"
+                    >
+                      <span className="text-xs font-bold">Yellow</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, badgeColor: 'bg-white text-pink-600' })}
+                      className="p-2 rounded-lg bg-white text-pink-600 border-2 border-gray-300 shadow-md hover:scale-105 transition-transform"
+                    >
+                      <span className="text-xs font-bold">White</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, badgeColor: 'bg-green-400 text-green-900' })}
+                      className="p-2 rounded-lg bg-green-400 text-green-900 border-2 border-white shadow-md hover:scale-105 transition-transform"
+                    >
+                      <span className="text-xs font-bold">Green</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({ ...formData, badgeColor: 'bg-orange-400 text-orange-900' })}
+                      className="p-2 rounded-lg bg-orange-400 text-orange-900 border-2 border-white shadow-md hover:scale-105 transition-transform"
+                    >
+                      <span className="text-xs font-bold">Orange</span>
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">Current: <code className="bg-gray-100 px-1 rounded">{formData.badgeColor}</code></p>
                 </div>
               </div>
 

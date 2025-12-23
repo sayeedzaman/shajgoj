@@ -16,6 +16,7 @@ import {
   Settings,
   LogOut,
   X,
+  Gift,
 } from 'lucide-react';
 import { useAuth } from '@/src/lib/AuthContext';
 
@@ -29,6 +30,7 @@ const menuItems = [
   { icon: Package, label: 'Products', href: '/admin/products' },
   { icon: FolderTree, label: 'Categories', href: '/admin/categories' },
   { icon: Tag, label: 'Brands', href: '/admin/brands' },
+  { icon: Gift, label: 'Offers', href: '/admin/offers' },
   { icon: ShoppingCart, label: 'Orders', href: '/admin/orders' },
   { icon: Users, label: 'Customers', href: '/admin/customers' },
   { icon: Warehouse, label: 'Inventory', href: '/admin/inventory' },

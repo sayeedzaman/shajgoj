@@ -39,7 +39,7 @@ export default function Navbar() {
       {/* Search Focus Overlay */}
       {isSearchFocused && (
         <div
-          className="fixed inset-0 bg-black/40 z-40 transition-opacity duration-200"
+          className="fixed inset-0 bg-white/30 backdrop-blur-md z-40 transition-opacity duration-200"
           onClick={() => setIsSearchFocused(false)}
         />
       )}
