@@ -3,7 +3,7 @@ import CloudinaryStorage from 'multer-storage-cloudinary';
 import cloudinary from '../config/cloudinary.js';
 import type { Request } from 'express';
 
-const storage = CloudinaryStorage({
+const storage = (CloudinaryStorage as any)({
   cloudinary: cloudinary,
   params: async (req: Request, file: Express.Multer.File) => {
     return {

@@ -2,15 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Tag, Search, Plus, Edit, Trash2, Clock, Percent, Gift, Filter, ChevronDown, X, Upload, Image as ImageIcon, Package, Sparkles } from 'lucide-react';
-
-interface Product {
-  id: string;
-  name: string;
-  slug: string;
-  imageUrl: string;
-  price: number;
-  salePrice?: number;
-}
+import type { Product } from '@/src/types/index';
 
 interface Offer {
   id: string;
@@ -189,8 +181,19 @@ export default function OffersPage() {
           id: offer.productId,
           name: offer.productName,
           slug: '',
-          imageUrl: offer.productImage || '',
+          description: null,
           price: 0,
+          salePrice: null,
+          stock: 0,
+          images: offer.productImage ? [offer.productImage] : [],
+          imageUrl: offer.productImage || null,
+          featured: false,
+          categoryId: '',
+          Category: { id: '', name: '', slug: '' },
+          brandId: null,
+          Brand: null,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
         });
       }
     } else {
@@ -277,7 +280,7 @@ export default function OffersPage() {
           if (response.ok) {
             const data = await response.json();
             // Transform backend response to match our Product interface
-            const transformedProducts = (data.products || []).map((p: any) => ({
+            const transformedProducts = (data.products || []).map((p: Product) => ({
               id: p.id,
               name: p.name,
               slug: p.slug,
@@ -316,7 +319,7 @@ export default function OffersPage() {
       ...formData,
       productId: product.id,
       productName: product.name,
-      productImage: product.imageUrl,
+      productImage: product.imageUrl || product.images?.[0] || '',
     });
     setShowProductSearch(false);
     setProductSearchQuery('');
@@ -648,8 +651,8 @@ export default function OffersPage() {
       {/* Create/Edit Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-white/30 backdrop-blur-md flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between z-10">
               <h2 className="text-2xl font-bold text-gray-900">
                 {editingOffer ? 'Edit Offer' : 'Create New Offer'}
               </h2>
@@ -658,7 +661,8 @@ export default function OffersPage() {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <div className="flex-1 overflow-y-auto">
+              <form onSubmit={handleSubmit} className="p-6 space-y-4">
               {/* Image Upload */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -841,9 +845,9 @@ export default function OffersPage() {
                       /* Selected Product Display */
                       <div className="border border-green-300 rounded-lg p-3 bg-green-50">
                         <div className="flex items-center gap-3">
-                          {selectedProduct.imageUrl && (
+                          {(selectedProduct.imageUrl || selectedProduct.images?.[0]) && (
                             <img
-                              src={selectedProduct.imageUrl}
+                              src={selectedProduct.imageUrl || selectedProduct.images?.[0] || ''}
                               alt={selectedProduct.name}
                               className="w-16 h-16 object-cover rounded border border-gray-300"
                             />
@@ -905,9 +909,9 @@ export default function OffersPage() {
                                 onClick={() => handleProductSelect(product)}
                                 className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0"
                               >
-                                {product.imageUrl && (
+                                {(product.imageUrl || product.images?.[0]) && (
                                   <img
-                                    src={product.imageUrl}
+                                    src={product.imageUrl || product.images?.[0] || ''}
                                     alt={product.name}
                                     className="w-12 h-12 object-cover rounded border border-gray-200"
                                   />
@@ -1217,6 +1221,7 @@ export default function OffersPage() {
                 </button>
               </div>
             </form>
+            </div>
           </div>
         </div>
       )}

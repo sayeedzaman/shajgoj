@@ -254,9 +254,9 @@ export default function CustomerManagementPage() {
 
       {/* Customer Details Modal */}
       {showModal && selectedCustomer && (
-        <div className="fixed inset-0 bg-white/30 backdrop-blur-md flex items-center justify-center p-4 z-50 overflow-y-auto">
-          <div className="bg-white rounded-lg max-w-4xl w-full my-8">
-            <div className="flex justify-between items-center p-6 border-b border-gray-200">
+        <div className="fixed inset-0 bg-white/30 backdrop-blur-md flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="flex justify-between items-center p-6 border-b border-gray-200 z-10">
               <h2 className="text-2xl font-bold text-gray-900">
                 Customer Details
               </h2>
@@ -268,7 +268,7 @@ export default function CustomerManagementPage() {
               </button>
             </div>
 
-            <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
               {/* Customer Info */}
               <div className="grid grid-cols-2 gap-6">
                 <div className="bg-gray-50 rounded-lg p-4">

@@ -315,8 +315,8 @@ export default function BrandManagementPage() {
       {/* Add/Edit Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-white/30 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg max-w-2xl w-full my-8">
-            <div className="flex justify-between items-center p-6 border-b border-gray-200">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="flex justify-between items-center p-6 border-b border-gray-200 z-10">
               <h2 className="text-2xl font-bold text-gray-900">
                 {editingBrand ? 'Edit Brand' : 'Add New Brand'}
               </h2>
@@ -328,7 +328,8 @@ export default function BrandManagementPage() {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-6">
+            <div className="flex-1 overflow-y-auto">
+              <form onSubmit={handleSubmit} className="p-6 space-y-6">
               {/* Brand Name */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -434,6 +435,7 @@ export default function BrandManagementPage() {
                 </button>
               </div>
             </form>
+            </div>
           </div>
         </div>
       )}

@@ -9,6 +9,7 @@ import brandRoutes from './routes/brand.routes.js';
 import adminProductRoutes from './routes/admin.product.routes.js';
 import orderRoutes from './routes/order.routes.js';
 import addressRoutes from './routes/address.routes.js';
+import analyticsRoutes from './routes/analytics.routes.js';
 
 dotenv.config();
 
@@ -29,6 +30,7 @@ app.use('/api/cart', cartRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/brands', brandRoutes);
 app.use('/api/admin/products', adminProductRoutes);
+app.use('/api/admin/analytics', analyticsRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/addresses', addressRoutes);
 

@@ -24,6 +24,7 @@ export default function ProductsPage() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(24);
 
   useEffect(() => {
     fetchCategories();
@@ -32,7 +33,7 @@ export default function ProductsPage() {
 
   useEffect(() => {
     fetchProducts();
-  }, [selectedCategory, selectedBrand, sortBy, sortOrder, currentPage, priceRange]);
+  }, [selectedCategory, selectedBrand, sortBy, sortOrder, currentPage, priceRange, itemsPerPage]);
 
   const fetchProducts = async () => {
     try {
@@ -46,7 +47,7 @@ export default function ProductsPage() {
         sortBy,
         order: sortOrder,
         page: currentPage,
-        limit: 24,
+        limit: itemsPerPage,
       });
       setProducts(response.products);
       setTotalPages(response.pagination.totalPages);
@@ -215,24 +216,41 @@ export default function ProductsPage() {
                 <p className="text-sm text-gray-600">
                   Showing {products.length} products
                 </p>
-                <div className="flex items-center gap-3">
-                  <label className="text-sm text-gray-700 font-medium">Sort by:</label>
-                  <select
-                    value={`${sortBy}-${sortOrder}`}
-                    onChange={(e) => {
-                      const [sort, order] = e.target.value.split('-');
-                      setSortBy(sort as 'createdAt' | 'price' | 'name');
-                      setSortOrder(order as 'asc' | 'desc');
-                    }}
-                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
-                  >
-                    <option value="createdAt-desc">Newest First</option>
-                    <option value="createdAt-asc">Oldest First</option>
-                    <option value="price-asc">Price: Low to High</option>
-                    <option value="price-desc">Price: High to Low</option>
-                    <option value="name-asc">Name: A to Z</option>
-                    <option value="name-desc">Name: Z to A</option>
-                  </select>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm text-gray-700 font-medium">Per page:</label>
+                    <select
+                      value={itemsPerPage}
+                      onChange={(e) => {
+                        setItemsPerPage(Number(e.target.value));
+                        setCurrentPage(1);
+                      }}
+                      className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                    >
+                      <option value={12}>12</option>
+                      <option value={24}>24</option>
+                      <option value={50}>50</option>
+                    </select>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm text-gray-700 font-medium">Sort by:</label>
+                    <select
+                      value={`${sortBy}-${sortOrder}`}
+                      onChange={(e) => {
+                        const [sort, order] = e.target.value.split('-');
+                        setSortBy(sort as 'createdAt' | 'price' | 'name');
+                        setSortOrder(order as 'asc' | 'desc');
+                      }}
+                      className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                    >
+                      <option value="createdAt-desc">Newest First</option>
+                      <option value="createdAt-asc">Oldest First</option>
+                      <option value="price-asc">Price: Low to High</option>
+                      <option value="price-desc">Price: High to Low</option>
+                      <option value="name-asc">Name: A to Z</option>
+                      <option value="name-desc">Name: Z to A</option>
+                    </select>
+                  </div>
                 </div>
               </div>
             </div>

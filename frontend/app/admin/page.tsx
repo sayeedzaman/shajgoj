@@ -22,42 +22,88 @@ interface OrderData {
   date: string;
 }
 
-// Mock Data - Replace with real API calls
-const MOCK_REVENUE_DATA: RevenueDataPoint[] = [
-  { month: 'Jan', revenue: 12400, orders: 145 },
-  { month: 'Feb', revenue: 15600, orders: 178 },
-  { month: 'Mar', revenue: 18900, orders: 203 },
-  { month: 'Apr', revenue: 16200, orders: 189 },
-  { month: 'May', revenue: 21300, orders: 234 },
-  { month: 'Jun', revenue: 24800, orders: 267 },
-];
-
-const MOCK_ORDERS: OrderData[] = [
-  { id: 'ORD-001', customer: 'John Doe', amount: 129.99, status: 'DELIVERED', date: '2024-01-15' },
-  { id: 'ORD-002', customer: 'Jane Smith', amount: 89.50, status: 'PROCESSING', date: '2024-01-15' },
-  { id: 'ORD-003', customer: 'Bob Johnson', amount: 199.99, status: 'SHIPPED', date: '2024-01-14' },
-  { id: 'ORD-004', customer: 'Alice Brown', amount: 54.99, status: 'PENDING', date: '2024-01-14' },
-  { id: 'ORD-005', customer: 'Charlie Wilson', amount: 149.99, status: 'DELIVERED', date: '2024-01-13' },
-];
+interface DashboardAnalytics {
+  totalRevenue: { value: number; change: number; isPositive: boolean };
+  totalOrders: { value: number; change: number; isPositive: boolean };
+  totalCustomers: { value: number; change: number; isPositive: boolean };
+  avgOrderValue: { value: number; change: number; isPositive: boolean };
+}
 
 export default function AdminDashboard() {
   // State Management
   const [stats, setStats] = useState<InventoryStats | null>(null);
+  const [analytics, setAnalytics] = useState<DashboardAnalytics | null>(null);
+  const [revenueData, setRevenueData] = useState<RevenueDataPoint[]>([]);
+  const [recentOrders, setRecentOrders] = useState<OrderData[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   // Fetch Stats on Mount
   useEffect(() => {
-    loadDashboardStats();
+    loadDashboardData();
   }, []);
 
   // API Calls
-  const loadDashboardStats = async (): Promise<void> => {
+  const loadDashboardData = async (): Promise<void> => {
     try {
       setLoading(true);
       setError(null);
-      const data = await adminProductsAPI.getStats();
-      setStats(data);
+
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      const token = localStorage.getItem('token');
+
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+
+      const headers = {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      };
+
+      // Fetch all dashboard data in parallel
+      const [statsData, analyticsRes, revenueRes, ordersRes] = await Promise.all([
+        adminProductsAPI.getStats(),
+        fetch(`${apiUrl}/api/admin/analytics/dashboard?timeRange=30d`, { headers }),
+        fetch(`${apiUrl}/api/admin/analytics/revenue?timeRange=90d`, { headers }),
+        fetch(`${apiUrl}/api/admin/analytics/orders/recent?limit=5`, { headers }),
+      ]);
+
+      setStats(statsData);
+
+      // Process analytics data
+      if (analyticsRes.ok) {
+        const analyticsData = await analyticsRes.json();
+        setAnalytics(analyticsData);
+      }
+
+      if (revenueRes.ok) {
+        const revenueDataArray = await revenueRes.json();
+        // Group by month for the chart
+        const monthlyRevenue: Record<string, { revenue: number; orders: number }> = {};
+        revenueDataArray.forEach((item: any) => {
+          const date = new Date(item.date);
+          const month = date.toLocaleDateString('en-US', { month: 'short' });
+          if (!monthlyRevenue[month]) {
+            monthlyRevenue[month] = { revenue: 0, orders: 0 };
+          }
+          monthlyRevenue[month].revenue += item.revenue;
+          monthlyRevenue[month].orders += item.orders;
+        });
+
+        const formattedRevenue = Object.entries(monthlyRevenue).map(([month, data]) => ({
+          month,
+          revenue: data.revenue,
+          orders: data.orders,
+        }));
+
+        setRevenueData(formattedRevenue.slice(-6)); // Last 6 months
+      }
+
+      if (ordersRes.ok) {
+        const ordersData = await ordersRes.json();
+        setRecentOrders(ordersData);
+      }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load dashboard statistics';
       setError(errorMessage);
@@ -86,7 +132,7 @@ export default function AdminDashboard() {
         <h3 className="text-lg font-semibold text-red-900 mb-2">Error Loading Dashboard</h3>
         <p className="text-red-700 mb-4">{error}</p>
         <button
-          onClick={loadDashboardStats}
+          onClick={loadDashboardData}
           className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
         >
           Retry
@@ -112,23 +158,33 @@ export default function AdminDashboard() {
           icon={Package}
           iconColor="bg-blue-500"
           subtitle={`${stats?.overview.inStock || 0} in stock`}
-          trend={{ value: 12, isPositive: true }}
+          trend={{
+            value: stats?.overview.totalProducts ?
+              Math.round((stats.overview.inStock / stats.overview.totalProducts) * 100) : 0,
+            isPositive: true
+          }}
         />
         <StatCard
           title="Total Revenue"
-          value={`$${(stats?.overview.totalValue || 0).toFixed(2)}`}
+          value={`৳${(analytics?.totalRevenue.value || 0).toLocaleString('en-BD', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
           icon={DollarSign}
           iconColor="bg-green-500"
           subtitle="This month"
-          trend={{ value: 8.5, isPositive: true }}
+          trend={{
+            value: analytics?.totalRevenue.change || 0,
+            isPositive: analytics?.totalRevenue.isPositive ?? true
+          }}
         />
         <StatCard
           title="Total Orders"
-          value="267"
+          value={analytics?.totalOrders.value || 0}
           icon={ShoppingCart}
           iconColor="bg-purple-500"
-          subtitle="24 pending"
-          trend={{ value: 15, isPositive: true }}
+          subtitle={`${recentOrders.filter(o => o.status === 'PENDING').length} pending`}
+          trend={{
+            value: analytics?.totalOrders.change || 0,
+            isPositive: analytics?.totalOrders.isPositive ?? true
+          }}
         />
         <StatCard
           title="Low Stock Alerts"
@@ -136,7 +192,10 @@ export default function AdminDashboard() {
           icon={AlertTriangle}
           iconColor="bg-orange-500"
           subtitle={`${stats?.overview.outOfStock || 0} out of stock`}
-          trend={{ value: 3, isPositive: false }}
+          trend={{
+            value: stats?.overview.lowStock || 0,
+            isPositive: false
+          }}
         />
       </section>
 
@@ -155,7 +214,7 @@ export default function AdminDashboard() {
             </div>
           </div>
           <ResponsiveContainer width="100%" height={280}>
-            <LineChart data={MOCK_REVENUE_DATA}>
+            <LineChart data={revenueData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
               <XAxis
                 dataKey="month"
@@ -169,7 +228,7 @@ export default function AdminDashboard() {
                 fontSize={12}
                 tickLine={false}
                 axisLine={false}
-                tickFormatter={(value) => `$${value / 1000}k`}
+                tickFormatter={(value) => `৳${value / 1000}k`}
               />
               <Tooltip
                 contentStyle={{
@@ -251,32 +310,40 @@ export default function AdminDashboard() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 bg-white">
-              {MOCK_ORDERS.map((order) => (
-                <tr key={order.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm font-semibold text-gray-900">{order.id}</span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm text-gray-700">{order.customer}</span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm font-semibold text-gray-900">
-                      ${order.amount.toFixed(2)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <StatusBadge status={order.status} variant="order" />
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="text-sm text-gray-600">{order.date}</span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <button className="text-sm font-medium text-rose-600 hover:text-rose-700 transition-colors">
-                      View Details
-                    </button>
+              {recentOrders.length > 0 ? (
+                recentOrders.map((order) => (
+                  <tr key={order.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="text-sm font-semibold text-gray-900">{order.id}</span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="text-sm text-gray-700">{order.customer}</span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="text-sm font-semibold text-gray-900">
+                        ৳{order.amount.toFixed(2)}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <StatusBadge status={order.status} variant="order" />
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="text-sm text-gray-600">{order.date}</span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <button className="text-sm font-medium text-rose-600 hover:text-rose-700 transition-colors">
+                        View Details
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                    No recent orders found
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>

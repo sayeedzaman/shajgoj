@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react';
 import StrikingOfferCard from '@/src/components/offers/StrikingOfferCard';
 import CategoryOfferCard from '@/src/components/offers/CategoryOfferCard';
 import ProductCard from '@/src/components/products/ProductCard';
+import ProductCardSkeleton from '@/src/components/products/ProductCardSkeleton';
 import { Product } from '@/src/types/index';
 
 interface Offer {
@@ -49,6 +50,8 @@ export default function Home() {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [topSellingProducts, setTopSellingProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [productsLoading, setProductsLoading] = useState(true);
+  const [showAllTopSelling, setShowAllTopSelling] = useState(false);
 
   // Fetch offers from localStorage on mount
   useEffect(() => {
@@ -131,13 +134,15 @@ export default function Home() {
         }
 
         // Fetch top selling products (for now, just get recent products with sale prices)
-        const topSellingRes = await fetch(`${apiUrl}/api/products?limit=8&sortBy=createdAt&order=desc`);
+        const topSellingRes = await fetch(`${apiUrl}/api/products?limit=12&sortBy=createdAt&order=desc`);
         if (topSellingRes.ok) {
           const topSellingData = await topSellingRes.json();
           setTopSellingProducts(topSellingData.products || []);
         }
       } catch (error) {
         console.error('Error fetching products:', error);
+      } finally {
+        setProductsLoading(false);
       }
     };
 
@@ -591,6 +596,65 @@ export default function Home() {
         </section>
       )}
 
+      {/* Featured Products */}
+      <section className="max-w-7xl mx-auto px-4 py-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900">Featured Products</h2>
+          <Link href="/products?featured=true" className="text-red-600 hover:text-red-700 font-semibold flex items-center gap-1 text-sm">
+            View All <ChevronRight className="w-4 h-4" />
+          </Link>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-3 md:gap-4">
+          {productsLoading ? (
+            <>
+              {[...Array(4)].map((_, i) => (
+                <ProductCardSkeleton key={i} />
+              ))}
+            </>
+          ) : featuredProducts.length > 0 ? (
+            featuredProducts.slice(0, 4).map((product) => (
+              <ProductCard key={product.id} product={product} showAddToCart={false} />
+            ))
+          ) : (
+            <div className="col-span-full text-center py-8 text-gray-500">
+              No featured products available
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Top Selling Products */}
+      <section className="max-w-7xl mx-auto px-4 py-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl md:text-2xl font-bold text-gray-900">Top Selling Products</h2>
+          {topSellingProducts.length > 4 && (
+            <button
+              onClick={() => setShowAllTopSelling(!showAllTopSelling)}
+              className="text-red-600 hover:text-red-700 font-semibold flex items-center gap-1 text-sm"
+            >
+              {showAllTopSelling ? 'Show Less' : 'View More'} <ChevronRight className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-3 md:gap-4">
+          {productsLoading ? (
+            <>
+              {[...Array(4)].map((_, i) => (
+                <ProductCardSkeleton key={i} />
+              ))}
+            </>
+          ) : topSellingProducts.length > 0 ? (
+            (showAllTopSelling ? topSellingProducts : topSellingProducts.slice(0, 4)).map((product) => (
+              <ProductCard key={product.id} product={product} showAddToCart={false} />
+            ))
+          ) : (
+            <div className="col-span-full text-center py-8 text-gray-500">
+              No top selling products available
+            </div>
+          )}
+        </div>
+      </section>
+
       {/* Deals You Cannot Miss - Striking Cards */}
       {dealOffers.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 py-8">
@@ -605,39 +669,6 @@ export default function Home() {
         </section>
       )}
 
-      {/* Featured Products */}
-      {featuredProducts.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 py-8 bg-gray-50">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Featured Products</h2>
-            <Link href="/products?featured=true" className="text-red-600 hover:text-red-700 font-semibold flex items-center gap-1 text-sm md:text-base">
-              View All <ChevronRight className="w-5 h-5" />
-            </Link>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-            {featuredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} showAddToCart={false} />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Top Selling Products */}
-      {topSellingProducts.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 py-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Top Selling Products</h2>
-            <Link href="/products?sort=popular" className="text-red-600 hover:text-red-700 font-semibold flex items-center gap-1 text-sm md:text-base">
-              View All <ChevronRight className="w-5 h-5" />
-            </Link>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-            {topSellingProducts.map((product) => (
-              <ProductCard key={product.id} product={product} showAddToCart={false} />
-            ))}
-          </div>
-        </section>
-      )}
 
       {/* Top Brands & Offers - Category Cards */}
       {brandOffers.length > 0 && (

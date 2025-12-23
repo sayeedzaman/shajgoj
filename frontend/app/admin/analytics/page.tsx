@@ -4,60 +4,107 @@ import { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, Users, Package, BarChart3 } from 'lucide-react';
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area } from 'recharts';
 
+interface AnalyticsStats {
+  totalRevenue: { value: number; change: number; isPositive: boolean };
+  totalOrders: { value: number; change: number; isPositive: boolean };
+  totalCustomers: { value: number; change: number; isPositive: boolean };
+  avgOrderValue: { value: number; change: number; isPositive: boolean };
+  conversionRate: { value: number; change: number; isPositive: boolean };
+  cartAbandonment: { value: number; change: number; isPositive: boolean };
+}
+
+interface RevenueDataPoint {
+  date: string;
+  revenue: number;
+  orders: number;
+  customers: number;
+}
+
+interface CategoryData {
+  name: string;
+  value: number;
+  percentage: number;
+  [key: string]: string | number;
+}
+
+interface TopProduct {
+  name: string;
+  sales: number;
+  revenue: number;
+}
+
+interface CustomerGrowth {
+  month: string;
+  new: number;
+  returning: number;
+}
+
 export default function AnalyticsPage() {
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d' | '1y'>('30d');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    // Simulate loading
-    setTimeout(() => setLoading(false), 1000);
-  }, []);
-
-  // Mock data
-  const revenueData = [
-    { date: 'Jan 1', revenue: 12400, orders: 145, customers: 98 },
-    { date: 'Jan 8', revenue: 15600, orders: 178, customers: 112 },
-    { date: 'Jan 15', revenue: 18900, orders: 203, customers: 134 },
-    { date: 'Jan 22', revenue: 16200, orders: 189, customers: 121 },
-    { date: 'Jan 29', revenue: 21300, orders: 234, customers: 156 },
-    { date: 'Feb 5', revenue: 24800, orders: 267, customers: 178 },
-    { date: 'Feb 12', revenue: 28500, orders: 291, customers: 201 },
-  ];
-
-  const categoryData = [
-    { name: 'Skin Care', value: 3500, percentage: 35 },
-    { name: 'Makeup', value: 2800, percentage: 28 },
-    { name: 'Hair Care', value: 1800, percentage: 18 },
-    { name: 'Fragrance', value: 1200, percentage: 12 },
-    { name: 'Others', value: 700, percentage: 7 },
-  ];
-
-  const topProducts = [
-    { name: 'Himalaya Face Wash', sales: 1245, revenue: 311250 },
-    { name: 'Nivea Soft Cream', sales: 987, revenue: 444150 },
-    { name: 'LOreal Lipstick', sales: 856, revenue: 727600 },
-    { name: 'Pantene Shampoo', sales: 745, revenue: 283100 },
-    { name: 'Dove Soap', sales: 623, revenue: 74760 },
-  ];
-
-  const customerGrowth = [
-    { month: 'Aug', new: 145, returning: 89 },
-    { month: 'Sep', new: 178, returning: 112 },
-    { month: 'Oct', new: 203, returning: 145 },
-    { month: 'Nov', new: 189, returning: 167 },
-    { month: 'Dec', new: 234, returning: 198 },
-    { month: 'Jan', new: 267, returning: 223 },
-  ];
+  const [stats, setStats] = useState<AnalyticsStats | null>(null);
+  const [revenueData, setRevenueData] = useState<RevenueDataPoint[]>([]);
+  const [categoryData, setCategoryData] = useState<CategoryData[]>([]);
+  const [topProducts, setTopProducts] = useState<TopProduct[]>([]);
+  const [customerGrowth, setCustomerGrowth] = useState<CustomerGrowth[]>([]);
 
   const COLORS = ['#f43f5e', '#ec4899', '#8b5cf6', '#06b6d4', '#10b981'];
 
-  const stats = {
-    totalRevenue: { value: 127800, change: 12.5, isPositive: true },
-    totalOrders: { value: 1507, change: 8.3, isPositive: true },
-    totalCustomers: { value: 890, change: 15.2, isPositive: true },
-    avgOrderValue: { value: 84.8, change: -2.1, isPositive: false },
-    conversionRate: { value: 3.2, change: 0.5, isPositive: true },
-    cartAbandonment: { value: 68.5, change: -3.2, isPositive: true },
+  useEffect(() => {
+    fetchAnalyticsData();
+  }, [timeRange]);
+
+  const fetchAnalyticsData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      const token = localStorage.getItem('token');
+
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+
+      const headers = {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      };
+
+      // Fetch all analytics data in parallel
+      const [statsRes, revenueRes, categoryRes, productsRes, growthRes] = await Promise.all([
+        fetch(`${apiUrl}/api/admin/analytics/dashboard?timeRange=${timeRange}`, { headers }),
+        fetch(`${apiUrl}/api/admin/analytics/revenue?timeRange=${timeRange}`, { headers }),
+        fetch(`${apiUrl}/api/admin/analytics/categories?timeRange=${timeRange}`, { headers }),
+        fetch(`${apiUrl}/api/admin/analytics/products/top?limit=5&timeRange=${timeRange}`, { headers }),
+        fetch(`${apiUrl}/api/admin/analytics/customers/growth?timeRange=6m`, { headers }),
+      ]);
+
+      if (!statsRes.ok || !revenueRes.ok || !categoryRes.ok || !productsRes.ok || !growthRes.ok) {
+        throw new Error('Failed to fetch analytics data');
+      }
+
+      const [statsData, revenueDataRes, categoryDataRes, productsDataRes, growthDataRes] = await Promise.all([
+        statsRes.json(),
+        revenueRes.json(),
+        categoryRes.json(),
+        productsRes.json(),
+        growthRes.json(),
+      ]);
+
+      setStats(statsData);
+      setRevenueData(revenueDataRes);
+      setCategoryData(categoryDataRes);
+      setTopProducts(productsDataRes);
+      setCustomerGrowth(growthDataRes);
+    } catch (err) {
+      console.error('Analytics fetch error:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load analytics');
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (loading) {
@@ -69,6 +116,28 @@ export default function AnalyticsPage() {
         </div>
       </div>
     );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[500px]">
+        <div className="text-center">
+          <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-red-600 font-medium">{error}</p>
+            <button
+              onClick={() => fetchAnalyticsData()}
+              className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!stats) {
+    return null;
   }
 
   return (

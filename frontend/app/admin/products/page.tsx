@@ -567,9 +567,9 @@ export default function ProductManagementPage() {
 
       {/* Create/Edit Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-white/30 backdrop-blur-md flex items-center justify-center p-4 z-50 overflow-y-auto">
-          <div className="bg-white rounded-lg max-w-3xl w-full my-8">
-            <div className="flex justify-between items-center p-6 border-b border-gray-200">
+        <div className="fixed inset-0 bg-white/30 backdrop-blur-md flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="flex justify-between items-center p-6 border-b border-gray-200 z-10">
               <h2 className="text-2xl font-bold text-gray-900">
                 {editingProduct ? 'Edit Product' : 'Add New Product'}
               </h2>
@@ -581,7 +581,8 @@ export default function ProductManagementPage() {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+            <div className="flex-1 overflow-y-auto">
+              <form onSubmit={handleSubmit} className="p-6 space-y-6">
               {/* Product Images - 3 images */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-3">
@@ -818,6 +819,7 @@ export default function ProductManagementPage() {
                 </button>
               </div>
             </form>
+            </div>
           </div>
         </div>
       )}
