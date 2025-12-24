@@ -15,6 +15,21 @@ interface WishlistContextType {
   refreshWishlist: () => Promise<void>;
 }
 
+interface WishlistItemResponse {
+  Product: Product & {
+    Category: {
+      id: string;
+      name: string;
+      slug: string;
+    };
+    Brand: {
+      id: string;
+      name: string;
+      slug: string;
+    } | null;
+  };
+}
+
 const WishlistContext = createContext<WishlistContextType | undefined>(undefined);
 
 export function WishlistProvider({ children }: { children: ReactNode }) {
@@ -52,7 +67,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
 
       if (response.ok) {
         const data = await response.json();
-        const products = data.items.map((item: any) => ({
+        const products = data.items.map((item: WishlistItemResponse) => ({
           ...item.Product,
           Category: item.Product.Category,
           Brand: item.Product.Brand,
@@ -84,28 +99,21 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   const addToWishlist = async (product: Product) => {
     const token = localStorage.getItem('token');
 
-    console.log('[Wishlist Debug] user:', user);
-    console.log('[Wishlist Debug] token exists:', !!token);
-
     // Use localStorage if no user OR no token
     if (!user || !token) {
       // Guest user - use localStorage
-      console.log('[Wishlist] Using localStorage (guest mode)');
       setWishlist((prev) => {
         if (prev.some((item) => item.id === product.id)) {
-          console.log('[Wishlist] Product already in wishlist');
           return prev;
         }
         const newWishlist = [...prev, product];
         localStorage.setItem('wishlist', JSON.stringify(newWishlist));
-        console.log('[Wishlist] Added to localStorage');
         return newWishlist;
       });
       return;
     }
 
     // Logged in user - use backend API
-    console.log('[Wishlist] Using backend API (authenticated mode)');
     try {
       const response = await fetch(`${apiUrl}/api/wishlist/items`, {
         method: 'POST',
@@ -118,7 +126,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
 
       if (response.ok) {
         const data = await response.json();
-        const products = data.items.map((item: any) => ({
+        const products = data.items.map((item: WishlistItemResponse) => ({
           ...item.Product,
           Category: item.Product.Category,
           Brand: item.Product.Brand,
@@ -132,7 +140,6 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
 
         // If unauthorized, clear the invalid token and use localStorage instead
         if (response.status === 401) {
-          console.warn('[Wishlist] Token invalid, clearing and using localStorage');
           localStorage.removeItem('token');
           // Fallback to localStorage
           setWishlist((prev) => {
@@ -176,7 +183,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
 
       if (response.ok) {
         const data = await response.json();
-        const products = data.items.map((item: any) => ({
+        const products = data.items.map((item: WishlistItemResponse) => ({
           ...item.Product,
           Category: item.Product.Category,
           Brand: item.Product.Brand,
