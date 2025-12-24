@@ -2,6 +2,7 @@
 
 import { Inter } from 'next/font/google';
 import './globals.css';
+import Link from 'next/link';
 import { AuthProvider } from '@/src/lib/AuthContext';
 import { CartProvider, useCart } from '@/src/lib/CartContext';
 import { WishlistProvider } from '@/src/lib/WishlistContext';
@@ -49,28 +50,28 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
               <div>
                 <h4 className="font-semibold mb-4">Quick Links</h4>
                 <ul className="space-y-2 text-sm text-gray-400">
-                  <li><a href="/about" className="hover:text-white">About Us</a></li>
-                  <li><a href="/contact" className="hover:text-white">Contact</a></li>
-                  <li><a href="/shipping" className="hover:text-white">Shipping</a></li>
-                  <li><a href="/returns" className="hover:text-white">Returns</a></li>
+                  <li><Link href="/about" className="hover:text-white">About Us</Link></li>
+                  <li><Link href="/contact" className="hover:text-white">Contact</Link></li>
+                  <li><Link href="/shipping" className="hover:text-white">Shipping</Link></li>
+                  <li><Link href="/returns" className="hover:text-white">Returns</Link></li>
                 </ul>
               </div>
               <div>
                 <h4 className="font-semibold mb-4">Categories</h4>
                 <ul className="space-y-2 text-sm text-gray-400">
-                  <li><a href="/category/makeup" className="hover:text-white">Makeup</a></li>
-                  <li><a href="/category/skin" className="hover:text-white">Skin Care</a></li>
-                  <li><a href="/category/hair" className="hover:text-white">Hair Care</a></li>
-                  <li><a href="/category/men" className="hover:text-white">Men</a></li>
+                  <li><Link href="/category/makeup" className="hover:text-white">Makeup</Link></li>
+                  <li><Link href="/category/skin" className="hover:text-white">Skin Care</Link></li>
+                  <li><Link href="/category/hair" className="hover:text-white">Hair Care</Link></li>
+                  <li><Link href="/category/men" className="hover:text-white">Men</Link></li>
                 </ul>
               </div>
               <div>
                 <h4 className="font-semibold mb-4">Customer Service</h4>
                 <ul className="space-y-2 text-sm text-gray-400">
-                  <li><a href="/faqs" className="hover:text-white">FAQs</a></li>
-                  <li><a href="/track-order" className="hover:text-white">Track Order</a></li>
-                  <li><a href="/terms" className="hover:text-white">Terms & Conditions</a></li>
-                  <li><a href="/privacy" className="hover:text-white">Privacy Policy</a></li>
+                  <li><Link href="/faqs" className="hover:text-white">FAQs</Link></li>
+                  <li><Link href="/track-order" className="hover:text-white">Track Order</Link></li>
+                  <li><Link href="/terms" className="hover:text-white">Terms & Conditions</Link></li>
+                  <li><Link href="/privacy" className="hover:text-white">Privacy Policy</Link></li>
                 </ul>
               </div>
             </div>
