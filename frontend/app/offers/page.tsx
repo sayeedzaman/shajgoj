@@ -135,9 +135,9 @@ export default function OffersPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 via-pink-50 to-purple-50">
+    <div className="min-h-screen bg-linear-to-br from-red-50 via-pink-50 to-purple-50">
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-red-500 via-pink-500 to-purple-500 text-white py-16">
+      <section className="bg-linear-to-r from-red-500 via-pink-500 to-purple-500 text-white py-16">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center">
             <Gift className="w-16 h-16 mx-auto mb-4" />
@@ -250,7 +250,7 @@ export default function OffersPage() {
                   className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
                 >
                   {/* Offer Image */}
-                  <div className="relative h-48 bg-gradient-to-br from-red-100 to-purple-100">
+                  <div className="relative h-48 bg-linear-to-br from-red-100 to-purple-100">
                     {offer.imageUrl ? (
                       <img
                         src={offer.imageUrl}
@@ -297,7 +297,7 @@ export default function OffersPage() {
                     )}
 
                     {/* Offer Code */}
-                    <div className="bg-gradient-to-r from-red-50 to-pink-50 rounded-lg p-4 mb-4">
+                    <div className="bg-linear-to-r from-red-50 to-pink-50 rounded-lg p-4 mb-4">
                       <div className="flex items-center justify-between">
                         <div>
                           <div className="text-xs text-gray-600 mb-1">Promo Code</div>
@@ -351,7 +351,7 @@ export default function OffersPage() {
                         </div>
                         <div className="w-full bg-gray-200 rounded-full h-2">
                           <div
-                            className="bg-gradient-to-r from-red-500 to-pink-500 h-2 rounded-full transition-all"
+                            className="bg-linear-to-r from-red-500 to-pink-500 h-2 rounded-full transition-all"
                             style={{ width: `${(offer.usageCount / offer.usageLimit) * 100}%` }}
                           ></div>
                         </div>
@@ -361,7 +361,7 @@ export default function OffersPage() {
                     {/* Action Button */}
                     <button
                       onClick={() => copyCode(offer.code)}
-                      className="w-full mt-4 bg-gradient-to-r from-red-600 to-pink-600 text-white py-3 rounded-lg font-semibold hover:from-red-700 hover:to-pink-700 transition-all transform hover:scale-105"
+                      className="w-full mt-4 bg-linear-to-r from-red-600 to-pink-600 text-white py-3 rounded-lg font-semibold hover:from-red-700 hover:to-pink-700 transition-all transform hover:scale-105"
                     >
                       {copiedCode === offer.code ? 'Code Copied!' : 'Copy Code & Shop'}
                     </button>

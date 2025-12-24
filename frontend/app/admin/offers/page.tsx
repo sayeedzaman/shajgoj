@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Tag, Search, Plus, Edit, Trash2, Clock, Percent, Gift, Filter, ChevronDown, X, Upload, Image as ImageIcon, Package, Sparkles } from 'lucide-react';
+import Image from 'next/image';
+import { Tag, Search, Plus, Edit, Trash2, Clock, Filter, ChevronDown, X, Upload, Image as ImageIcon, Package, Sparkles } from 'lucide-react';
 import type { Product } from '@/src/types/index';
 
 interface Offer {
@@ -531,7 +532,13 @@ export default function OffersPage() {
               {/* Offer Image */}
               <div className="relative h-48 bg-gray-100">
                 {offer.imageUrl ? (
-                  <img src={offer.imageUrl} alt={offer.name} className="w-full h-full object-cover" />
+                  <Image
+                    src={offer.imageUrl}
+                    alt={offer.name}
+                    fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    className="object-cover"
+                  />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
                     <ImageIcon className="w-16 h-16 text-gray-300" />
@@ -670,8 +677,8 @@ export default function OffersPage() {
                 </label>
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-4">
                   {imagePreview ? (
-                    <div className="relative">
-                      <img src={imagePreview} alt="Preview" className="w-full h-48 object-cover rounded-lg" />
+                    <div className="relative w-full h-48">
+                      <Image src={imagePreview} alt="Preview" fill className="object-cover rounded-lg" />
                       <button
                         type="button"
                         onClick={() => {
@@ -846,11 +853,14 @@ export default function OffersPage() {
                       <div className="border border-green-300 rounded-lg p-3 bg-green-50">
                         <div className="flex items-center gap-3">
                           {(selectedProduct.imageUrl || selectedProduct.images?.[0]) && (
-                            <img
-                              src={selectedProduct.imageUrl || selectedProduct.images?.[0] || ''}
-                              alt={selectedProduct.name}
-                              className="w-16 h-16 object-cover rounded border border-gray-300"
-                            />
+                            <div className="relative w-16 h-16">
+                              <Image
+                                src={selectedProduct.imageUrl || selectedProduct.images?.[0] || ''}
+                                alt={selectedProduct.name}
+                                fill
+                                className="object-cover rounded border border-gray-300"
+                              />
+                            </div>
                           )}
                           <div className="flex-1">
                             <p className="font-semibold text-gray-900">{selectedProduct.name}</p>
@@ -910,11 +920,14 @@ export default function OffersPage() {
                                 className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0"
                               >
                                 {(product.imageUrl || product.images?.[0]) && (
-                                  <img
-                                    src={product.imageUrl || product.images?.[0] || ''}
-                                    alt={product.name}
-                                    className="w-12 h-12 object-cover rounded border border-gray-200"
-                                  />
+                                  <div className="relative w-12 h-12 shrink-0">
+                                    <Image
+                                      src={product.imageUrl || product.images?.[0] || ''}
+                                      alt={product.name}
+                                      fill
+                                      className="object-cover rounded border border-gray-200"
+                                    />
+                                  </div>
                                 )}
                                 <div className="flex-1 text-left">
                                   <p className="font-medium text-gray-900">{product.name}</p>
@@ -1077,7 +1090,7 @@ export default function OffersPage() {
                     <button
                       type="button"
                       onClick={() => setFormData({ ...formData, backgroundColor: 'from-red-500 via-pink-500 to-rose-600' })}
-                      className="p-3 rounded-lg bg-gradient-to-br from-red-500 via-pink-500 to-rose-600 border-2 border-white shadow-md hover:scale-105 transition-transform"
+                      className="p-3 rounded-lg bg-linear-to-br from-red-500 via-pink-500 to-rose-600 border-2 border-white shadow-md hover:scale-105 transition-transform"
                       title="Red to Rose"
                     >
                       <span className="text-white text-xs font-bold">Default</span>
@@ -1085,7 +1098,7 @@ export default function OffersPage() {
                     <button
                       type="button"
                       onClick={() => setFormData({ ...formData, backgroundColor: 'from-orange-400 via-red-500 to-pink-600' })}
-                      className="p-3 rounded-lg bg-gradient-to-br from-orange-400 via-red-500 to-pink-600 border-2 border-white shadow-md hover:scale-105 transition-transform"
+                      className="p-3 rounded-lg bg-linear-to-br from-orange-400 via-red-500 to-pink-600 border-2 border-white shadow-md hover:scale-105 transition-transform"
                       title="Orange to Pink"
                     >
                       <span className="text-white text-xs font-bold">Warm</span>
@@ -1093,7 +1106,7 @@ export default function OffersPage() {
                     <button
                       type="button"
                       onClick={() => setFormData({ ...formData, backgroundColor: 'from-cyan-400 via-blue-500 to-purple-600' })}
-                      className="p-3 rounded-lg bg-gradient-to-br from-cyan-400 via-blue-500 to-purple-600 border-2 border-white shadow-md hover:scale-105 transition-transform"
+                      className="p-3 rounded-lg bg-linear-to-br from-cyan-400 via-blue-500 to-purple-600 border-2 border-white shadow-md hover:scale-105 transition-transform"
                       title="Cyan to Purple"
                     >
                       <span className="text-white text-xs font-bold">Cool</span>
@@ -1101,7 +1114,7 @@ export default function OffersPage() {
                     <button
                       type="button"
                       onClick={() => setFormData({ ...formData, backgroundColor: 'from-green-400 via-teal-500 to-cyan-600' })}
-                      className="p-3 rounded-lg bg-gradient-to-br from-green-400 via-teal-500 to-cyan-600 border-2 border-white shadow-md hover:scale-105 transition-transform"
+                      className="p-3 rounded-lg bg-linear-to-br from-green-400 via-teal-500 to-cyan-600 border-2 border-white shadow-md hover:scale-105 transition-transform"
                       title="Green to Cyan"
                     >
                       <span className="text-white text-xs font-bold">Fresh</span>
@@ -1109,7 +1122,7 @@ export default function OffersPage() {
                     <button
                       type="button"
                       onClick={() => setFormData({ ...formData, backgroundColor: 'from-yellow-400 via-orange-500 to-red-600' })}
-                      className="p-3 rounded-lg bg-gradient-to-br from-yellow-400 via-orange-500 to-red-600 border-2 border-white shadow-md hover:scale-105 transition-transform"
+                      className="p-3 rounded-lg bg-linear-to-br from-yellow-400 via-orange-500 to-red-600 border-2 border-white shadow-md hover:scale-105 transition-transform"
                       title="Yellow to Red"
                     >
                       <span className="text-white text-xs font-bold">Hot</span>
@@ -1117,7 +1130,7 @@ export default function OffersPage() {
                     <button
                       type="button"
                       onClick={() => setFormData({ ...formData, backgroundColor: 'from-purple-400 via-pink-500 to-red-600' })}
-                      className="p-3 rounded-lg bg-gradient-to-br from-purple-400 via-pink-500 to-red-600 border-2 border-white shadow-md hover:scale-105 transition-transform"
+                      className="p-3 rounded-lg bg-linear-to-br from-purple-400 via-pink-500 to-red-600 border-2 border-white shadow-md hover:scale-105 transition-transform"
                       title="Purple to Red"
                     >
                       <span className="text-white text-xs font-bold">Bold</span>

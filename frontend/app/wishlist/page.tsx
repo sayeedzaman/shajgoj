@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Trash2, ShoppingCart, Heart, ArrowRight, X } from 'lucide-react';
 import { useWishlist } from '@/src/lib/WishlistContext';
 import { useCart } from '@/src/lib/CartContext';
@@ -116,10 +117,12 @@ export default function WishlistPage() {
               {/* Product Image */}
               <div className="relative aspect-square bg-gray-100">
                 <Link href={`/products/${product.slug}`}>
-                  <img
+                  <Image
                     src={product.imageUrl || product.images?.[0] || '/placeholder.png'}
                     alt={product.name}
-                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                    fill
+                    sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+                    className="object-cover hover:scale-105 transition-transform duration-300"
                   />
                 </Link>
 

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { Product } from '@/src/types/index';
 import { useAuth } from './AuthContext';
 
@@ -40,7 +40,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
   // Fetch wishlist from backend
-  const refreshWishlist = async () => {
+  const refreshWishlist = useCallback(async () => {
     if (!user) {
       // If not logged in, try to load from localStorage
       const savedWishlist = localStorage.getItem('wishlist');
@@ -82,12 +82,12 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [user, apiUrl]);
 
   // Load wishlist on mount and when user changes
   useEffect(() => {
     refreshWishlist();
-  }, [user]);
+  }, [refreshWishlist]);
 
   // Save to localStorage when wishlist changes (for guest users)
   useEffect(() => {

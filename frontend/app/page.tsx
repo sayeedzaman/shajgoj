@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import StrikingOfferCard from '@/src/components/offers/StrikingOfferCard';
@@ -531,13 +532,16 @@ export default function Home() {
                   }`}
                 >
                   {offer.imageUrl ? (
-                    <img
+                    <Image
                       src={offer.imageUrl}
                       alt={offer.name}
-                      className="w-full h-full object-cover"
+                      fill
+                      sizes="100vw"
+                      className="object-cover"
+                      priority={index === 0}
                     />
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-r from-red-100 via-pink-100 to-purple-100 flex items-center justify-center">
+                    <div className="w-full h-full bg-linear-to-r from-red-100 via-pink-100 to-purple-100 flex items-center justify-center">
                       <div className="text-center px-4">
                         <h2 className="text-2xl md:text-4xl font-bold text-gray-800 mb-2">
                           {offer.name}

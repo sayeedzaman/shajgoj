@@ -361,7 +361,7 @@ export default function AdminDashboard() {
 
       {/* Low Stock Alert Banner */}
       {stats && stats.overview.lowStock > 0 && (
-        <section className="bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-xl p-6 shadow-sm">
+        <section className="bg-linear-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-xl p-6 shadow-sm">
           <div className="flex items-start gap-4">
             <div className="p-3 bg-orange-100 rounded-xl shadow-sm">
               <AlertTriangle className="w-7 h-7 text-orange-600" />

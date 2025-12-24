@@ -1,12 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { productsAPI, categoriesAPI, brandsAPI } from '@/src/lib/api';
 import { Product, Category, Brand } from '@/src/types/index';
 import ProductCard from '@/src/components/products/ProductCard';
-import ErrorState from '@/src/components/common/ErrorState';
 import EmptyState from '@/src/components/common/EmptyState';
-import { ChevronDown, Filter, X, SlidersHorizontal } from 'lucide-react';
+import { Filter, SlidersHorizontal } from 'lucide-react';
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -26,16 +25,7 @@ export default function ProductsPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(24);
 
-  useEffect(() => {
-    fetchCategories();
-    fetchBrands();
-  }, []);
-
-  useEffect(() => {
-    fetchProducts();
-  }, [selectedCategory, selectedBrand, sortBy, sortOrder, currentPage, priceRange, itemsPerPage]);
-
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -58,7 +48,16 @@ export default function ProductsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedCategory, selectedBrand, sortBy, sortOrder, currentPage, priceRange, itemsPerPage]);
+
+  useEffect(() => {
+    fetchCategories();
+    fetchBrands();
+  }, []);
+
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
 
   const fetchCategories = async () => {
     try {
@@ -110,7 +109,7 @@ export default function ProductsPage() {
           <aside
             className={`${
               showFilters ? 'block' : 'hidden'
-            } lg:block lg:w-64 flex-shrink-0`}
+            } lg:block lg:w-64 shrink-0`}
           >
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sticky top-20">
               <div className="flex items-center justify-between mb-6">
