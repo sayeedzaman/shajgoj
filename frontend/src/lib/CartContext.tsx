@@ -26,7 +26,7 @@ interface LocalStorageCartItem {
   quantity: number;
 }
 
-const CART_STORAGE_KEY = 'shajgoj_guest_cart';
+const CART_STORAGE_KEY = 'khalis_beauty_guest_cart';
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 

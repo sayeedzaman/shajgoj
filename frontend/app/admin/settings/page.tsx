@@ -9,8 +9,8 @@ export default function SettingsPage() {
   const [successMessage, setSuccessMessage] = useState('');
 
   const [settings, setSettings] = useState({
-    storeName: 'Shajgoj Beauty Store',
-    storeEmail: 'admin@shajgoj.com',
+    storeName: 'Khali\'s Beauty Store',
+    storeEmail: 'admin@khalisbeauty.com',
     storePhone: '+880 1712-345678',
     storeAddress: 'Dhaka, Bangladesh',
     currency: 'BDT',

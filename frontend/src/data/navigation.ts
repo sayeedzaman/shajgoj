@@ -294,7 +294,7 @@ export const footerLinks = {
   ],
   company: [
     { name: 'Our Story', href: '/about' },
-    { name: 'Shajgoj Magazine', href: '/magazine' },
+    { name: 'Khali\'s Beauty Magazine', href: '/magazine' },
     { name: 'Join Our Team', href: '/careers' },
   ],
 };

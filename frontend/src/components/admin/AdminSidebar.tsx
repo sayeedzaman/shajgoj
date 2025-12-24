@@ -69,10 +69,10 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
           <div className="flex items-center justify-between p-6 border-b border-gray-200">
             <Link href="/admin" className="flex items-center gap-2">
               <div className="w-8 h-8 bg-gradient-to-br from-rose-500 to-pink-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">S</span>
+                <span className="text-white font-bold text-lg">K</span>
               </div>
               <div>
-                <h1 className="text-lg font-bold text-gray-900">Shajgoj</h1>
+                <h1 className="text-lg font-bold text-gray-900">Khali's Beauty</h1>
                 <p className="text-xs text-gray-500">Admin Panel</p>
               </div>
             </Link>

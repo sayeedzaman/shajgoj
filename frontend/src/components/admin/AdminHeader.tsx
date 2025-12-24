@@ -2,8 +2,9 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Search, Bell, Menu, User, Settings, LogOut, Home } from 'lucide-react';
+import { Search, Bell, Menu, User, Settings, LogOut, Home, X, Package, ShoppingCart, Users, AlertCircle } from 'lucide-react';
 import { useAuth } from '@/src/lib/AuthContext';
+import { useNotifications } from '@/src/lib/NotificationContext';
 
 interface AdminHeaderProps {
   onMenuClick: () => void;
@@ -11,20 +12,50 @@ interface AdminHeaderProps {
 
 export default function AdminHeader({ onMenuClick }: AdminHeaderProps) {
   const { user, logout } = useAuth();
+  const { notifications, unreadCount, loading, markAsRead, markAllAsRead, clearNotification } = useNotifications();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-
-  const notifications = [
-    { id: 1, message: 'New order #12345 received', time: '5 min ago', unread: true },
-    { id: 2, message: 'Low stock alert: Product ABC', time: '1 hour ago', unread: true },
-    { id: 3, message: 'New customer registered', time: '2 hours ago', unread: false },
-  ];
-
-  const unreadCount = notifications.filter((n) => n.unread).length;
 
   const handleLogout = () => {
     logout();
     window.location.href = '/login';
+  };
+
+  const getNotificationIcon = (type: string) => {
+    switch (type) {
+      case 'order':
+        return <ShoppingCart className="w-4 h-4 text-blue-600" />;
+      case 'stock':
+        return <Package className="w-4 h-4 text-orange-600" />;
+      case 'customer':
+        return <Users className="w-4 h-4 text-green-600" />;
+      case 'system':
+        return <AlertCircle className="w-4 h-4 text-purple-600" />;
+      default:
+        return <Bell className="w-4 h-4 text-gray-600" />;
+    }
+  };
+
+  const getTimeAgo = (timestamp: Date) => {
+    const now = new Date();
+    const diffMs = now.getTime() - new Date(timestamp).getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    if (diffMins < 1) return 'Just now';
+    if (diffMins < 60) return `${diffMins} min${diffMins > 1 ? 's' : ''} ago`;
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+    return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+  };
+
+  const handleNotificationClick = (notification: any) => {
+    if (!notification.read) {
+      markAsRead(notification.id);
+    }
+    if (notification.link) {
+      window.location.href = notification.link;
+    }
   };
 
   return (
@@ -89,27 +120,97 @@ export default function AdminHeader({ onMenuClick }: AdminHeaderProps) {
 
             {/* Notifications Dropdown */}
             {showNotifications && (
-              <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                <div className="px-4 py-2 border-b border-gray-100">
-                  <h3 className="font-semibold text-gray-900">Notifications</h3>
+              <div className="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                  <div>
+                    <h3 className="font-semibold text-gray-900">Notifications</h3>
+                    {unreadCount > 0 && (
+                      <p className="text-xs text-gray-500">{unreadCount} unread</p>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    {unreadCount > 0 && (
+                      <button
+                        onClick={markAllAsRead}
+                        className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                      >
+                        Mark all read
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setShowNotifications(false)}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
                 <div className="max-h-96 overflow-y-auto">
-                  {notifications.map((notification) => (
-                    <div
-                      key={notification.id}
-                      className={`px-4 py-3 hover:bg-gray-50 cursor-pointer ${
-                        notification.unread ? 'bg-blue-50' : ''
-                      }`}
-                    >
-                      <p className="text-sm text-gray-900">{notification.message}</p>
-                      <p className="text-xs text-gray-500 mt-1">{notification.time}</p>
+                  {loading ? (
+                    // Loading skeleton
+                    <div className="space-y-0">
+                      {[1, 2, 3].map((i) => (
+                        <div key={i} className="px-4 py-3 border-b border-gray-100 animate-pulse">
+                          <div className="flex items-start gap-3">
+                            <div className="w-4 h-4 bg-gray-200 rounded mt-0.5" />
+                            <div className="flex-1 space-y-2">
+                              <div className="h-4 bg-gray-200 rounded w-3/4" />
+                              <div className="h-3 bg-gray-100 rounded w-full" />
+                              <div className="h-3 bg-gray-100 rounded w-1/4" />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-                <div className="px-4 py-2 border-t border-gray-100">
-                  <button className="text-sm text-rose-600 hover:text-rose-700 font-medium">
-                    View all notifications
-                  </button>
+                  ) : notifications.length === 0 ? (
+                    <div className="px-4 py-8 text-center">
+                      <Bell className="w-12 h-12 text-gray-300 mx-auto mb-2" />
+                      <p className="text-sm text-gray-500">No notifications</p>
+                    </div>
+                  ) : (
+                    notifications.map((notification) => (
+                      <div
+                        key={notification.id}
+                        onClick={() => handleNotificationClick(notification)}
+                        className={`px-4 py-3 hover:bg-gray-50 cursor-pointer transition-colors border-b border-gray-100 ${
+                          !notification.read ? 'bg-blue-50/50' : ''
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="mt-0.5">
+                            {getNotificationIcon(notification.type)}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-2">
+                              <p className="text-sm font-medium text-gray-900">
+                                {notification.title}
+                              </p>
+                              {!notification.read && (
+                                <span className="w-2 h-2 bg-blue-600 rounded-full mt-1.5 shrink-0" />
+                              )}
+                            </div>
+                            <p className="text-sm text-gray-600 mt-0.5">
+                              {notification.message}
+                            </p>
+                            <div className="flex items-center justify-between mt-1">
+                              <p className="text-xs text-gray-500">
+                                {getTimeAgo(notification.timestamp)}
+                              </p>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  clearNotification(notification.id);
+                                }}
+                                className="text-xs text-gray-400 hover:text-red-600 transition-colors"
+                              >
+                                Dismiss
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             )}

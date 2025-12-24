@@ -57,7 +57,7 @@ export default function Navbar() {
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
             <Link href="/" className="flex items-center">
-              <span className="text-3xl font-extrabold tracking-[0.3em] font-[Oswald]">SHAJGOJ</span>
+              <span className="text-3xl font-extrabold tracking-[0.3em] font-[Oswald]">KHALI'S BEAUTY</span>
             </Link>
 
             {/* Search Bar - Desktop */}

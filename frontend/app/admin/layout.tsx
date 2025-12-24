@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/src/lib/AuthContext';
+import { NotificationProvider } from '@/src/lib/NotificationContext';
 import AdminSidebar from '@/src/components/admin/AdminSidebar';
 import AdminHeader from '@/src/components/admin/AdminHeader';
 
@@ -33,22 +34,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Sidebar - Fixed on left side */}
-      <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+    <NotificationProvider>
+      <div className="min-h-screen bg-gray-50">
+        {/* Sidebar - Fixed on left side */}
+        <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      {/* Main content wrapper - takes remaining space */}
-      <div className="lg:pl-64">
-        {/* Header - Fixed at top */}
-        <div className="sticky top-0 z-20 bg-white border-b border-gray-200">
-          <AdminHeader onMenuClick={() => setSidebarOpen(true)} />
+        {/* Main content wrapper - takes remaining space */}
+        <div className="lg:pl-64">
+          {/* Header - Fixed at top */}
+          <div className="sticky top-0 z-20 bg-white border-b border-gray-200">
+            <AdminHeader onMenuClick={() => setSidebarOpen(true)} />
+          </div>
+
+          {/* Main content - scrollable */}
+          <main className="min-h-screen p-4 lg:p-6">
+            {children}
+          </main>
         </div>
-
-        {/* Main content - scrollable */}
-        <main className="min-h-screen p-4 lg:p-6">
-          {children}
-        </main>
       </div>
-    </div>
+    </NotificationProvider>
   );
 }

@@ -158,7 +158,7 @@ export default function Home() {
     return [
       {
         id: 'dummy-hero-1',
-        name: 'Welcome to Shajgoj',
+        name: 'Welcome to Khali\'s Beauty',
         code: 'WELCOME',
         description: 'Your one-stop shop for beauty and wellness products',
         linkType: 'url',
