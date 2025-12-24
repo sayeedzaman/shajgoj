@@ -18,7 +18,7 @@ export const getDashboardAnalytics = async (req: AuthRequest, res: Response): Pr
     const orders = await prisma.order.findMany({
       where: {
         createdAt: { gte: startDate },
-        status: { not: 'CANCELLED' },
+        status: { in: ['DELIVERED', 'SHIPPED'] },
       },
       select: {
         total: true,
@@ -45,7 +45,7 @@ export const getDashboardAnalytics = async (req: AuthRequest, res: Response): Pr
     const prevOrders = await prisma.order.findMany({
       where: {
         createdAt: { gte: prevStartDate, lt: startDate },
-        status: { not: 'CANCELLED' },
+        status: { in: ['DELIVERED', 'SHIPPED'] },
       },
     });
 
@@ -121,7 +121,7 @@ export const getRevenueTrends = async (req: AuthRequest, res: Response): Promise
     const orders = await prisma.order.findMany({
       where: {
         createdAt: { gte: startDate },
-        status: { not: 'CANCELLED' },
+        status: { in: ['DELIVERED', 'SHIPPED'] },
       },
       select: {
         total: true,
@@ -217,7 +217,7 @@ export const getTopProducts = async (req: AuthRequest, res: Response): Promise<a
       where: {
         Order: {
           createdAt: { gte: startDate },
-          status: { not: 'CANCELLED' },
+          status: { in: ['DELIVERED', 'SHIPPED'] },
         },
       },
       select: {
@@ -284,7 +284,7 @@ export const getSalesByCategory = async (req: AuthRequest, res: Response): Promi
       where: {
         Order: {
           createdAt: { gte: startDate },
-          status: { not: 'CANCELLED' },
+          status: { in: ['DELIVERED', 'SHIPPED'] },
         },
       },
       select: {
@@ -400,7 +400,7 @@ export const getCustomerGrowth = async (req: AuthRequest, res: Response): Promis
       },
       where: {
         createdAt: { gte: startDate },
-        status: { not: 'CANCELLED' },
+        status: { in: ['DELIVERED', 'SHIPPED'] },
       },
       having: {
         id: {

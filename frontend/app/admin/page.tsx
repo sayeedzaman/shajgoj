@@ -176,7 +176,7 @@ export default function AdminDashboard() {
           value={`৳${(analytics?.totalRevenue.value || 0).toLocaleString('en-BD', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
           icon={DollarSign}
           iconColor="bg-green-500"
-          subtitle="This month"
+          subtitle="Last 30 days"
           trend={{
             value: analytics?.totalRevenue.change || 0,
             isPositive: analytics?.totalRevenue.isPositive ?? true
