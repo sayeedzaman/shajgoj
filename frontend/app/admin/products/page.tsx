@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Package, Plus, Search, Edit, Trash2, Filter, ChevronDown, X, Upload, Image as ImageIcon } from 'lucide-react';
 import { adminAPI, type CreateProductRequest } from '@/src/lib/adminApi';
 import { useAuth } from '@/src/lib/AuthContext';
@@ -40,16 +40,7 @@ export default function ProductManagementPage() {
   const [uploadingImages, setUploadingImages] = useState(false);
   const { user, loading: authLoading } = useAuth();
 
-  useEffect(() => {
-    if (!authLoading && user?.role === 'ADMIN') {
-      fetchProducts();
-    }
-    // Public endpoints; fine to call regardless
-    fetchCategories();
-    fetchBrands();
-  }, [authLoading, user, currentPage, searchQuery, categoryFilter, brandFilter]);
-
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     if (authLoading || !user || user.role !== 'ADMIN') {
       // Wait until auth is ready and user is admin
       return;
@@ -72,7 +63,16 @@ export default function ProductManagementPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [authLoading, user, currentPage, searchQuery, categoryFilter, brandFilter]);
+
+  useEffect(() => {
+    if (!authLoading && user?.role === 'ADMIN') {
+      fetchProducts();
+    }
+    // Public endpoints; fine to call regardless
+    fetchCategories();
+    fetchBrands();
+  }, [authLoading, user, currentPage, searchQuery, categoryFilter, brandFilter, fetchProducts]);
 
   const fetchCategories = async () => {
     try {
@@ -460,11 +460,12 @@ export default function ProductManagementPage() {
                     <tr key={product.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                          <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden shrink-0">
                             {product.images && product.images[0] ? (
                               <img
                                 src={product.images[0]}
                                 alt={product.name}
+                                loading="lazy"
                                 className="w-full h-full object-cover"
                               />
                             ) : (

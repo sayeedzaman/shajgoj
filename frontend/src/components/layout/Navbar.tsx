@@ -78,7 +78,7 @@ export default function Navbar() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onFocus={() => setIsSearchFocused(true)}
                   placeholder="Search for products..."
-                  className="w-full px-4 py-2 pl-10 border-2 border-red-500 rounded-full focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-red-600 relative z-50 bg-white transition-all"
+                  className="w-full px-4 py-2 pl-10 border-2 border-red-500 rounded-full focus:outline-none focus:border-green-500 relative z-50 bg-white transition-all"
                 />
                 <button type="submit" aria-label="Search" className="absolute left-3 top-2.5 z-50">
                   <Search className="h-5 w-5 text-gray-400" />
@@ -218,7 +218,7 @@ export default function Navbar() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setIsSearchFocused(true)}
                 placeholder="Search for products..."
-                className="w-full px-4 py-2 pl-10 border-2 border-red-500 rounded-full focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-red-600 relative z-50 bg-white transition-all"
+                className="w-full px-4 py-2 pl-10 border-2 border-red-500 rounded-full focus:outline-none focus:border-green-500 relative z-50 bg-white transition-all"
               />
               <button type="submit" aria-label="Search" className="absolute left-3 top-2.5 z-50">
                 <Search className="h-5 w-5 text-gray-400" />

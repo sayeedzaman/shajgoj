@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { Cart, CartItem, Product } from '@/src/types/index';
 import { cartAPI, productsAPI } from '@/src/lib/api';
 import { useAuth } from './AuthContext';
+import { useToast } from './ToastContext';
 
 interface CartContextType {
   cart: Cart | null;
@@ -31,6 +32,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
+  const { showToast } = useToast();
   const [cart, setCart] = useState<Cart | null>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -174,15 +176,23 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const closeCart = () => setIsCartOpen(false);
 
   const addToCart = async (productId: string, quantity: number = 1) => {
-    try {
-      setIsLoading(true);
+    // ⚡ INSTANT FEEDBACK - Open cart drawer immediately
+    openCart();
 
+    try {
       if (user) {
         // Authenticated user - add to server cart
+        // Show loading in cart while adding
+        setIsLoading(true);
         const updatedCart = await cartAPI.addItem({ productId, quantity });
         setCart(updatedCart);
+        setIsLoading(false);
+        showToast('Added to cart!', 'success');
       } else {
         // Guest user - add to localStorage cart
+        // Fetch product data in background while showing optimistic update
+        setIsLoading(true);
+
         const product = await productsAPI.getById(productId);
         const price = product.salePrice || product.price;
 
@@ -233,27 +243,48 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
         setCart(updatedCart);
         saveGuestCart(updatedItems);
+        setIsLoading(false);
+        showToast('Added to cart!', 'success');
       }
-
-      openCart();
     } catch (error) {
       console.error('Error adding to cart:', error);
-      alert('Failed to add item to cart. Please try again.');
-    } finally {
       setIsLoading(false);
+      showToast('Failed to add to cart', 'error');
     }
   };
 
   const updateCartItem = async (itemId: string, quantity: number) => {
-    try {
-      setIsLoading(true);
+    // Store previous state for potential rollback
+    const previousCart = cart;
 
+    try {
       if (user) {
-        // Authenticated user - update server cart
+        // ⚡ OPTIMISTIC UPDATE - Update UI immediately for authenticated users
+        if (cart) {
+          const optimisticItems = cart.items.map(item =>
+            item.id === itemId ? { ...item, quantity } : item
+          );
+          const itemCount = optimisticItems.reduce((sum, item) => sum + item.quantity, 0);
+          const subtotal = optimisticItems.reduce((sum, item) => {
+            const price = item.product.salePrice || item.product.price;
+            return sum + price * item.quantity;
+          }, 0);
+
+          setCart({
+            ...cart,
+            items: optimisticItems,
+            itemCount,
+            subtotal,
+          });
+        }
+
+        // Sync with server in background
+        setIsLoading(true);
         const updatedCart = await cartAPI.updateItem(itemId, { quantity });
         setCart(updatedCart);
+        setIsLoading(false);
       } else {
-        // Guest user - update localStorage cart
+        // ⚡ OPTIMISTIC UPDATE - Update UI immediately for guest users
         const currentItems = cart?.items || [];
         const updatedItems = currentItems.map(item =>
           item.id === itemId ? { ...item, quantity } : item
@@ -277,24 +308,51 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         saveGuestCart(updatedItems);
       }
     } catch (error) {
+      // Rollback on error
+      setCart(previousCart);
       console.error('Error updating cart item:', error);
       alert('Failed to update cart. Please try again.');
-      await refreshCart();
     } finally {
       setIsLoading(false);
     }
   };
 
   const removeFromCart = async (itemId: string) => {
-    try {
-      setIsLoading(true);
+    // Store item for potential rollback
+    const removedItem = cart?.items.find(item => item.id === itemId);
+    const previousCart = cart;
 
+    try {
       if (user) {
-        // Authenticated user - remove from server cart
+        // ⚡ OPTIMISTIC UPDATE - Remove immediately for authenticated users
+        if (cart) {
+          const optimisticItems = cart.items.filter(item => item.id !== itemId);
+
+          if (optimisticItems.length === 0) {
+            setCart(null);
+          } else {
+            const itemCount = optimisticItems.reduce((sum, item) => sum + item.quantity, 0);
+            const subtotal = optimisticItems.reduce((sum, item) => {
+              const price = item.product.salePrice || item.product.price;
+              return sum + price * item.quantity;
+            }, 0);
+
+            setCart({
+              ...cart,
+              items: optimisticItems,
+              itemCount,
+              subtotal,
+            });
+          }
+        }
+
+        // Sync with server in background
+        setIsLoading(true);
         const updatedCart = await cartAPI.removeItem(itemId);
         setCart(updatedCart);
+        setIsLoading(false);
       } else {
-        // Guest user - remove from localStorage cart
+        // ⚡ OPTIMISTIC UPDATE - Remove immediately for guest users
         const currentItems = cart?.items || [];
         const updatedItems = currentItems.filter(item => item.id !== itemId);
 
@@ -321,9 +379,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         }
       }
     } catch (error) {
+      // Rollback on error
+      if (removedItem && previousCart) {
+        setCart(previousCart);
+      }
       console.error('Error removing from cart:', error);
       alert('Failed to remove item. Please try again.');
-      await refreshCart();
     } finally {
       setIsLoading(false);
     }

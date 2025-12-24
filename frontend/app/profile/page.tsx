@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { User, Mail, Phone, Calendar, Edit2, Save, X, ChevronLeft, ShoppingBag } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -31,11 +31,7 @@ export default function ProfilePage() {
     phone: '',
   });
 
-  useEffect(() => {
-    fetchProfile();
-  }, []);
-
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
@@ -72,7 +68,11 @@ export default function ProfilePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [router]);
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
 
   const handleEdit = () => {
     setEditing(true);
@@ -112,7 +112,7 @@ export default function ProfilePage() {
       setEditing(false);
       setSuccessMessage('Profile updated successfully!');
       setTimeout(() => setSuccessMessage(''), 3000);
-    } catch (error) {
+    } catch {
       setErrorMessage('Failed to update profile. Please try again.');
       setTimeout(() => setErrorMessage(''), 3000);
     } finally {
@@ -174,7 +174,7 @@ export default function ProfilePage() {
             {/* Profile Card */}
             <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
               {/* Header */}
-              <div className="bg-gradient-to-r from-red-600 to-pink-600 px-6 py-8">
+              <div className="bg-linear-to-r from-red-600 to-pink-600 px-6 py-8">
                 <div className="flex items-center gap-4">
                   <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center">
                     <span className="text-3xl font-bold text-red-600">

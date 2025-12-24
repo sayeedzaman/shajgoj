@@ -82,11 +82,11 @@
   }
   
   .gradient-text {
-    @apply bg-gradient-to-r from-red-500 to-purple-600 bg-clip-text text-transparent;
+    @apply bg-linear-to-r from-red-500 to-purple-600 bg-clip-text text-transparent;
   }
-  
+
   .gradient-bg {
-    @apply bg-gradient-to-br from-red-50 via-purple-50 to-blue-50;
+    @apply bg-linear-to-br from-red-50 via-purple-50 to-blue-50;
   }
   
   .card-shadow {

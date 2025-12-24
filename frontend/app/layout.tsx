@@ -5,6 +5,7 @@ import './globals.css';
 import { AuthProvider } from '@/src/lib/AuthContext';
 import { CartProvider, useCart } from '@/src/lib/CartContext';
 import { WishlistProvider } from '@/src/lib/WishlistContext';
+import { ToastProvider } from '@/src/lib/ToastContext';
 import Navbar from '@/src/components/layout/Navbar';
 import CartSidebar from '@/src/components/cart/CartSidebar';
 import { usePathname } from 'next/navigation';
@@ -92,11 +93,13 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <AuthProvider>
-          <WishlistProvider>
-            <CartProvider>
-              <LayoutContent>{children}</LayoutContent>
-            </CartProvider>
-          </WishlistProvider>
+          <ToastProvider>
+            <WishlistProvider>
+              <CartProvider>
+                <LayoutContent>{children}</LayoutContent>
+              </CartProvider>
+            </WishlistProvider>
+          </ToastProvider>
         </AuthProvider>
       </body>
     </html>

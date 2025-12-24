@@ -74,7 +74,7 @@ export default function ProductCard({
         {/* Wishlist Button */}
         <button
           onClick={handleWishlistToggle}
-          className={`absolute top-2 ${hasDiscount ? 'left-16' : 'left-2'} ${!product.featured ? 'right-2' : ''} bg-white/90 hover:bg-white p-2 rounded-full shadow-md transition-all z-10 group/wishlist`}
+          className={`absolute top-2 ${product.featured ? (hasDiscount ? 'left-16' : 'left-2') : 'right-2'} w-8 h-8 bg-white rounded-full shadow-md hover:shadow-lg transition-all z-10 group/wishlist flex items-center justify-center`}
           aria-label="Add to wishlist"
         >
           <Heart

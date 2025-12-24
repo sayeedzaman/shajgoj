@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { register, login, getProfile, getAllUsers, getUserById, updateUser, deleteUser, updateUserRole } from '../controllers/auth.controller.js';
+import { register, login, getProfile, updateProfile, getAllUsers, getUserById, updateUser, deleteUser, updateUserRole } from '../controllers/auth.controller.js';
 import { authenticate, authorize } from '../middleware/auth.middleware.js';
 
 const router = Router();
@@ -10,6 +10,7 @@ router.post('/login', login);
 
 // Protected routes
 router.get('/profile', authenticate, getProfile);
+router.put('/profile', authenticate, updateProfile);
 
 // Admin routes
 router.get('/admin/users', authenticate, authorize('ADMIN'), getAllUsers);
