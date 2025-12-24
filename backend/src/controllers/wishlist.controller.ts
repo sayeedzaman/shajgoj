@@ -1,10 +1,11 @@
-import type { Request, Response } from 'express';
+import type { Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import type { AuthRequest } from '../middleware/auth.middleware.js';
 
 const prisma = new PrismaClient();
 
 // Get user's wishlist
-export const getWishlist = async (req: Request, res: Response) => {
+export const getWishlist = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.userId;
 
@@ -98,7 +99,7 @@ export const getWishlist = async (req: Request, res: Response) => {
 };
 
 // Add item to wishlist
-export const addToWishlist = async (req: Request, res: Response) => {
+export const addToWishlist = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.userId;
     const { productId } = req.body;
@@ -201,12 +202,17 @@ export const addToWishlist = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error('Add to wishlist error:', error);
-    res.status(500).json({ error: 'Failed to add item to wishlist' });
+    console.error('Error details:', error instanceof Error ? error.message : error);
+    console.error('Stack trace:', error instanceof Error ? error.stack : 'No stack trace');
+    res.status(500).json({
+      error: 'Failed to add item to wishlist',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 };
 
 // Remove item from wishlist
-export const removeFromWishlist = async (req: Request, res: Response) => {
+export const removeFromWishlist = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.userId;
     const { productId } = req.params;
@@ -289,7 +295,7 @@ export const removeFromWishlist = async (req: Request, res: Response) => {
 };
 
 // Clear wishlist
-export const clearWishlist = async (req: Request, res: Response) => {
+export const clearWishlist = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user?.userId;
 
