@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/src/lib/AuthContext';
 import { useCart } from '@/src/lib/CartContext';
+import { useWishlist } from '@/src/lib/WishlistContext';
 import { ShoppingCart, User, Search, Menu, Heart, LogOut } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import type { Category } from '@/src/types';
@@ -11,6 +12,7 @@ import type { Category } from '@/src/types';
 export default function Navbar() {
   const { user, logout } = useAuth();
   const { cartCount, openCart } = useCart();
+  const { wishlistCount } = useWishlist();
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -89,10 +91,15 @@ export default function Navbar() {
               {/* Wishlist */}
               <Link
                 href="/wishlist"
-                className="hidden sm:flex items-center space-x-1 text-gray-700 hover:text-red-500 transition-colors"
+                className="hidden sm:flex items-center space-x-1 text-gray-700 hover:text-red-500 transition-colors relative"
               >
                 <Heart className="h-6 w-6" />
                 <span className="text-sm">Wishlist</span>
+                {wishlistCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                    {wishlistCount > 9 ? '9+' : wishlistCount}
+                  </span>
+                )}
               </Link>
 
               {/* Cart */}

@@ -5,6 +5,7 @@ import { Product } from '@/src/types/index';
 import { Heart, ShoppingCart, Star } from 'lucide-react';
 import { useState } from 'react';
 import { useCart } from '@/src/lib/CartContext';
+import { useWishlist } from '@/src/lib/WishlistContext';
 
 interface ProductCardProps {
   product: Product;
@@ -16,7 +17,7 @@ export default function ProductCard({
   showAddToCart = true,
 }: ProductCardProps) {
   const { addToCart, isLoading } = useCart();
-  const [isWishlisted, setIsWishlisted] = useState(false);
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const displayPrice = product.salePrice || product.price;
   const hasDiscount = product.salePrice && product.salePrice < product.price;
@@ -28,9 +29,15 @@ export default function ProductCard({
   const rating = 4.5;
   const reviewCount = 128;
 
+  const isWishlisted = isInWishlist(product.id);
+
   const handleWishlistToggle = (e: React.MouseEvent) => {
     e.preventDefault();
-    setIsWishlisted(!isWishlisted);
+    if (isWishlisted) {
+      removeFromWishlist(product.id);
+    } else {
+      addToWishlist(product);
+    }
   };
 
   const handleAddToCart = async (e: React.MouseEvent) => {

@@ -4,6 +4,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/src/lib/AuthContext';
 import { CartProvider, useCart } from '@/src/lib/CartContext';
+import { WishlistProvider } from '@/src/lib/WishlistContext';
 import Navbar from '@/src/components/layout/Navbar';
 import CartSidebar from '@/src/components/cart/CartSidebar';
 import { usePathname } from 'next/navigation';
@@ -91,9 +92,11 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <AuthProvider>
-          <CartProvider>
-            <LayoutContent>{children}</LayoutContent>
-          </CartProvider>
+          <WishlistProvider>
+            <CartProvider>
+              <LayoutContent>{children}</LayoutContent>
+            </CartProvider>
+          </WishlistProvider>
         </AuthProvider>
       </body>
     </html>

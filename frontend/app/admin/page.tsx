@@ -30,6 +30,12 @@ interface DashboardAnalytics {
   avgOrderValue: { value: number; change: number; isPositive: boolean };
 }
 
+interface RevenueDataItem {
+  date: string;
+  revenue: number;
+  orders: number;
+}
+
 export default function AdminDashboard() {
   // State Management
   const [stats, setStats] = useState<InventoryStats | null>(null);
@@ -79,10 +85,10 @@ export default function AdminDashboard() {
       }
 
       if (revenueRes.ok) {
-        const revenueDataArray = await revenueRes.json();
+        const revenueDataArray: RevenueDataItem[] = await revenueRes.json();
         // Group by month for the chart
         const monthlyRevenue: Record<string, { revenue: number; orders: number }> = {};
-        revenueDataArray.forEach((item: any) => {
+        revenueDataArray.forEach((item: RevenueDataItem) => {
           const date = new Date(item.date);
           const month = date.toLocaleDateString('en-US', { month: 'short' });
           if (!monthlyRevenue[month]) {
