@@ -38,6 +38,9 @@ app.use(cors({
       callback(null, true);
       return;
     }
+
+    // Log rejected origins for debugging
+    console.warn(`CORS blocked origin: ${origin}`);
     callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
