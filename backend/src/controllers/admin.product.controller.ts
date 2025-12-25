@@ -1,7 +1,5 @@
 import type{ Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '../lib/prisma.js';
 
 // Helper function to resolve category ID from name or ID
 async function resolveCategoryId(categoryIdentifier: string): Promise<string | null> {

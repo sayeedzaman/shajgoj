@@ -24,12 +24,13 @@
     "strict": true,
     "forceConsistentCasingInFileNames": true,  // Add this
     "jsx": "react-jsx",
-    "verbatimModuleSyntax": true,
+    "verbatimModuleSyntax": false,
     "isolatedModules": true,
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
     "skipLibCheck": true,
     "esModuleInterop": true,      // Helpful for Node.js
+    "allowSyntheticDefaultImports": true,  // Allow default imports from modules with no default export
     "resolveJsonModule": true     // If you import JSON files
   },
   "include": ["src/**/*"],        // Include all files in src folder

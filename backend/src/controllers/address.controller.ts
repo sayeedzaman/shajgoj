@@ -1,8 +1,6 @@
 import type { Response } from 'express';
-import { PrismaClient } from '@prisma/client';
 import type { AuthRequest } from '../middleware/auth.middleware.js';
-
-const prisma = new PrismaClient();
+import { prisma } from '../lib/prisma.js';
 
 // Get all addresses for authenticated user
 export const getUserAddresses = async (req: AuthRequest, res: Response): Promise<any> => {
