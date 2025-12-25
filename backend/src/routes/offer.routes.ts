@@ -9,7 +9,7 @@ import {
   applyOfferCode,
   incrementOfferUsage,
 } from '../controllers/offer.controller.js';
-import { authenticate, authorize } from '../middleware/auth.middleware.js';
+import { authenticate, authorize } from '../middleware/auth.js';
 
 const router = express.Router();
 
