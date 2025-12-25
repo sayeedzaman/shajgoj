@@ -248,6 +248,9 @@ export const getProductByIdAdmin = async (req: Request, res: Response): Promise<
 // Create new product - ACCEPTS BOTH ID AND NAME
 export const createProduct = async (req: Request, res: Response): Promise<void> => {
   try {
+    console.log('📝 Create product request received');
+    console.log('Request body:', JSON.stringify(req.body, null, 2));
+
     const {
       name,
       slug,
@@ -264,6 +267,10 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
       brandName,     // NEW: Accept brand name
       brandSlug,     // NEW: Accept brand slug
     } = req.body;
+
+    console.log('📸 Images received:', images);
+    console.log('📸 Images type:', typeof images);
+    console.log('📸 Is array?', Array.isArray(images));
 
     // Validate required fields
     if (!name || !slug || !price) {
@@ -359,24 +366,31 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
     }
 
     // Create product
+    const productData = {
+      name,
+      slug,
+      description,
+      price: parseFloat(price),
+      salePrice: salePrice ? parseFloat(salePrice) : null,
+      stock: stock ? parseInt(stock) : 0,
+      images: images || [],
+      featured: featured === true || featured === 'true',
+      categoryId: finalCategoryId,
+      brandId: finalBrandId,
+    };
+
+    console.log('💾 Creating product with data:', JSON.stringify(productData, null, 2));
+
     const product = await prisma.product.create({
-      data: {
-        name,
-        slug,
-        description,
-        price: parseFloat(price),
-        salePrice: salePrice ? parseFloat(salePrice) : null,
-        stock: stock ? parseInt(stock) : 0,
-        images: images || [],
-        featured: featured === true || featured === 'true',
-        categoryId: finalCategoryId,
-        brandId: finalBrandId,
-      },
+      data: productData,
       include: {
         Category: true,
         Brand: true,
       },
     });
+
+    console.log('✅ Product created successfully');
+    console.log('🖼️ Product images in DB:', product.images);
 
     res.status(201).json({
       message: 'Product created successfully',
@@ -848,21 +862,36 @@ export const getInventoryStats = async (req: Request, res: Response): Promise<vo
 // Upload product images
 export const uploadProductImages = async (req: Request, res: Response): Promise<void> => {
   try {
+    console.log('✅ Upload request received');
+    console.log('Files:', req.files);
+    console.log('Body:', req.body);
+
     const files = req.files as Express.Multer.File[];
 
     if (!files || files.length === 0) {
+      console.log('❌ No files found in request');
       res.status(400).json({ error: 'No images uploaded' });
       return;
     }
 
-    const imageUrls = files.map(file => file.path);
+    console.log('📦 Processing files:', files.length);
+    const imageUrls = files.map((file: any) => {
+      console.log('🔍 Full file object:', JSON.stringify(file, null, 2));
+      console.log('🖼️ File path:', file.path);
+      console.log('🖼️ File url:', file.url);
+      console.log('🖼️ File secure_url:', file.secure_url);
+      // Cloudinary storage provides both path and url
+      return file.path || file.url || file.secure_url;
+    });
 
+    console.log('✅ Upload successful, URLs:', imageUrls);
     res.status(200).json({
       message: 'Images uploaded successfully',
       urls: imageUrls,
     });
   } catch (error) {
-    console.error('Upload product images error:', error);
+    console.error('❌ Upload product images error:', error);
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
     res.status(500).json({ error: 'Failed to upload images' });
   }
 };

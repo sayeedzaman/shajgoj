@@ -2,13 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Upload, X } from 'lucide-react';
-import { adminProductsAPI, adminCategoriesAPI, adminBrandsAPI } from '@/src/lib/adminApi';
+import { ArrowLeft, Upload, X, Loader2 } from 'lucide-react';
+import { adminProductsAPI, adminCategoriesAPI, adminBrandsAPI, uploadAPI } from '@/src/lib/adminApi';
 import type { Category, Brand } from '@/src/types/index';
 
 export default function NewProductPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [uploadingImages, setUploadingImages] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -62,6 +63,37 @@ export default function NewProductPage() {
           .replace(/^-|-$/g, '');
         setFormData((prev) => ({ ...prev, slug }));
       }
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    // Convert FileList to Array and limit to 5 files
+    const fileArray = Array.from(files).slice(0, 5);
+
+    try {
+      setUploadingImages(true);
+      setError(null);
+
+      console.log('Uploading files:', fileArray.length);
+      const result = await uploadAPI.uploadProductImages(fileArray);
+      console.log('Upload result:', result);
+
+      // Add the uploaded URLs to the form data
+      setFormData((prev) => ({
+        ...prev,
+        images: [...prev.images, ...result.urls],
+      }));
+
+      // Reset the file input
+      e.target.value = '';
+    } catch (err) {
+      console.error('Image upload error:', err);
+      setError(err instanceof Error ? err.message : 'Failed to upload images');
+    } finally {
+      setUploadingImages(false);
     }
   };
 
@@ -299,23 +331,58 @@ export default function NewProductPage() {
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Product Images</h2>
 
           <div className="space-y-4">
-            <div className="flex gap-2">
-              <input
-                type="url"
-                value={imageInput}
-                onChange={(e) => setImageInput(e.target.value)}
-                className="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent"
-                placeholder="Enter image URL"
-              />
-              <button
-                type="button"
-                onClick={addImage}
-                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-              >
-                <Upload className="w-5 h-5" />
-              </button>
+            {/* File Upload */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Upload Images (Max 5)
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="file"
+                  accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
+                  multiple
+                  onChange={handleFileUpload}
+                  disabled={uploadingImages}
+                  title="Upload product images"
+                  className="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                />
+                {uploadingImages && (
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Uploading...</span>
+                  </div>
+                )}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                Supported formats: JPG, PNG, WEBP, GIF (Max 5MB each)
+              </p>
             </div>
 
+            {/* Manual URL Input */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Or Enter Image URL
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="url"
+                  value={imageInput}
+                  onChange={(e) => setImageInput(e.target.value)}
+                  className="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                  placeholder="Enter image URL"
+                />
+                <button
+                  type="button"
+                  onClick={addImage}
+                  title="Add image URL"
+                  className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                >
+                  <Upload className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Image Preview */}
             {formData.images.length > 0 && (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {formData.images.map((img, index) => (

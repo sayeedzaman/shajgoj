@@ -1,6 +1,9 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+
+dotenv.config();
+
 import authRoutes from './routes/auth.routes.js';
 import productRoutes from './routes/product.route.js';
 import cartRoutes from './routes/cart.route.js';
@@ -13,8 +16,7 @@ import analyticsRoutes from './routes/analytics.routes.js';
 import wishlistRoutes from './routes/wishlist.routes.js';
 import offerRoutes from './routes/offer.routes.js';
 import settingsRoutes from './routes/settings.routes.js';
-
-dotenv.config();
+import './config/cloudinary.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;

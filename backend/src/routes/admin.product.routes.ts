@@ -60,7 +60,19 @@ router.get('/:id', getProductByIdAdmin);
  * @desc    Upload product images to Cloudinary
  * @access  Admin
  */
-router.post('/upload-images', upload.array('images', 5), uploadProductImages);
+router.post('/upload-images', (req, res, next) => {
+  upload.array('images', 5)(req, res, (err) => {
+    if (err) {
+      console.error('Multer error:', err);
+      console.error('Error details:', JSON.stringify(err, null, 2));
+      return res.status(400).json({
+        error: err.message || 'File upload failed',
+        details: err.toString()
+      });
+    }
+    next();
+  });
+}, uploadProductImages);
 
 /**
  * @route   POST /api/admin/products
