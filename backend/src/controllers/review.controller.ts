@@ -6,20 +6,10 @@ import { prisma } from '../lib/prisma.js';
 export const getProductReviews = async (req: AuthRequest, res: Response) => {
   try {
     const { productId } = req.params;
-    const { page = '1', limit = '10', sortBy = 'recent' } = req.query;
 
-    const pageNum = parseInt(page as string);
-    const limitNum = parseInt(limit as string);
-    const skip = (pageNum - 1) * limitNum;
-
-    // Determine sorting
-    const orderBy = sortBy === 'helpful'
-      ? { rating: 'desc' as const }
-      : { createdAt: 'desc' as const };
-
-    // Get reviews with user info
+    // Get reviews with user info - sorted by rating only (high to low)
     const reviews = await prisma.review.findMany({
-      where: { productId },
+      where: productId ? { productId } : {},
       include: {
         User: {
           select: {
@@ -30,19 +20,19 @@ export const getProductReviews = async (req: AuthRequest, res: Response) => {
           },
         },
       },
-      orderBy,
-      skip,
-      take: limitNum,
+      orderBy: {
+        rating: 'desc',
+      },
     });
 
     // Get total count
     const totalReviews = await prisma.review.count({
-      where: { productId },
+      where: productId ? { productId } : {},
     });
 
     // Calculate average rating
     const avgRating = await prisma.review.aggregate({
-      where: { productId },
+      where: productId ? { productId } : {},
       _avg: {
         rating: true,
       },
@@ -51,7 +41,7 @@ export const getProductReviews = async (req: AuthRequest, res: Response) => {
     // Get rating distribution
     const ratingDistribution = await prisma.review.groupBy({
       by: ['rating'],
-      where: { productId },
+      where: productId ? { productId } : {},
       _count: {
         rating: true,
       },
@@ -66,7 +56,9 @@ export const getProductReviews = async (req: AuthRequest, res: Response) => {
     };
 
     ratingDistribution.forEach((item) => {
-      distribution[item.rating as keyof typeof distribution] = item._count.rating;
+      if (item._count && typeof item._count.rating === 'number') {
+        distribution[item.rating as keyof typeof distribution] = item._count.rating;
+      }
     });
 
     res.json({
@@ -83,14 +75,8 @@ export const getProductReviews = async (req: AuthRequest, res: Response) => {
             : review.User.email.split('@')[0],
         },
       })),
-      pagination: {
-        page: pageNum,
-        limit: limitNum,
-        total: totalReviews,
-        totalPages: Math.ceil(totalReviews / limitNum),
-      },
       stats: {
-        averageRating: avgRating._avg.rating || 0,
+        averageRating: avgRating._avg?.rating || 0,
         totalReviews,
         distribution,
       },
@@ -206,6 +192,10 @@ export const updateReview = async (req: AuthRequest, res: Response) => {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
+    if (!reviewId) {
+      return res.status(400).json({ error: 'Review ID is required' });
+    }
+
     // Check if review exists and belongs to user
     const review = await prisma.review.findUnique({
       where: { id: reviewId },
@@ -241,7 +231,7 @@ export const updateReview = async (req: AuthRequest, res: Response) => {
           },
         },
       },
-    });
+    }) as any;
 
     res.json({
       message: 'Review updated successfully',
@@ -273,6 +263,10 @@ export const deleteReview = async (req: AuthRequest, res: Response) => {
 
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    if (!reviewId) {
+      return res.status(400).json({ error: 'Review ID is required' });
     }
 
     // Check if review exists and belongs to user
@@ -442,6 +436,10 @@ export const getAllReviews = async (req: AuthRequest, res: Response) => {
 export const adminDeleteReview = async (req: AuthRequest, res: Response) => {
   try {
     const { reviewId } = req.params;
+
+    if (!reviewId) {
+      return res.status(400).json({ error: 'Review ID is required' });
+    }
 
     const review = await prisma.review.findUnique({
       where: { id: reviewId },
