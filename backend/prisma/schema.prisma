@@ -106,6 +106,13 @@ model Product {
   Brand        Brand?         @relation(fields: [brandId], references: [id])
   Category     Category       @relation(fields: [categoryId], references: [id])
   Review       Review[]
+
+  @@index([categoryId])
+  @@index([brandId])
+  @@index([featured])
+  @@index([stock])
+  @@index([createdAt])
+  @@index([name])
 }
 
 model Review {
@@ -118,6 +125,9 @@ model Review {
   productId String
   Product   Product  @relation(fields: [productId], references: [id])
   User      User     @relation(fields: [userId], references: [id])
+
+  @@index([productId])
+  @@index([userId])
 }
 
 model User {
@@ -155,6 +165,68 @@ model WishlistItem {
   Product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([wishlistId, productId])
+}
+
+model Offer {
+  id                String   @id @default(uuid())
+  name              String
+  code              String   @unique
+  description       String?
+  imageUrl          String?
+  linkType          String   @default("url") // 'url' | 'product'
+  link              String?
+  productId         String?
+  type              String   // 'hero' | 'deal' | 'brand' | 'limited'
+  discountType      String   // 'PERCENTAGE' | 'FIXED'
+  discountValue     Float
+  minPurchase       Float    @default(0)
+  maxDiscount       Float?
+  startDate         DateTime
+  endDate           DateTime
+  usageLimit        Int      @default(0)
+  usageCount        Int      @default(0)
+  status            String   @default("ACTIVE") // 'ACTIVE' | 'EXPIRED' | 'SCHEDULED'
+  displayOnHomepage Boolean  @default(true)
+  priority          Int      @default(0)
+  backgroundColor   String?
+  textColor         String?
+  badgeColor        String?
+  borderStyle       String?
+  cardStyle         String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([type])
+  @@index([status])
+  @@index([displayOnHomepage])
+  @@index([startDate])
+  @@index([endDate])
+}
+
+model StoreSettings {
+  id                   String   @id @default(uuid())
+  storeName            String   @default("Khali's Beauty Store")
+  storeEmail           String   @default("admin@khalisbeauty.com")
+  storePhone           String   @default("+880 1712-345678")
+  storeAddress         String   @default("Dhaka, Bangladesh")
+  currency             String   @default("BDT")
+  timezone             String   @default("Asia/Dhaka")
+  emailNotifications   Boolean  @default(true)
+  orderNotifications   Boolean  @default(true)
+  stockAlerts          Boolean  @default(true)
+  promotionalEmails    Boolean  @default(false)
+  twoFactorAuth        Boolean  @default(false)
+  loginAlerts          Boolean  @default(true)
+  sessionTimeout       Int      @default(30)
+  freeShippingThreshold Float   @default(500)
+  standardShippingFee  Float    @default(60)
+  expressShippingFee   Float    @default(120)
+  cashOnDelivery       Boolean  @default(true)
+  bkashEnabled         Boolean  @default(false)
+  nagadEnabled         Boolean  @default(false)
+  cardPaymentEnabled   Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 }
 
 enum OrderStatus {

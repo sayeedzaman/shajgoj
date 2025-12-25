@@ -20,7 +20,7 @@ export default function SignupPage() {
       await signup({ email, password, firstName: firstName || undefined, lastName: lastName || undefined, phone: phone || undefined });
       clearError();
       router.push('/');
-    } catch (err) {
+    } catch {
       // error handled in context
     }
   };
