@@ -4,11 +4,11 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = "postgresql://neondb_owner:npg_k7PHToSGpM1U@3.218.140.61:5432/neondb?sslmode=require&sslaccept=accept_invalid_certs&options=project%3Dep-patient-mountain-adxib7yv"
+  url      = env("DATABASE_URL")
 }
 
 model Address {
-  id        String  @id
+  id        String  @id @default(uuid())
   fullName  String
   phone     String
   address   String
@@ -22,17 +22,17 @@ model Address {
 }
 
 model Brand {
-  id        String    @id
+  id        String    @id @default(uuid())
   name      String    @unique
   slug      String    @unique
   logo      String?
   createdAt DateTime  @default(now())
-  updatedAt DateTime
+  updatedAt DateTime @updatedAt
   Product   Product[]
 }
 
 model Cart {
-  id        String     @id
+  id        String     @id @default(uuid())
   createdAt DateTime   @default(now())
   updatedAt DateTime
   userId    String     @unique
@@ -41,7 +41,7 @@ model Cart {
 }
 
 model CartItem {
-  id        String  @id
+  id        String  @id @default(uuid())
   quantity  Int
   cartId    String
   productId String
@@ -50,20 +50,20 @@ model CartItem {
 }
 
 model Category {
-  id          String    @id
+  id          String    @id @default(uuid())
   name        String    @unique
   slug        String    @unique
   description String?
   image       String?
   createdAt   DateTime  @default(now())
-  updatedAt   DateTime
+  updatedAt   DateTime @updatedAt
   image2      String?
   image3      String?
   Product     Product[]
 }
 
 model Offer {
-  id                String   @id
+  id                String   @id @default(uuid())
   name              String
   code              String   @unique
   description       String?
@@ -89,7 +89,7 @@ model Offer {
   borderStyle       String?
   cardStyle         String?
   createdAt         DateTime @default(now())
-  updatedAt         DateTime
+  updatedAt         DateTime @updatedAt
 
   @@index([displayOnHomepage])
   @@index([endDate])
@@ -99,7 +99,7 @@ model Offer {
 }
 
 model Order {
-  id          String      @id
+  id          String      @id @default(uuid())
   orderNumber String      @unique
   status      OrderStatus @default(PENDING)
   total       Float
@@ -113,7 +113,7 @@ model Order {
 }
 
 model OrderItem {
-  id        String  @id
+  id        String  @id @default(uuid())
   quantity  Int
   price     Float
   orderId   String
@@ -151,7 +151,7 @@ model Product {
 }
 
 model Review {
-  id        String   @id
+  id        String   @id @default(uuid())
   rating    Int
   comment   String?
   createdAt DateTime @default(now())
@@ -162,8 +162,8 @@ model Review {
   User      User     @relation(fields: [userId], references: [id])
 }
 
-model StoreSettings {
-  id                    String   @id
+model StoreSettings { 
+  id                    String   @id @default(uuid())
   storeName             String   @default("Khali's Beauty Store")
   storeEmail            String   @default("admin@khalisbeauty.com")
   storePhone            String   @default("+880 1712-345678")
@@ -189,7 +189,7 @@ model StoreSettings {
 }
 
 model User {
-  id        String    @id
+  id        String    @id @default(uuid())
   email     String    @unique
   password  String
   firstName String?
@@ -206,7 +206,7 @@ model User {
 }
 
 model Wishlist {
-  id           String         @id
+  id           String         @id @default(uuid())
   createdAt    DateTime       @default(now())
   updatedAt    DateTime
   userId       String         @unique
@@ -215,7 +215,7 @@ model Wishlist {
 }
 
 model WishlistItem {
-  id         String   @id
+  id         String   @id @default(uuid())
   wishlistId String
   productId  String
   createdAt  DateTime @default(now())

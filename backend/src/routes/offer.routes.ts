@@ -8,8 +8,10 @@ import {
   deleteOffer,
   applyOfferCode,
   incrementOfferUsage,
+  uploadOfferImage,
 } from '../controllers/offer.controller.js';
 import { authenticate, authorize } from '../middleware/auth.middleware.js';
+import { upload } from '../middleware/upload.js';
 
 const router = express.Router();
 
@@ -18,6 +20,13 @@ router.get('/active', getActiveOffers);
 router.post('/apply', applyOfferCode);
 
 // Admin routes
+router.post(
+  '/upload-image',
+  authenticate,
+  authorize(['ADMIN']),
+  upload.single('image'),
+  uploadOfferImage
+);
 router.get('/', authenticate, authorize(['ADMIN']), getAllOffers);
 router.get('/:id', authenticate, authorize(['ADMIN']), getOfferById);
 router.post('/', authenticate, authorize(['ADMIN']), createOffer);

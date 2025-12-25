@@ -3,6 +3,37 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+// Upload offer image (Admin only)
+export const uploadOfferImage = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const file = req.file as any;
+
+    if (!file) {
+      res.status(400).json({ error: 'No image uploaded' });
+      return;
+    }
+
+    // Cloudinary storage stores the URL - prefer secure_url (HTTPS)
+    const imageUrl = file.secure_url || file.path || file.url;
+
+    console.log('Offer image file object:', file);
+    console.log('Offer image uploaded to Cloudinary:', imageUrl);
+
+    if (!imageUrl) {
+      res.status(500).json({ error: 'Failed to get uploaded file URL' });
+      return;
+    }
+
+    res.status(200).json({
+      message: 'Image uploaded successfully',
+      url: imageUrl,
+    });
+  } catch (error) {
+    console.error('Upload offer image error:', error);
+    res.status(500).json({ error: 'Failed to upload image' });
+  }
+};
+
 // Get all active offers for homepage
 export const getActiveOffers = async (req: Request, res: Response): Promise<void> => {
   try {

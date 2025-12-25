@@ -56,7 +56,7 @@ export const getCategoryById = async (req: Request, res: Response): Promise<void
 // Upload category images (Admin only)
 export const uploadCategoryImages = async (req: Request, res: Response): Promise<void> => {
   try {
-    const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+    const files = req.files as { [fieldname: string]: any[] };
 
     if (!files || Object.keys(files).length === 0) {
       res.status(400).json({ error: 'No images uploaded' });
@@ -66,18 +66,18 @@ export const uploadCategoryImages = async (req: Request, res: Response): Promise
     const imageUrls: { [key: string]: string } = {};
 
     if (files.image && files.image[0]) {
-      imageUrls.image = files.image[0].path;
+      imageUrls.image = files.image[0].secure_url || files.image[0].path || files.image[0].url;
     }
     if (files.image2 && files.image2[0]) {
-      imageUrls.image2 = files.image2[0].path;
+      imageUrls.image2 = files.image2[0].secure_url || files.image2[0].path || files.image2[0].url;
     }
     if (files.image3 && files.image3[0]) {
-      imageUrls.image3 = files.image3[0].path;
+      imageUrls.image3 = files.image3[0].secure_url || files.image3[0].path || files.image3[0].url;
     }
 
     res.status(200).json({
       message: 'Images uploaded successfully',
-      urls: imageUrls,
+      ...imageUrls,
     });
   } catch (error) {
     console.error('Upload category images error:', error);
@@ -279,16 +279,27 @@ export const getBrandById = async (req: Request, res: Response): Promise<void> =
 // Upload brand logo (Admin only)
 export const uploadBrandLogo = async (req: Request, res: Response): Promise<void> => {
   try {
-    const file = req.file;
+    const file = req.file as any;
 
     if (!file) {
       res.status(400).json({ error: 'No logo uploaded' });
       return;
     }
 
+    // Cloudinary storage stores the URL - prefer secure_url (HTTPS)
+    const logoUrl = file.secure_url || file.path || file.url;
+
+    console.log('Brand logo file object:', file);
+    console.log('Brand logo uploaded to Cloudinary:', logoUrl);
+
+    if (!logoUrl) {
+      res.status(500).json({ error: 'Failed to get uploaded file URL' });
+      return;
+    }
+
     res.status(200).json({
       message: 'Logo uploaded successfully',
-      url: file.path,
+      url: logoUrl,
     });
   } catch (error) {
     console.error('Upload brand logo error:', error);
@@ -300,6 +311,8 @@ export const uploadBrandLogo = async (req: Request, res: Response): Promise<void
 export const createBrand = async (req: Request, res: Response): Promise<void> => {
   try {
     const { name, slug, logo } = req.body;
+
+    console.log('Creating brand with data:', { name, slug, logo });
 
     if (!name || !slug) {
       res.status(400).json({
@@ -322,9 +335,11 @@ export const createBrand = async (req: Request, res: Response): Promise<void> =>
       data: {
         name,
         slug,
-        logo,
-      } as any,
+        logo: logo || null,
+      },
     });
+
+    console.log('Brand created successfully:', brand);
 
     res.status(201).json({
       message: 'Brand created successfully',
@@ -341,6 +356,9 @@ export const updateBrand = async (req: Request, res: Response): Promise<void> =>
   try {
     const { id } = req.params;
     const { name, slug, logo } = req.body;
+
+    console.log('Updating brand with data:', { id, name, slug, logo });
+
     if (!id) {
       res.status(400).json({ error: 'Brand ID is required' });
       return;
@@ -370,12 +388,14 @@ export const updateBrand = async (req: Request, res: Response): Promise<void> =>
     const updateData: any = {};
     if (name !== undefined) updateData.name = name;
     if (slug !== undefined) updateData.slug = slug;
-    if (logo !== undefined) updateData.logo = logo;
+    if (logo !== undefined) updateData.logo = logo || null;
 
     const brand = await prisma.brand.update({
       where: { id },
       data: updateData,
     });
+
+    console.log('Brand updated successfully:', brand);
 
     res.json({
       message: 'Brand updated successfully',
