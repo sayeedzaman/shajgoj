@@ -13,6 +13,7 @@ import analyticsRoutes from './routes/analytics.routes.js';
 import wishlistRoutes from './routes/wishlist.routes.js';
 import offerRoutes from './routes/offer.routes.js';
 import settingsRoutes from './routes/settings.routes.js';
+import reviewRoutes from './routes/review.routes.js';
 
 dotenv.config();
 
@@ -62,6 +63,7 @@ app.use('/api/admin/analytics', analyticsRoutes);
 app.use('/api/admin/settings', settingsRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/addresses', addressRoutes);
+app.use('/api/reviews', reviewRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -101,6 +103,16 @@ Available routes:
   DELETE /api/wishlist/items/:productId
   DELETE /api/wishlist
 
+⭐ Reviews
+  Public:
+    GET    /api/reviews/product/:productId
+
+  User (Require Authentication):
+    POST   /api/reviews
+    GET    /api/reviews/my-reviews
+    PUT    /api/reviews/:reviewId
+    DELETE /api/reviews/:reviewId
+
 🔐 Admin Routes (Require Authentication)
   Users:
     GET    /api/auth/admin/users
@@ -137,6 +149,11 @@ Available routes:
     PUT    /api/orders/:id/cancel
     GET    /api/orders/admin/all
     PUT    /api/orders/admin/:id
+
+  Reviews:
+    GET    /api/reviews/admin/all
+    GET    /api/reviews/admin/stats
+    DELETE /api/reviews/admin/:reviewId
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   `);
 });
