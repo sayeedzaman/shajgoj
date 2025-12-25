@@ -1,8 +1,6 @@
 import type{ Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
 import cloudinary from '../config/cloudinary.js';
-
-const prisma = new PrismaClient();
+import { prisma } from '../lib/prisma.js';
 
 // ============= CATEGORY CONTROLLERS =============
 

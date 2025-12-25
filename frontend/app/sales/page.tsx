@@ -40,62 +40,10 @@ export default function SalesPage() {
           allProducts = data.products;
           setTotalPages(data.pages || 1);
         } else {
-          throw new Error('Backend API not available');
+          console.error('Failed to fetch products on sale');
         }
       } catch (apiError) {
-        console.log('Backend API not available, checking localStorage...');
-
-        // Fallback: Try to fetch from localStorage (admin products)
-        const savedProducts = localStorage.getItem('admin_products');
-        if (savedProducts) {
-          const parsedProducts: Product[] = JSON.parse(savedProducts);
-          // Filter products that have salePrice and it's less than regular price
-          allProducts = parsedProducts.filter(
-            (p) => p.salePrice !== null && p.salePrice > 0 && p.salePrice < p.price
-          );
-        }
-
-        // If still no products, use minimal mock data for demonstration
-        if (allProducts.length === 0) {
-          console.log('No products on sale found. Using demo data...');
-          allProducts = Array.from({ length: 12 }, (_, i) => ({
-            id: `sale-${i + 1}`,
-            name: `Product on Sale ${i + 1}`,
-            slug: `product-sale-${i + 1}`,
-            description: 'Amazing product with great discount!',
-            price: 1000 + i * 100,
-            salePrice: 700 + i * 50,
-            stock: 25,
-            images: [`https://placehold.co/400x400/f87171/white?text=Sale+${i + 1}`],
-            imageUrl: null,
-            featured: i % 3 === 0,
-            categoryId: 'cat-1',
-            Category: {
-              id: 'cat-1',
-              name: 'Beauty',
-              slug: 'beauty',
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-            },
-            brandId: i % 2 === 0 ? 'brand-1' : null,
-            Brand: i % 2 === 0 ? {
-              id: 'brand-1',
-              name: 'Popular Brand',
-              slug: 'popular-brand',
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-            } : null,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          }));
-        }
-      }
-
-      // Apply client-side filtering if using localStorage
-      if (selectedCategory !== 'all') {
-        allProducts = allProducts.filter(
-          (p) => p.Category.slug.toLowerCase() === selectedCategory.toLowerCase()
-        );
+        console.error('Error fetching products on sale:', apiError);
       }
 
       // Apply client-side sorting

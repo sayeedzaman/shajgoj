@@ -11,6 +11,8 @@ import orderRoutes from './routes/order.routes.js';
 import addressRoutes from './routes/address.routes.js';
 import analyticsRoutes from './routes/analytics.routes.js';
 import wishlistRoutes from './routes/wishlist.routes.js';
+import offerRoutes from './routes/offer.routes.js';
+import settingsRoutes from './routes/settings.routes.js';
 
 dotenv.config();
 
@@ -18,8 +20,31 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
+const allowedOrigins = (process.env.FRONTEND_URLS || process.env.FRONTEND_URL || 'http://localhost:3000')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+console.log('Allowed CORS origins:', allowedOrigins);
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin(origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl, Postman)
+    if (!origin) {
+      callback(null, true);
+      return;
+    }
+
+    // Check if origin is in allowed list
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+      return;
+    }
+
+    // Log rejected origins for debugging
+    console.warn(`CORS blocked origin: ${origin}`);
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
 }));
 app.use(express.json());
@@ -31,8 +56,10 @@ app.use('/api/cart', cartRoutes);
 app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/brands', brandRoutes);
+app.use('/api/offers', offerRoutes);
 app.use('/api/admin/products', adminProductRoutes);
 app.use('/api/admin/analytics', analyticsRoutes);
+app.use('/api/admin/settings', settingsRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/addresses', addressRoutes);
 

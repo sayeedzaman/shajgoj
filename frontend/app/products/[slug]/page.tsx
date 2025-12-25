@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useState, useEffect, useCallback } from 'react';
+import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { productsAPI } from '@/src/lib/api';
 import { Product } from '@/src/types/index';
@@ -21,7 +21,6 @@ import {
 
 export default function ProductDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const slug = params?.slug as string;
   const { addToCart } = useCart();
 
@@ -32,13 +31,7 @@ export default function ProductDetailPage() {
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [addingToCart, setAddingToCart] = useState(false);
 
-  useEffect(() => {
-    if (slug) {
-      fetchProduct();
-    }
-  }, [slug]);
-
-  const fetchProduct = async () => {
+  const fetchProduct = useCallback(async () => {
     try {
       setLoading(true);
       const data = await productsAPI.getBySlug(slug);
@@ -48,7 +41,13 @@ export default function ProductDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [slug]);
+
+  useEffect(() => {
+    if (slug) {
+      fetchProduct();
+    }
+  }, [slug, fetchProduct]);
 
   const handleAddToCart = async () => {
     if (!product) return;

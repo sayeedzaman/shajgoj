@@ -3,8 +3,6 @@
 import { useState, useEffect } from 'react';
 import { Gift, Tag, Copy, Check, Search, Calendar, TrendingUp, Percent } from 'lucide-react';
 
-// NOTE: Backend API for offers is not yet implemented
-// Required endpoints: GET /api/offers, POST /api/cart/apply-offer
 
 interface Offer {
   id: string;
@@ -39,75 +37,19 @@ export default function OffersPage() {
     try {
       setLoading(true);
 
-      // TODO: Replace with actual API call when backend is ready
-      // const response = await fetch('/api/offers');
-      // const data = await response.json();
-      // setOffers(data.offers.filter((o: Offer) => o.status === 'ACTIVE'));
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${apiUrl}/api/offers/active`);
 
-      // Load from localStorage (synced with admin)
-      const savedOffers = localStorage.getItem('admin_offers');
-      if (savedOffers) {
-        const allOffers: Offer[] = JSON.parse(savedOffers);
-        const activeOffers = allOffers.filter(o => o.status === 'ACTIVE');
-        setOffers(activeOffers);
+      if (response.ok) {
+        const data = await response.json();
+        setOffers(data);
       } else {
-        // Mock data
-        const mockOffers: Offer[] = [
-          {
-            id: '1',
-            name: 'New Year Special',
-            code: 'NEWYEAR2025',
-            description: 'Start the new year with amazing discounts!',
-            imageUrl: 'https://images.unsplash.com/photo-1607083206869-4c7672e72a8a?w=800',
-            discountType: 'PERCENTAGE',
-            discountValue: 25,
-            minPurchase: 1000,
-            maxDiscount: 500,
-            startDate: '2025-01-01',
-            endDate: '2025-01-31',
-            usageLimit: 1000,
-            usageCount: 342,
-            status: 'ACTIVE',
-            displayOnHomepage: true
-          },
-          {
-            id: '2',
-            name: 'Welcome Discount',
-            code: 'WELCOME50',
-            description: 'Get ৳50 off on your first order',
-            imageUrl: 'https://images.unsplash.com/photo-1557821552-17105176677c?w=800',
-            discountType: 'FIXED',
-            discountValue: 50,
-            minPurchase: 200,
-            startDate: '2025-01-01',
-            endDate: '2025-12-31',
-            usageLimit: 5000,
-            usageCount: 1823,
-            status: 'ACTIVE',
-            displayOnHomepage: true
-          },
-          {
-            id: '3',
-            name: 'Mega Sale',
-            code: 'MEGA30',
-            description: 'Biggest sale of the year!',
-            imageUrl: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=800',
-            discountType: 'PERCENTAGE',
-            discountValue: 30,
-            minPurchase: 1500,
-            maxDiscount: 750,
-            startDate: '2025-01-15',
-            endDate: '2025-02-15',
-            usageLimit: 500,
-            usageCount: 89,
-            status: 'ACTIVE',
-            displayOnHomepage: false
-          },
-        ];
-        setOffers(mockOffers);
+        console.error('Failed to fetch offers');
+        setOffers([]);
       }
     } catch (error) {
       console.error('Error fetching offers:', error);
+      setOffers([]);
     } finally {
       setLoading(false);
     }
@@ -215,15 +157,6 @@ export default function OffersPage() {
               </button>
             </div>
           </div>
-        </div>
-
-        {/* Backend Notice */}
-        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
-          <p className="text-sm text-orange-800">
-            <strong>⚠️ Note:</strong> Backend API not yet implemented. Currently showing mock data from localStorage.
-            <br />
-            <span className="text-xs">Required endpoint: GET /api/offers</span>
-          </p>
         </div>
 
         {/* Offers Grid */}

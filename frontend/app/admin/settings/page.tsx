@@ -32,18 +32,59 @@ export default function SettingsPage() {
   });
 
   useEffect(() => {
-    const saved = localStorage.getItem('admin_settings');
-    if (saved) setSettings({ ...settings, ...JSON.parse(saved) });
+    fetchSettings();
   }, []);
 
-  const handleSave = () => {
+  const fetchSettings = async () => {
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      const token = localStorage.getItem('token');
+
+      const response = await fetch(`${apiUrl}/api/admin/settings`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setSettings(data);
+      }
+    } catch (error) {
+      console.error('Error fetching settings:', error);
+    }
+  };
+
+  const handleSave = async () => {
     setSaving(true);
-    setTimeout(() => {
-      localStorage.setItem('admin_settings', JSON.stringify(settings));
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      const token = localStorage.getItem('token');
+
+      const response = await fetch(`${apiUrl}/api/admin/settings`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(settings),
+      });
+
+      if (response.ok) {
+        setSuccessMessage('Settings saved successfully!');
+        setTimeout(() => setSuccessMessage(''), 3000);
+      } else {
+        const error = await response.json();
+        console.error('Error saving settings:', error);
+        alert(error.error || 'Failed to save settings');
+      }
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      alert('Failed to save settings. Please try again.');
+    } finally {
       setSaving(false);
-      setSuccessMessage('Settings saved successfully!');
-      setTimeout(() => setSuccessMessage(''), 3000);
-    }, 1000);
+    }
   };
 
   const tabs = [

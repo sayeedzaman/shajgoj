@@ -1,7 +1,5 @@
 import type{ Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '../lib/prisma.js';
 
 // Helper function to resolve category ID from name or ID
 async function resolveCategoryId(categoryIdentifier: string): Promise<string | null> {
@@ -113,6 +111,9 @@ export const getAllProductsAdmin = async (req: Request, res: Response): Promise<
         include: {
           Category: true,
           Brand: true,
+          Review: {
+            select: { rating: true },
+          },
           _count: {
             select: {
               Review: true,
@@ -129,27 +130,23 @@ export const getAllProductsAdmin = async (req: Request, res: Response): Promise<
       prisma.product.count({ where }),
     ]);
 
-    // Calculate average rating for each product
-    const productsWithRating = await Promise.all(
-      products.map(async (product) => {
-        const reviews = await prisma.review.findMany({
-          where: { productId: product.id },
-          select: { rating: true },
-        });
+    // Calculate average rating for each product (in memory, no additional queries)
+    const productsWithRating = products.map((product) => {
+      const reviews = product.Review;
+      const averageRating =
+        reviews.length > 0
+          ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
+          : 0;
 
-        const averageRating =
-          reviews.length > 0
-            ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
-            : 0;
+      const { Review, ...productWithoutReviews } = product;
 
-        return {
-          ...product,
-          averageRating: parseFloat(averageRating.toFixed(1)),
-          totalReviews: reviews.length,
-          totalOrders: product._count.OrderItem,
-        };
-      })
-    );
+      return {
+        ...productWithoutReviews,
+        averageRating: parseFloat(averageRating.toFixed(1)),
+        totalReviews: reviews.length,
+        totalOrders: product._count.OrderItem,
+      };
+    });
 
     res.json({
       products: productsWithRating,

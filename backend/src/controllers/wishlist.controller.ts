@@ -1,8 +1,6 @@
 import type { Response } from 'express';
-import { PrismaClient } from '@prisma/client';
 import type { AuthRequest } from '../middleware/auth.middleware.js';
-
-const prisma = new PrismaClient();
+import { prisma } from '../lib/prisma.js';
 
 // Get user's wishlist
 export const getWishlist = async (req: AuthRequest, res: Response) => {

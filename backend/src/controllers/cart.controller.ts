@@ -1,9 +1,7 @@
 import type { Response } from 'express';
-import { PrismaClient } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
 import type { AuthRequest } from '../middleware/auth.middleware.js';
-
-const prisma = new PrismaClient();
+import { prisma } from '../lib/prisma.js';
 
 // Get user's cart
 export const getCart = async (req: AuthRequest, res: Response) => {

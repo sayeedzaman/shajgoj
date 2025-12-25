@@ -1,9 +1,13 @@
 import multer from 'multer';
-import CloudinaryStorage from 'multer-storage-cloudinary';
-import cloudinary from '../config/cloudinary.js';
+import { v2 as cloudinary } from 'cloudinary';
 import type { Request } from 'express';
+import { createRequire } from 'module';
 
-const storage = (CloudinaryStorage as any)({
+const require = createRequire(import.meta.url);
+const CloudinaryStorageModule = require('multer-storage-cloudinary');
+const CloudinaryStorage = CloudinaryStorageModule.CloudinaryStorage || CloudinaryStorageModule;
+
+const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: async (req: Request, file: Express.Multer.File) => {
     return {

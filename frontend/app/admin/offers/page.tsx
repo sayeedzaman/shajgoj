@@ -84,66 +84,35 @@ export default function OffersPage() {
     cardStyle: 'gradient' as 'gradient' | 'solid' | 'image',
   });
 
-  // Load offers from localStorage on mount
+  // Load offers from API on mount
   useEffect(() => {
-    const savedOffers = localStorage.getItem('admin_offers');
-    if (savedOffers) {
-      setOffers(JSON.parse(savedOffers));
-    } else {
-      // Initialize with mock data
-      const mockOffers: Offer[] = [
-        {
-          id: '1',
-          name: 'New Year Special',
-          code: 'NEWYEAR2025',
-          description: 'Start the new year with amazing discounts!',
-          imageUrl: 'https://images.unsplash.com/photo-1607083206869-4c7672e72a8a?w=800',
-          linkType: 'url',
-          link: '/sales',
-          type: 'hero',
-          discountType: 'PERCENTAGE',
-          discountValue: 25,
-          minPurchase: 1000,
-          maxDiscount: 500,
-          startDate: '2025-01-01',
-          endDate: '2025-01-31',
-          usageLimit: 1000,
-          usageCount: 342,
-          status: 'ACTIVE',
-          displayOnHomepage: true,
-          priority: 10
-        },
-        {
-          id: '2',
-          name: 'Welcome Discount',
-          code: 'WELCOME50',
-          description: 'Get ৳50 off on your first order',
-          imageUrl: 'https://images.unsplash.com/photo-1557821552-17105176677c?w=800',
-          linkType: 'url',
-          link: '/offers',
-          type: 'deal',
-          discountType: 'FIXED',
-          discountValue: 50,
-          minPurchase: 200,
-          startDate: '2025-01-01',
-          endDate: '2025-12-31',
-          usageLimit: 5000,
-          usageCount: 1823,
-          status: 'ACTIVE',
-          displayOnHomepage: true,
-          priority: 5
-        },
-      ];
-      setOffers(mockOffers);
-      localStorage.setItem('admin_offers', JSON.stringify(mockOffers));
-    }
-    setLoading(false);
+    fetchOffers();
   }, []);
 
-  // Save offers to localStorage whenever they change
-  const saveOffers = (updatedOffers: Offer[]) => {
-    setOffers(updatedOffers);
-    localStorage.setItem('admin_offers', JSON.stringify(updatedOffers));
+  const fetchOffers = async () => {
+    try {
+      setLoading(true);
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      const token = localStorage.getItem('token');
+
+      const response = await fetch(`${apiUrl}/api/offers`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setOffers(data);
+      } else {
+        console.error('Failed to fetch offers');
+      }
+    } catch (error) {
+      console.error('Error fetching offers:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const openModal = (offer?: Offer) => {
@@ -349,8 +318,11 @@ export default function OffersPage() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+    const token = localStorage.getItem('token');
 
     // Determine status based on dates
     const now = new Date();
@@ -364,36 +336,65 @@ export default function OffersPage() {
       status = 'EXPIRED';
     }
 
-    if (editingOffer) {
-      // Update existing offer
-      const updatedOffers = offers.map(offer =>
-        offer.id === editingOffer.id
-          ? {
-              ...offer,
-              ...formData,
-              status,
-            }
-          : offer
-      );
-      saveOffers(updatedOffers);
-    } else {
-      // Create new offer
-      const newOffer: Offer = {
-        id: Date.now().toString(),
-        ...formData,
-        usageCount: 0,
-        status,
-      };
-      saveOffers([...offers, newOffer]);
-    }
+    const offerData = {
+      ...formData,
+      status,
+    };
 
-    closeModal();
+    try {
+      const url = editingOffer
+        ? `${apiUrl}/api/offers/${editingOffer.id}`
+        : `${apiUrl}/api/offers`;
+
+      const method = editingOffer ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(offerData),
+      });
+
+      if (response.ok) {
+        await fetchOffers();
+        closeModal();
+      } else {
+        const error = await response.json();
+        console.error('Error saving offer:', error);
+        alert(error.error || 'Failed to save offer');
+      }
+    } catch (error) {
+      console.error('Error saving offer:', error);
+      alert('Failed to save offer. Please try again.');
+    }
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this offer?')) {
-      const updatedOffers = offers.filter(offer => offer.id !== id);
-      saveOffers(updatedOffers);
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this offer?')) return;
+
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+    const token = localStorage.getItem('token');
+
+    try {
+      const response = await fetch(`${apiUrl}/api/offers/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        await fetchOffers();
+      } else {
+        const error = await response.json();
+        console.error('Error deleting offer:', error);
+        alert(error.error || 'Failed to delete offer');
+      }
+    } catch (error) {
+      console.error('Error deleting offer:', error);
+      alert('Failed to delete offer. Please try again.');
     }
   };
 

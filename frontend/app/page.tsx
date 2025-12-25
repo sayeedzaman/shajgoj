@@ -54,21 +54,20 @@ export default function Home() {
   const [productsLoading, setProductsLoading] = useState(true);
   const [showAllTopSelling, setShowAllTopSelling] = useState(false);
 
-  // Fetch offers from localStorage on mount
+  // Fetch offers from API on mount
   useEffect(() => {
-    const fetchOffers = () => {
+    const fetchOffers = async () => {
       try {
-        const savedOffers = localStorage.getItem('admin_offers');
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+        const response = await fetch(`${apiUrl}/api/offers/active`);
+
         let activeOffers: Offer[] = [];
 
-        if (savedOffers) {
-          const allOffers: Offer[] = JSON.parse(savedOffers);
-          activeOffers = allOffers.filter(
-            (o) => o.status === 'ACTIVE' && o.displayOnHomepage
-          );
+        if (response.ok) {
+          activeOffers = await response.json();
         }
 
-        // Hero Banners - Use admin offers or fallback to dummy data
+        // Hero Banners - Use API offers or fallback to dummy data
         const heroData = activeOffers.filter((o) => o.type === 'hero');
         if (heroData.length > 0) {
           setHeroOffers(heroData.sort((a, b) => (b.priority || 0) - (a.priority || 0)));
@@ -77,7 +76,7 @@ export default function Home() {
           setHeroOffers(getDummyHeroOffers());
         }
 
-        // Deal Cards - Use admin offers or fallback to dummy data
+        // Deal Cards - Use API offers or fallback to dummy data
         const dealData = activeOffers.filter((o) => o.type === 'deal');
         if (dealData.length > 0) {
           setDealOffers(
@@ -87,7 +86,7 @@ export default function Home() {
           setDealOffers(getDummyDealOffers());
         }
 
-        // Brand Ads - Use admin offers or fallback to dummy data
+        // Brand Ads - Use API offers or fallback to dummy data
         const brandData = activeOffers.filter((o) => o.type === 'brand');
         if (brandData.length > 0) {
           setBrandOffers(
@@ -97,7 +96,7 @@ export default function Home() {
           setBrandOffers(getDummyBrandOffers());
         }
 
-        // Limited Time Offers - Use admin offers or fallback to dummy data
+        // Limited Time Offers - Use API offers or fallback to dummy data
         const limitedData = activeOffers.filter((o) => o.type === 'limited');
         if (limitedData.length > 0) {
           setLimitedOffers(
