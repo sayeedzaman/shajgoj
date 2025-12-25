@@ -14,7 +14,7 @@ export const getAllProducts = async (req: Request, res: Response) => {
       sortBy = 'createdAt',
       order = 'desc',
       page = '1',
-      limit = '12',
+      limit = '12', //ca
     } = req.query;
 
     const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
