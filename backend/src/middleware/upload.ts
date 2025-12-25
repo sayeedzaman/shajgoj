@@ -1,7 +1,7 @@
 import multer from 'multer';
-import { v2 as cloudinary } from 'cloudinary';
 import type { Request } from 'express';
 import { createRequire } from 'module';
+import cloudinary from '../config/cloudinary.js';
 
 const require = createRequire(import.meta.url);
 const CloudinaryStorageModule = require('multer-storage-cloudinary');
@@ -9,12 +9,10 @@ const CloudinaryStorage = CloudinaryStorageModule.CloudinaryStorage || Cloudinar
 
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
-  params: async (req: Request, file: Express.Multer.File) => {
-    return {
+  params: {
       folder: 'shajgoj',
       allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'gif'],
       transformation: [{ width: 1000, height: 1000, crop: 'limit' }],
-    };
   },
 });
 
