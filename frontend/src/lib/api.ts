@@ -17,7 +17,7 @@ import type {
   CreateAddressRequest,
 } from '@/src/types/index';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL ;
 
 // Helper function to get auth token
 const getAuthToken = (): string | null => {

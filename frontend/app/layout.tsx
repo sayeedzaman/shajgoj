@@ -1,6 +1,5 @@
 'use client';
 
-import { Inter } from 'next/font/google';
 import './globals.css';
 import Link from 'next/link';
 import { AuthProvider } from '@/src/lib/AuthContext';
@@ -10,8 +9,6 @@ import { ToastProvider } from '@/src/lib/ToastContext';
 import Navbar from '@/src/components/layout/Navbar';
 import CartSidebar from '@/src/components/cart/CartSidebar';
 import { usePathname } from 'next/navigation';
-
-const inter = Inter({ subsets: ['latin'] });
 
 function LayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -92,7 +89,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className="font-sans antialiased">
         <AuthProvider>
           <ToastProvider>
             <WishlistProvider>
