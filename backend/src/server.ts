@@ -16,6 +16,7 @@ import analyticsRoutes from './routes/analytics.routes.js';
 import wishlistRoutes from './routes/wishlist.routes.js';
 import offerRoutes from './routes/offer.routes.js';
 import settingsRoutes from './routes/settings.routes.js';
+import reviewRoutes from './routes/review.routes.js';
 import './config/cloudinary.js';
 
 const app = express();
@@ -60,9 +61,11 @@ app.use('/api/wishlist', wishlistRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/brands', brandRoutes);
 app.use('/api/offers', offerRoutes);
+app.use('/api/reviews', reviewRoutes);
 app.use('/api/admin/products', adminProductRoutes);
 app.use('/api/admin/analytics', analyticsRoutes);
 app.use('/api/admin/settings', settingsRoutes);
+app.use('/api/admin/reviews', reviewRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/addresses', addressRoutes);
 
