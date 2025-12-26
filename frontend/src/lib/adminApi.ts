@@ -504,15 +504,24 @@ export const adminCustomersAPI = {
         headers: createHeaders(),
       }
     );
-    const data = await handleResponse<{ users: Customer[]; pagination: any }>(response);
-    // Map users to customers and add missing fields
-    const customers = data.users.map(user => ({
-      ...user,
+    const data = await handleResponse<{ users: any[]; pagination: any }>(response);
+    // Map users to customers and properly map backend field names
+    // Backend returns: _count: { Order: N, Address: N }
+    // Frontend expects: _count: { orders: N, reviews: N }
+    const customers = data.users.map((user: any) => ({
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      phone: user.phone,
+      role: user.role,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
       _count: {
-        orders: user._count?.orders || 0,
-        reviews: 0, // Backend doesn't track reviews in this endpoint yet
+        orders: user._count?.Order || 0,
+        reviews: 0, // Backend doesn't include Review count in getAll
       },
-      totalSpent: 0, // Backend doesn't calculate this yet
+      totalSpent: 0, // Backend doesn't calculate this in getAll
     }));
     return {
       customers,
@@ -531,16 +540,31 @@ export const adminCustomersAPI = {
       method: 'GET',
       headers: createHeaders(),
     });
-    const user = await handleResponse<Customer & { orders?: Order[] }>(response);
-    // Ensure orders array exists
+    const data = await handleResponse<{ user: any }>(response);
+    const user = data.user;
+
+    // Map backend response to frontend structure
+    // Backend returns: { user: { Order: [...], _count: { Order: N, Review: N } } }
+    // Frontend expects: { orders: [...], _count: { orders: N, reviews: N } }
+
+    // Calculate total spent from orders
+    const totalSpent = user.Order?.reduce((sum: number, order: any) => sum + (order.total || 0), 0) || 0;
+
     return {
-      ...user,
-      orders: user.orders || [],
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      phone: user.phone,
+      role: user.role,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+      orders: user.Order || [],
       _count: {
-        orders: user._count?.orders || 0,
-        reviews: user._count?.reviews || 0,
+        orders: user._count?.Order || 0,
+        reviews: user._count?.Review || 0,
       },
-      totalSpent: user.totalSpent || 0,
+      totalSpent,
     };
   },
 }

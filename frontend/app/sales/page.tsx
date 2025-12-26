@@ -3,24 +3,40 @@
 import { useState, useEffect } from 'react';
 import { Tag, Filter, ChevronDown, Sparkles } from 'lucide-react';
 import SquareProductCard from '@/src/components/products/SquareProductCard';
-import type { Product } from '@/src/types';
+import { categoriesAPI } from '@/src/lib/api';
+import type { Product, Category } from '@/src/types';
 
 // NOTE: Backend API for products on sale is not yet implemented
 // Required endpoint: GET /api/products/on-sale?page=1&limit=20&category=&sortBy=discount
 
 export default function SalesPage() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState('');
   const [sortBy, setSortBy] = useState<'discount' | 'price' | 'name'>('discount');
 
   const productsPerPage = 20;
 
   useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  useEffect(() => {
     fetchSaleProducts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, selectedCategory, sortBy]);
+
+  const fetchCategories = async () => {
+    try {
+      const data = await categoriesAPI.getAll();
+      setCategories(data);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
+  };
 
   const fetchSaleProducts = async () => {
     try {
@@ -32,7 +48,7 @@ export default function SalesPage() {
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
         const response = await fetch(
-          `${apiUrl}/api/products/on-sale?page=${currentPage}&limit=${productsPerPage}&category=${selectedCategory !== 'all' ? selectedCategory : ''}&sortBy=${sortBy}`
+          `${apiUrl}/api/products/on-sale?page=${currentPage}&limit=${productsPerPage}&categoryId=${selectedCategory || ''}&sortBy=${sortBy}`
         );
 
         if (response.ok) {
@@ -141,12 +157,14 @@ export default function SalesPage() {
                     setCurrentPage(1);
                   }}
                   className="w-full md:w-auto pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 appearance-none bg-white text-sm"
+                  aria-label="Filter by category"
                 >
-                  <option value="all">All Categories</option>
-                  <option value="makeup">Makeup</option>
-                  <option value="skincare">Skincare</option>
-                  <option value="haircare">Hair Care</option>
-                  <option value="fragrance">Fragrance</option>
+                  <option value="">All Categories</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
                 </select>
                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
               </div>
@@ -161,6 +179,7 @@ export default function SalesPage() {
                     setCurrentPage(1);
                   }}
                   className="w-full md:w-auto pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 appearance-none bg-white text-sm"
+                  aria-label="Sort by"
                 >
                   <option value="discount">Highest Discount</option>
                   <option value="price">Lowest Price</option>
@@ -219,19 +238,34 @@ export default function SalesPage() {
               Previous
             </button>
 
-            {[...Array(totalPages)].map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setCurrentPage(i + 1)}
-                className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                  currentPage === i + 1
-                    ? 'bg-red-600 text-white shadow-lg'
-                    : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
-                }`}
-              >
-                {i + 1}
-              </button>
-            ))}
+            {(() => {
+              const maxPagesToShow = 5;
+              let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
+              const endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+
+              if (endPage - startPage < maxPagesToShow - 1) {
+                startPage = Math.max(1, endPage - maxPagesToShow + 1);
+              }
+
+              const pages = [];
+              for (let i = startPage; i <= endPage; i++) {
+                pages.push(i);
+              }
+
+              return pages.map((pageNum) => (
+                <button
+                  key={pageNum}
+                  onClick={() => setCurrentPage(pageNum)}
+                  className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                    currentPage === pageNum
+                      ? 'bg-red-600 text-white shadow-lg'
+                      : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  {pageNum}
+                </button>
+              ));
+            })()}
 
             <button
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
@@ -248,10 +282,10 @@ export default function SalesPage() {
       <section className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-12">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Don't Miss Out!
+            Don&apos;t Miss Out!
           </h2>
           <p className="text-lg md:text-xl mb-6 text-white/90">
-            These amazing deals won't last forever. Shop now and save big!
+            These amazing deals won&apos;t last forever. Shop now and save big!
           </p>
           <button
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
