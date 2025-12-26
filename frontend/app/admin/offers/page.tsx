@@ -9,19 +9,17 @@ interface Offer {
   id: string;
   name: string;
   code: string;
-  description?: string;
-  imageUrl?: string;
+  description?: string | null;
+  imageUrl?: string | null;
   // Link options - either custom URL or specific product
   linkType: 'url' | 'product'; // Type of link
-  link?: string; // Custom URL (e.g., /sales, /category/makeup)
-  productId?: string; // Specific product ID to link to
-  productName?: string; // Product name (for display in admin)
-  productImage?: string; // Product image (for display in admin)
+  link?: string | null; // Custom URL (e.g., /sales, /category/makeup)
+  productId?: string | null; // Specific product ID to link to
   type: 'hero' | 'deal' | 'brand' | 'limited'; // Type of offer for homepage sections
   discountType: 'PERCENTAGE' | 'FIXED';
   discountValue: number;
   minPurchase: number;
-  maxDiscount?: number;
+  maxDiscount?: number | null;
   startDate: string;
   endDate: string;
   usageLimit: number;
@@ -30,11 +28,13 @@ interface Offer {
   displayOnHomepage: boolean;
   priority: number; // Order of display (higher = shows first)
   // Visual styling options for striking offer cards
-  backgroundColor?: string; // Gradient classes like 'from-pink-500 to-purple-600'
-  textColor?: string; // Text color classes like 'text-white'
-  badgeColor?: string; // Badge color classes like 'bg-yellow-400 text-purple-900'
-  borderStyle?: 'wavy' | 'rounded' | 'sharp' | 'irregular';
-  cardStyle?: 'gradient' | 'solid' | 'image';
+  backgroundColor?: string | null; // Gradient classes like 'from-pink-500 to-purple-600'
+  textColor?: string | null; // Text color classes like 'text-white'
+  badgeColor?: string | null; // Badge color classes like 'bg-yellow-400 text-purple-900'
+  borderStyle?: 'wavy' | 'rounded' | 'sharp' | 'irregular' | null;
+  cardStyle?: 'gradient' | 'solid' | 'image' | null;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export default function OffersPage() {
@@ -95,6 +95,12 @@ export default function OffersPage() {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
       const token = localStorage.getItem('token');
 
+      if (!token) {
+        console.error('No authentication token found');
+        setLoading(false);
+        return;
+      }
+
       const response = await fetch(`${apiUrl}/api/offers`, {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -106,12 +112,32 @@ export default function OffersPage() {
         const data = await response.json();
         setOffers(data);
       } else {
-        console.error('Failed to fetch offers');
+        const errorText = await response.text();
+        console.error('Failed to fetch offers:', response.status, errorText);
       }
     } catch (error) {
       console.error('Error fetching offers:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchProductDetails = async (productId: string) => {
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${apiUrl}/api/products/${productId}`);
+
+      if (response.ok) {
+        const product = await response.json();
+        setSelectedProduct(product);
+        setFormData(prev => ({
+          ...prev,
+          productName: product.name,
+          productImage: product.imageUrl || product.images?.[0] || '',
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching product details:', error);
     }
   };
 
@@ -126,8 +152,8 @@ export default function OffersPage() {
         linkType: offer.linkType || 'url',
         link: offer.link || '',
         productId: offer.productId || '',
-        productName: offer.productName || '',
-        productImage: offer.productImage || '',
+        productName: '',
+        productImage: '',
         type: offer.type || 'deal',
         discountType: offer.discountType,
         discountValue: offer.discountValue,
@@ -146,25 +172,10 @@ export default function OffersPage() {
         cardStyle: offer.cardStyle || 'gradient',
       });
       setImagePreview(offer.imageUrl || '');
-      if (offer.productId && offer.productName) {
-        setSelectedProduct({
-          id: offer.productId,
-          name: offer.productName,
-          slug: '',
-          description: null,
-          price: 0,
-          salePrice: null,
-          stock: 0,
-          images: offer.productImage ? [offer.productImage] : [],
-          imageUrl: offer.productImage || null,
-          featured: false,
-          categoryId: '',
-          Category: { id: '', name: '', slug: '' },
-          brandId: null,
-          Brand: null,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        });
+      // If there's a productId, we'll need to fetch the product details
+      if (offer.productId) {
+        // Fetch product details if needed for display
+        fetchProductDetails(offer.productId);
       }
     } else {
       setEditingOffer(null);
@@ -249,16 +260,9 @@ export default function OffersPage() {
 
           if (response.ok) {
             const data = await response.json();
-            // Transform backend response to match our Product interface
-            const transformedProducts = (data.products || []).map((p: Product) => ({
-              id: p.id,
-              name: p.name,
-              slug: p.slug,
-              imageUrl: p.images?.[0] || '',
-              price: p.price,
-              salePrice: p.salePrice,
-            }));
-            setProducts(transformedProducts);
+            console.log('Product search results:', data);
+            // Use products directly - backend already returns correct format
+            setProducts(data.products || []);
             setShowProductSearch(true);
           }
         } catch (apiError) {
@@ -289,7 +293,7 @@ export default function OffersPage() {
       ...formData,
       productId: product.id,
       productName: product.name,
-      productImage: product.imageUrl || product.images?.[0] || '',
+      productImage: (product as any).imageUrl || product.images?.[0] || '',
     });
     setShowProductSearch(false);
     setProductSearchQuery('');
@@ -321,8 +325,25 @@ export default function OffersPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    console.log('🚀 Offer Form Submitted:', formData);
+
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
     const token = localStorage.getItem('token');
+
+    if (!token) {
+      console.error('❌ No authentication token found');
+      alert('Please log in to create offers');
+      return;
+    }
+
+    // Decode JWT to inspect claims (for debugging)
+    try {
+      const tokenParts = token.split('.');
+      const payload = JSON.parse(atob(tokenParts[1]));
+      console.log('🔑 JWT Token Payload:', payload);
+    } catch (err) {
+      console.error('Failed to decode token:', err);
+    }
 
     // Determine status based on dates
     const now = new Date();
@@ -336,10 +357,36 @@ export default function OffersPage() {
       status = 'EXPIRED';
     }
 
+    console.log('📅 Computed Status:', { status, now, start, end });
+
+    // Only send fields that exist in the backend schema
     const offerData = {
-      ...formData,
+      name: formData.name,
+      code: formData.code,
+      description: formData.description || null,
+      imageUrl: formData.imageUrl || null,
+      linkType: formData.linkType,
+      link: formData.link || null,
+      productId: formData.productId || null,
+      type: formData.type,
+      discountType: formData.discountType,
+      discountValue: Number(formData.discountValue),
+      minPurchase: Number(formData.minPurchase),
+      maxDiscount: formData.maxDiscount ? Number(formData.maxDiscount) : null,
+      startDate: formData.startDate,
+      endDate: formData.endDate,
+      usageLimit: Number(formData.usageLimit),
       status,
+      displayOnHomepage: formData.displayOnHomepage,
+      priority: Number(formData.priority),
+      backgroundColor: formData.backgroundColor || null,
+      textColor: formData.textColor || null,
+      badgeColor: formData.badgeColor || null,
+      borderStyle: formData.borderStyle || null,
+      cardStyle: formData.cardStyle || null,
     };
+
+    console.log('📦 Offer Data Being Sent:', JSON.stringify(offerData, null, 2));
 
     try {
       const url = editingOffer
@@ -347,6 +394,13 @@ export default function OffersPage() {
         : `${apiUrl}/api/offers`;
 
       const method = editingOffer ? 'PUT' : 'POST';
+
+      console.log('🎯 Creating/Updating Offer:', {
+        url,
+        method,
+        token: token ? 'Token exists' : 'No token',
+        offerData
+      });
 
       const response = await fetch(url, {
         method,
@@ -357,17 +411,24 @@ export default function OffersPage() {
         body: JSON.stringify(offerData),
       });
 
+      console.log('📡 Offer API Response Status:', response.status);
+
       if (response.ok) {
+        console.log('✅ Offer saved successfully');
         await fetchOffers();
         closeModal();
       } else {
         const error = await response.json();
-        console.error('Error saving offer:', error);
-        alert(error.error || 'Failed to save offer');
+        console.error('❌ Offer API Error Response:', {
+          status: response.status,
+          statusText: response.statusText,
+          error
+        });
+        alert(`Failed to save offer: ${error.error || error.message || 'Unknown error'}`);
       }
     } catch (error) {
-      console.error('Error saving offer:', error);
-      alert('Failed to save offer. Please try again.');
+      console.error('❌ Network or JavaScript Error:', error);
+      alert(`Failed to save offer: ${error instanceof Error ? error.message : 'Please try again'}`);
     }
   };
 
@@ -853,10 +914,10 @@ export default function OffersPage() {
                       /* Selected Product Display */
                       <div className="border border-green-300 rounded-lg p-3 bg-green-50">
                         <div className="flex items-center gap-3">
-                          {(selectedProduct.imageUrl || selectedProduct.images?.[0]) && (
+                          {((selectedProduct as any).imageUrl || selectedProduct.images?.[0]) && (
                             <div className="relative w-16 h-16">
                               <Image
-                                src={selectedProduct.imageUrl || selectedProduct.images?.[0] || ''}
+                                src={(selectedProduct as any).imageUrl || selectedProduct.images?.[0] || ''}
                                 alt={selectedProduct.name}
                                 fill
                                 className="object-cover rounded border border-gray-300"
@@ -920,10 +981,10 @@ export default function OffersPage() {
                                 onClick={() => handleProductSelect(product)}
                                 className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0"
                               >
-                                {(product.imageUrl || product.images?.[0]) && (
+                                {((product as any).imageUrl || product.images?.[0]) && (
                                   <div className="relative w-12 h-12 shrink-0">
                                     <Image
-                                      src={product.imageUrl || product.images?.[0] || ''}
+                                      src={(product as any).imageUrl || product.images?.[0] || ''}
                                       alt={product.name}
                                       fill
                                       className="object-cover rounded border border-gray-200"

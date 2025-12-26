@@ -1,26 +1,51 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/src/lib/AuthContext';
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
-  const { login, error, loading, clearError } = useAuth();
+  const searchParams = useSearchParams();
+  const { login, error, loading, clearError, user } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  const redirectPath = searchParams.get('redirect') || '/';
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      router.push(redirectPath);
+    }
+  }, [user, router, redirectPath]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     try {
       await login({ email, password });
       clearError();
-      router.push('/');
+
+      // Redirect after successful login
+      window.location.href = redirectPath;
     } catch (err) {
-      // error is handled in context
+      console.error('Login error:', err);
     }
   };
+
+  // If already logged in, show redirecting message
+  if (user) {
+    return (
+      <div className="min-h-[70vh] flex items-center justify-center px-4 py-8">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-rose-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="mt-4 text-gray-600">Redirecting...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-[70vh] flex items-center justify-center px-4 py-8">
@@ -39,7 +64,8 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+              disabled={loading}
+              className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
 
@@ -50,7 +76,8 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500"
+              disabled={loading}
+              className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
 
@@ -61,7 +88,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50"
+              className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
             >
               {loading ? 'Signing in...' : 'Login'}
             </button>
@@ -69,5 +96,20 @@ export default function LoginPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-[70vh] flex items-center justify-center px-4 py-8">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-rose-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   );
 }

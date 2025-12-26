@@ -39,10 +39,10 @@ export default function Navbar() {
 
   return (
     <>
-      {/* Search Focus Overlay */}
+      {/* Search Focus Overlay - Lower z-index than navbar */}
       {isSearchFocused && (
         <div
-          className="fixed inset-0 bg-white/30 backdrop-blur-md z-40 transition-opacity duration-200"
+          className="fixed inset-0 bg-white/30 backdrop-blur-md z-30 transition-opacity duration-200"
           onClick={() => setIsSearchFocused(false)}
         />
       )}
@@ -62,7 +62,7 @@ export default function Navbar() {
             </Link>
 
             {/* Search Bar - Desktop */}
-            <div className="hidden md:flex flex-1 max-w-md mx-8">
+            <div className="hidden md:flex flex-1 max-w-md mx-8 relative z-10">
               <form
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -79,9 +79,9 @@ export default function Navbar() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onFocus={() => setIsSearchFocused(true)}
                   placeholder="Search for products..."
-                  className="w-full px-4 py-2 pl-10 border-2 border-red-500 rounded-full focus:outline-none focus:border-green-500 relative z-50 bg-white transition-all"
+                  className="w-full px-4 py-2 pl-10 border-2 border-red-500 rounded-full focus:outline-none focus:border-green-500 relative bg-white transition-all"
                 />
-                <button type="submit" aria-label="Search" className="absolute left-3 top-2.5 z-50">
+                <button type="submit" aria-label="Search" className="absolute left-3 top-2.5">
                   <Search className="h-5 w-5 text-gray-400" />
                 </button>
               </form>
@@ -133,7 +133,7 @@ export default function Navbar() {
 
                     {/* Dropdown Menu */}
                     {isProfileOpen && (
-                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 border border-gray-200 z-50">
+                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 border border-gray-200 z-[60]">
                         <Link
                           href="/profile"
                           className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -202,7 +202,7 @@ export default function Navbar() {
           </div>
 
           {/* Mobile Search */}
-          <div className="md:hidden pb-4">
+          <div className="md:hidden pb-4 relative z-10">
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -219,9 +219,9 @@ export default function Navbar() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setIsSearchFocused(true)}
                 placeholder="Search for products..."
-                className="w-full px-4 py-2 pl-10 border-2 border-red-500 rounded-full focus:outline-none focus:border-green-500 relative z-50 bg-white transition-all"
+                className="w-full px-4 py-2 pl-10 border-2 border-red-500 rounded-full focus:outline-none focus:border-green-500 relative bg-white transition-all"
               />
-              <button type="submit" aria-label="Search" className="absolute left-3 top-2.5 z-50">
+              <button type="submit" aria-label="Search" className="absolute left-3 top-2.5">
                 <Search className="h-5 w-5 text-gray-400" />
               </button>
             </form>

@@ -1,19 +1,24 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { productsAPI, categoriesAPI, brandsAPI } from '@/src/lib/api';
 import { Product, Category, Brand } from '@/src/types/index';
 import ProductCard from '@/src/components/products/ProductCard';
 import EmptyState from '@/src/components/common/EmptyState';
 import { Filter, SlidersHorizontal } from 'lucide-react';
 
-export default function ProductsPage() {
+function ProductsContent() {
+  const searchParams = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+
+  // Check if we should filter by featured products from URL
+  const isFeaturedFilter = searchParams.get('featured') === 'true';
 
   // Filter states
   const [selectedCategory, setSelectedCategory] = useState<string>('');
@@ -38,6 +43,7 @@ export default function ProductsPage() {
         order: sortOrder,
         page: currentPage,
         limit: itemsPerPage,
+        featured: isFeaturedFilter || undefined,
       });
       setProducts(response.products);
       setTotalPages(response.pagination.totalPages);
@@ -48,7 +54,7 @@ export default function ProductsPage() {
     } finally {
       setLoading(false);
     }
-  }, [selectedCategory, selectedBrand, sortBy, sortOrder, currentPage, priceRange, itemsPerPage]);
+  }, [selectedCategory, selectedBrand, sortBy, sortOrder, currentPage, priceRange, itemsPerPage, isFeaturedFilter]);
 
   useEffect(() => {
     fetchCategories();
@@ -91,8 +97,14 @@ export default function ProductsPage() {
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Page Header */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">All Products</h1>
-          <p className="text-gray-600">Discover our complete collection of beauty products</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            {isFeaturedFilter ? 'Featured Products' : 'All Products'}
+          </h1>
+          <p className="text-gray-600">
+            {isFeaturedFilter
+              ? 'Discover our handpicked selection of featured beauty products'
+              : 'Discover our complete collection of beauty products'}
+          </p>
         </div>
 
         {/* Mobile Filter Toggle */}
@@ -429,5 +441,17 @@ export default function ProductsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ProductsPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="w-16 h-16 border-4 border-rose-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    }>
+      <ProductsContent />
+    </Suspense>
   );
 }

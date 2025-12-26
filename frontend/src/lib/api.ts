@@ -49,7 +49,8 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
     }));
     const errorMessage = error.message || `HTTP error! status: ${response.status}`;
     console.error(`API Error (${response.status}):`, errorMessage, error);
-    throw new Error(errorMessage);
+    // Include status code in error message for better debugging
+    throw new Error(`${response.status}: ${errorMessage}`);
   }
   return response.json();
 };
@@ -77,12 +78,12 @@ export const authAPI = {
     return handleResponse<AuthResponse>(response);
   },
 
-  getProfile: async (): Promise<{ user: User }> => {
+  getProfile: async (): Promise<User> => {
     const response = await fetch(`${API_URL}/api/auth/profile`, {
       method: 'GET',
       headers: createHeaders(true),
     });
-    return handleResponse<{ user: User }>(response);
+    return handleResponse<User>(response);
   },
 };
 

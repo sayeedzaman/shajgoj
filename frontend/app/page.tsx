@@ -52,7 +52,6 @@ export default function Home() {
   const [topSellingProducts, setTopSellingProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [productsLoading, setProductsLoading] = useState(true);
-  const [showAllTopSelling, setShowAllTopSelling] = useState(false);
 
   // Fetch offers from API on mount
   useEffect(() => {
@@ -616,7 +615,7 @@ export default function Home() {
             </>
           ) : featuredProducts.length > 0 ? (
             featuredProducts.slice(0, 4).map((product) => (
-              <ProductCard key={product.id} product={product} showAddToCart={false} />
+              <ProductCard key={product.id} product={product} showAddToCart={true} />
             ))
           ) : (
             <div className="col-span-full text-center py-8 text-gray-500">
@@ -630,14 +629,9 @@ export default function Home() {
       <section className="max-w-7xl mx-auto px-4 py-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl md:text-2xl font-bold text-gray-900">Top Selling Products</h2>
-          {topSellingProducts.length > 4 && (
-            <button
-              onClick={() => setShowAllTopSelling(!showAllTopSelling)}
-              className="text-red-600 hover:text-red-700 font-semibold flex items-center gap-1 text-sm"
-            >
-              {showAllTopSelling ? 'Show Less' : 'View More'} <ChevronRight className="w-4 h-4" />
-            </button>
-          )}
+          <Link href="/top-selling" className="text-red-600 hover:text-red-700 font-semibold flex items-center gap-1 text-sm">
+            View More <ChevronRight className="w-4 h-4" />
+          </Link>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-3 md:gap-4">
           {productsLoading ? (
@@ -647,8 +641,8 @@ export default function Home() {
               ))}
             </>
           ) : topSellingProducts.length > 0 ? (
-            (showAllTopSelling ? topSellingProducts : topSellingProducts.slice(0, 4)).map((product) => (
-              <ProductCard key={product.id} product={product} showAddToCart={false} />
+            topSellingProducts.slice(0, 4).map((product) => (
+              <ProductCard key={product.id} product={product} showAddToCart={true} />
             ))
           ) : (
             <div className="col-span-full text-center py-8 text-gray-500">

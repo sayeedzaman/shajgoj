@@ -37,29 +37,72 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   useEffect(() => {
     const checkAuth = async () => {
       const token = localStorage.getItem('token');
-      if (token) {
-        try {
-          const response = await authAPI.getProfile();
-          setUser(response.user);
-        } catch (err) {
-          console.error('Failed to fetch user profile:', err);
-          localStorage.removeItem('token');
-        }
+
+      if (!token) {
+        console.log('No token found on mount');
+        setLoading(false);
+        return;
       }
-      setLoading(false);
+
+      console.log('Token found, validating session...');
+      try {
+        const user = await authAPI.getProfile();
+        console.log('Session validated successfully:', user);
+        setUser(user);
+      } catch (err) {
+        console.error('Session validation failed:', err);
+        // Only remove token if it's truly invalid (401/403), not network errors
+        if (err instanceof Error && err.message.includes('401')) {
+          console.log('Token is invalid, removing...');
+          localStorage.removeItem('token');
+        } else {
+          console.log('Network or other error, keeping token');
+        }
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
     };
 
     checkAuth();
+  }, []);
+
+  // Listen for storage events to sync auth state across tabs
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'token') {
+        if (e.newValue === null) {
+          // Token was removed (logout in another tab)
+          setUser(null);
+        } else if (e.newValue !== e.oldValue) {
+          // Token was added or changed (login in another tab)
+          authAPI.getProfile()
+            .then(user => setUser(user))
+            .catch(() => {
+              localStorage.removeItem('token');
+              setUser(null);
+            });
+        }
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   const login = async (credentials: LoginRequest) => {
     try {
       setError(null);
       setLoading(true);
+      console.log('Login attempt starting...');
       const response = await authAPI.login(credentials);
+
+      console.log('Login successful, saving token and user:', response.user);
       localStorage.setItem('token', response.token);
       setUser(response.user);
+      console.log('User state updated, token saved to localStorage');
     } catch (err) {
+      console.error('Login failed:', err);
       const errorMessage = err instanceof Error ? err.message : 'Login failed';
       setError(errorMessage);
       throw err;
@@ -73,6 +116,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setError(null);
       setLoading(true);
       const response = await authAPI.signup(data);
+
       localStorage.setItem('token', response.token);
       setUser(response.user);
     } catch (err) {
@@ -89,7 +133,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setUser(null);
     setError(null);
 
-    // Redirect to home page for privacy
     if (typeof window !== 'undefined') {
       window.location.href = '/';
     }

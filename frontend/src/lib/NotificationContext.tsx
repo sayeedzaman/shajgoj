@@ -91,12 +91,12 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       }
 
       // System notification about total products
-      if (productsResponse.pagination.total > 50) {
+      if (productsResponse.pagination.totalProducts > 50) {
         notifs.push({
           id: 'system-inventory',
           type: 'system',
           title: 'Inventory Update',
-          message: `You have ${productsResponse.pagination.total} products in your store`,
+          message: `You have ${productsResponse.pagination.totalProducts} products in your store`,
           timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000), // 5 hours ago
           read: true,
           link: `/admin/products`

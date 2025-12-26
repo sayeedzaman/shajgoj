@@ -624,6 +624,160 @@ export const uploadAPI = {
   },
 };
 
+// Analytics Types
+export interface DashboardAnalytics {
+  overview: {
+    totalRevenue: number;
+    totalOrders: number;
+    totalCustomers: number;
+    averageOrderValue: number;
+    revenueGrowth: number;
+    ordersGrowth: number;
+    customersGrowth: number;
+  };
+  recentOrders: Order[];
+  topProducts: Array<{
+    product: Product;
+    revenue: number;
+    unitsSold: number;
+  }>;
+  salesByCategory: Array<{
+    category: Category;
+    revenue: number;
+    orderCount: number;
+  }>;
+}
+
+export interface RevenueTrend {
+  period: string;
+  revenue: number;
+  orders: number;
+}
+
+export interface TopProduct {
+  product: Product;
+  revenue: number;
+  unitsSold: number;
+  orderCount: number;
+}
+
+export interface CategorySales {
+  category: Category;
+  revenue: number;
+  orderCount: number;
+  productCount: number;
+}
+
+export interface CustomerGrowth {
+  period: string;
+  newCustomers: number;
+  totalCustomers: number;
+}
+
+// Admin Analytics API
+export const adminAnalyticsAPI = {
+  getDashboard: async (): Promise<DashboardAnalytics> => {
+    const response = await fetch(`${API_URL}/api/admin/analytics/dashboard`, {
+      method: 'GET',
+      headers: createHeaders(),
+    });
+    return handleResponse<DashboardAnalytics>(response);
+  },
+
+  getRevenueTrends: async (params?: {
+    period?: 'daily' | 'weekly' | 'monthly';
+    startDate?: string;
+    endDate?: string;
+  }): Promise<{ trends: RevenueTrend[] }> => {
+    const searchParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          searchParams.append(key, String(value));
+        }
+      });
+    }
+
+    const response = await fetch(
+      `${API_URL}/api/admin/analytics/revenue${searchParams.toString() ? `?${searchParams.toString()}` : ''}`,
+      {
+        method: 'GET',
+        headers: createHeaders(),
+      }
+    );
+    return handleResponse<{ trends: RevenueTrend[] }>(response);
+  },
+
+  getTopProducts: async (params?: {
+    limit?: number;
+    period?: 'week' | 'month' | 'year';
+  }): Promise<{ products: TopProduct[] }> => {
+    const searchParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          searchParams.append(key, String(value));
+        }
+      });
+    }
+
+    const response = await fetch(
+      `${API_URL}/api/admin/analytics/products/top${searchParams.toString() ? `?${searchParams.toString()}` : ''}`,
+      {
+        method: 'GET',
+        headers: createHeaders(),
+      }
+    );
+    return handleResponse<{ products: TopProduct[] }>(response);
+  },
+
+  getSalesByCategory: async (): Promise<{ categories: CategorySales[] }> => {
+    const response = await fetch(`${API_URL}/api/admin/analytics/categories`, {
+      method: 'GET',
+      headers: createHeaders(),
+    });
+    return handleResponse<{ categories: CategorySales[] }>(response);
+  },
+
+  getCustomerGrowth: async (params?: {
+    period?: 'daily' | 'weekly' | 'monthly';
+  }): Promise<{ growth: CustomerGrowth[] }> => {
+    const searchParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          searchParams.append(key, String(value));
+        }
+      });
+    }
+
+    const response = await fetch(
+      `${API_URL}/api/admin/analytics/customers/growth${searchParams.toString() ? `?${searchParams.toString()}` : ''}`,
+      {
+        method: 'GET',
+        headers: createHeaders(),
+      }
+    );
+    return handleResponse<{ growth: CustomerGrowth[] }>(response);
+  },
+
+  getRecentOrders: async (params?: { limit?: number }): Promise<{ orders: Order[] }> => {
+    const searchParams = new URLSearchParams();
+    if (params?.limit) {
+      searchParams.append('limit', String(params.limit));
+    }
+
+    const response = await fetch(
+      `${API_URL}/api/admin/analytics/orders/recent${searchParams.toString() ? `?${searchParams.toString()}` : ''}`,
+      {
+        method: 'GET',
+        headers: createHeaders(),
+      }
+    );
+    return handleResponse<{ orders: Order[] }>(response);
+  },
+};
+
 export const adminAPI = {
   products: adminProductsAPI,
   categories: adminCategoriesAPI,
@@ -631,6 +785,7 @@ export const adminAPI = {
   orders: adminOrdersAPI,
   customers: adminCustomersAPI,
   upload: uploadAPI,
+  analytics: adminAnalyticsAPI,
 };
 
 export default adminAPI;

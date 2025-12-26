@@ -50,17 +50,17 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
 
   return (
     <>
-      {/* Overlay for mobile */}
+      {/* Overlay for mobile - just close on click, no darkening */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          className="fixed inset-0 z-40 lg:hidden"
           onClick={onClose}
         />
       )}
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 z-50 h-screen bg-white border-r border-gray-200 transition-transform duration-300 w-64 ${
+        className={`fixed top-0 left-0 z-50 h-screen bg-white border-r border-gray-200 shadow-2xl transition-transform duration-300 w-64 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         } lg:translate-x-0`}
       >
@@ -89,7 +89,12 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
             <ul className="space-y-1">
               {menuItems.map((item) => {
                 const Icon = item.icon;
-                const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+                // Fix: Dashboard (/admin) should only be active on exact match
+                // Other pages should match both exact path and sub-routes
+                const isActive =
+                  item.href === '/admin'
+                    ? pathname === '/admin'
+                    : pathname === item.href || pathname.startsWith(item.href + '/');
 
                 return (
                   <li key={item.href}>

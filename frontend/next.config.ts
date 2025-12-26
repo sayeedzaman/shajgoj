@@ -27,6 +27,14 @@ const nextConfig: NextConfig = {
         hostname: 'localhost',
       },
       {
+        protocol: 'http',
+        hostname: 'res.cloudinary.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+      },
+      {
         protocol: 'https',
         hostname: '**', // Allows any HTTPS domain (for production images from Cloudinary, S3, etc.)
       },
