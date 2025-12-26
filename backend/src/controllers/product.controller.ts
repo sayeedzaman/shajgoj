@@ -502,7 +502,20 @@ export const getFeaturedProducts = async (req: Request, res: Response) => {
 // Get top selling products
 export const getTopSellingProducts = async (req: Request, res: Response) => {
   try {
-    const { limit = '10' } = req.query;
+    const {
+      limit = '12',
+      page = '1',
+      category,
+      brand,
+      minPrice,
+      maxPrice,
+      sortBy,
+      order,
+    } = req.query;
+
+    const pageNum = parseInt(page as string);
+    const limitNum = parseInt(limit as string);
+    const skip = (pageNum - 1) * limitNum;
 
     // Step 1: Use Prisma groupBy to aggregate sales data
     const topSellingData = await prisma.orderItem.groupBy({
@@ -525,49 +538,90 @@ export const getTopSellingProducts = async (req: Request, res: Response) => {
           quantity: 'desc', // Sort by most sold
         },
       },
-      take: parseInt(limit as string),
     });
 
-    // Step 2: Fetch full product details for top sellers
-    const topSellingProducts = await Promise.all(
-      topSellingData.map(async (item) => {
-        const product = await prisma.product.findUnique({
-          where: { id: item.productId },
-          include: {
-            Category: {
-              select: {
-                id: true,
-                name: true,
-                slug: true,
-              },
-            },
-            Brand: {
-              select: {
-                id: true,
-                name: true,
-                slug: true,
-              },
+    // Get all top-selling product IDs
+    const topSellingProductIds = topSellingData.map((item) => item.productId);
+
+    // Step 2: Build filter for products
+    const where: any = {
+      id: {
+        in: topSellingProductIds,
+      },
+    };
+
+    // Apply filters
+    if (category) {
+      where.categoryId = category as string;
+    }
+
+    if (brand) {
+      where.brandId = brand as string;
+    }
+
+    if (minPrice || maxPrice) {
+      where.price = {};
+      if (minPrice) where.price.gte = parseFloat(minPrice as string);
+      if (maxPrice) where.price.lte = parseFloat(maxPrice as string);
+    }
+
+    // Step 3: Fetch filtered products with pagination
+    const [products, totalCount] = await Promise.all([
+      prisma.product.findMany({
+        where,
+        include: {
+          Category: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
             },
           },
-        });
+          Brand: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
+        },
+        skip,
+        take: limitNum,
+      }),
+      prisma.product.count({ where }),
+    ]);
 
-        if (!product) return null;
+    // Step 4: Attach sales data and sort
+    let productsWithSalesData = products.map((product) => {
+      const salesData = topSellingData.find((item) => item.productId === product.id);
+      return {
+        ...product,
+        totalSold: salesData?._sum.quantity || 0,
+        orderCount: salesData?._count.id || 0,
+        imageUrl: product.images.length > 0 ? product.images[0] : null,
+      };
+    });
 
-        return {
-          ...product,
-          totalSold: item._sum.quantity || 0,
-          orderCount: item._count.id,
-          imageUrl: product.images.length > 0 ? product.images[0] : null,
-        };
-      })
-    );
-
-    // Filter out any null products (in case product was deleted)
-    const validProducts = topSellingProducts.filter((p) => p !== null);
+    // Apply custom sorting if provided
+    if (sortBy === 'price') {
+      productsWithSalesData.sort((a, b) => {
+        const priceA = a.salePrice || a.price;
+        const priceB = b.salePrice || b.price;
+        return order === 'asc' ? priceA - priceB : priceB - priceA;
+      });
+    } else {
+      // Default: sort by total sold (descending)
+      productsWithSalesData.sort((a, b) => b.totalSold - a.totalSold);
+    }
 
     res.json({
-      topSellingProducts: validProducts,
-      count: validProducts.length,
+      products: productsWithSalesData,
+      pagination: {
+        currentPage: pageNum,
+        totalPages: Math.ceil(totalCount / limitNum),
+        totalProducts: totalCount,
+        hasMore: skip + limitNum < totalCount,
+      },
     });
   } catch (error) {
     console.error('Get top selling products error:', error);
