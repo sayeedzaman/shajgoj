@@ -245,8 +245,8 @@ export const getTopProducts = async (req: AuthRequest, res: Response): Promise<a
           product: item.Product,
         };
       }
-      productStats[item.productId].sales += item.quantity;
-      productStats[item.productId].revenue += item.price * item.quantity;
+      productStats[item.productId]!.sales += item.quantity;
+      productStats[item.productId]!.revenue += item.price * item.quantity;
     });
 
     // Convert to array and sort by sales
@@ -412,7 +412,7 @@ export const getCustomerGrowth = async (req: AuthRequest, res: Response): Promis
     // Distribute returning customers evenly across months (simplified)
     const returningCustomersPerMonth = Math.floor(repeatOrders.length / monthsBack);
     Object.keys(monthlyData).forEach((month, index) => {
-      monthlyData[month].returning = returningCustomersPerMonth + (index < repeatOrders.length % monthsBack ? 1 : 0);
+      monthlyData[month]!.returning = returningCustomersPerMonth + (index < repeatOrders.length % monthsBack ? 1 : 0);
     });
 
     // Convert to array

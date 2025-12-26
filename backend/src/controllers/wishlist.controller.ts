@@ -48,6 +48,7 @@ export const getWishlist = async (req: AuthRequest, res: Response) => {
       wishlist = await prisma.wishlist.create({
         data: {
           userId,
+          updatedAt: new Date(),
         },
         include: {
           WishlistItem: {
@@ -71,13 +72,16 @@ export const getWishlist = async (req: AuthRequest, res: Response) => {
                 },
               },
             },
+            orderBy: {
+              createdAt: 'desc',
+            },
           },
         },
       });
     }
 
     // Transform wishlist items to include imageUrl
-    const transformedItems = wishlist.WishlistItem.map((item) => ({
+    const transformedItems = wishlist!.WishlistItem.map((item) => ({
       ...item,
       Product: {
         ...item.Product,
@@ -86,9 +90,9 @@ export const getWishlist = async (req: AuthRequest, res: Response) => {
     }));
 
     res.json({
-      id: wishlist.id,
+      id: wishlist!.id,
       items: transformedItems,
-      itemCount: wishlist.WishlistItem.length,
+      itemCount: wishlist!.WishlistItem.length,
     });
   } catch (error) {
     console.error('Get wishlist error:', error);
@@ -126,7 +130,10 @@ export const addToWishlist = async (req: AuthRequest, res: Response) => {
 
     if (!wishlist) {
       wishlist = await prisma.wishlist.create({
-        data: { userId },
+        data: {
+          userId,
+          updatedAt: new Date(),
+        },
       });
     }
 

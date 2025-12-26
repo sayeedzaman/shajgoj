@@ -16,7 +16,10 @@ export const getSettings = async (req: Request, res: Response): Promise<void> =>
     // If settings don't exist, create default settings
     if (!settings) {
       settings = await prisma.storeSettings.create({
-        data: { id: SETTINGS_ID },
+        data: {
+          id: SETTINGS_ID,
+          updatedAt: new Date(),
+        },
       });
     }
 

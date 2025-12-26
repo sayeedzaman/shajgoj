@@ -94,6 +94,11 @@ export const getOfferById = async (req: Request, res: Response): Promise<void> =
   try {
     const { id } = req.params;
 
+    if (!id) {
+      res.status(400).json({ error: 'Offer ID is required' });
+      return;
+    }
+
     const offer = await prisma.offer.findUnique({
       where: { id },
     });
@@ -141,6 +146,11 @@ export const updateOffer = async (req: Request, res: Response): Promise<void> =>
     const { id } = req.params;
     const offerData = req.body;
 
+    if (!id) {
+      res.status(400).json({ error: 'Offer ID is required' });
+      return;
+    }
+
     // Convert date strings to Date objects if they exist
     const updateData: any = { ...offerData };
     if (offerData.startDate) {
@@ -174,6 +184,11 @@ export const updateOffer = async (req: Request, res: Response): Promise<void> =>
 export const deleteOffer = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
+
+    if (!id) {
+      res.status(400).json({ error: 'Offer ID is required' });
+      return;
+    }
 
     await prisma.offer.delete({
       where: { id },
@@ -272,6 +287,11 @@ export const applyOfferCode = async (req: Request, res: Response): Promise<void>
 export const incrementOfferUsage = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
+
+    if (!id) {
+      res.status(400).json({ error: 'Offer ID is required' });
+      return;
+    }
 
     const offer = await prisma.offer.update({
       where: { id },

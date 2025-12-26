@@ -46,6 +46,7 @@ export const getCart = async (req: AuthRequest, res: Response) => {
       cart = await prisma.cart.create({
         data: {
           userId,
+          updatedAt: new Date(),
         },
         include: {
           CartItem: {
@@ -74,8 +75,9 @@ export const getCart = async (req: AuthRequest, res: Response) => {
       });
     }
 
+    // At this point, cart is guaranteed to be non-null with CartItem included
     // Transform cart items to match frontend expectations
-    const transformedItems = cart.CartItem.map((item) => ({
+    const transformedItems = cart!.CartItem.map((item) => ({
       id: item.id,
       quantity: item.quantity,
       productId: item.productId,
@@ -95,7 +97,7 @@ export const getCart = async (req: AuthRequest, res: Response) => {
     }, 0);
 
     const cartData = {
-      id: cart.id,
+      id: cart!.id,
       items: transformedItems,
       itemCount: transformedItems.reduce((sum, item) => sum + item.quantity, 0),
       subtotal: parseFloat(subtotal.toFixed(2)),
@@ -150,7 +152,10 @@ export const addToCart = async (req: AuthRequest, res: Response) => {
 
     if (!cart) {
       cart = await prisma.cart.create({
-        data: { userId },
+        data: {
+          userId,
+          updatedAt: new Date(),
+        },
       });
     }
 
