@@ -104,7 +104,7 @@ model Order {
   status      OrderStatus @default(PENDING)
   total       Float
   createdAt   DateTime    @default(now())
-  updatedAt   DateTime
+  updatedAt   DateTime    @updatedAt
   userId      String
   addressId   String
   Address     Address     @relation(fields: [addressId], references: [id])
