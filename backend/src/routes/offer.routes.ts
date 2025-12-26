@@ -23,15 +23,15 @@ router.post('/apply', applyOfferCode);
 router.post(
   '/upload-image',
   authenticate,
-  authorize(['ADMIN']),
+  authorize('ADMIN'),
   upload.single('image'),
   uploadOfferImage
 );
-router.get('/', authenticate, authorize(['ADMIN']), getAllOffers);
-router.get('/:id', authenticate, authorize(['ADMIN']), getOfferById);
-router.post('/', authenticate, authorize(['ADMIN']), createOffer);
-router.put('/:id', authenticate, authorize(['ADMIN']), updateOffer);
-router.delete('/:id', authenticate, authorize(['ADMIN']), deleteOffer);
-router.post('/:id/increment', authenticate, authorize(['ADMIN']), incrementOfferUsage);
+router.get('/', authenticate, authorize('ADMIN'), getAllOffers);
+router.get('/:id', authenticate, authorize('ADMIN'), getOfferById);
+router.post('/', authenticate, authorize('ADMIN'), createOffer);
+router.put('/:id', authenticate, authorize('ADMIN'), updateOffer);
+router.delete('/:id', authenticate, authorize('ADMIN'), deleteOffer);
+router.post('/:id/increment', authenticate, authorize('ADMIN'), incrementOfferUsage);
 
 export default router;
