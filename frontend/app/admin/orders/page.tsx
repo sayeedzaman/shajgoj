@@ -15,6 +15,7 @@ export default function OrderManagementPage() {
   const [errorMessage, setErrorMessage] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchOrders();
@@ -51,30 +52,34 @@ export default function OrderManagementPage() {
 
   const handleStatusUpdate = async (orderId: string, newStatus: Order['status']) => {
     try {
-      await adminAPI.orders.updateStatus(orderId, newStatus);
+      setUpdatingOrderId(orderId);
+      const response = await adminAPI.orders.updateStatus(orderId, newStatus);
       showSuccess('Order status updated successfully');
-      fetchOrders();
+
+      // Update the order in the list with the response
+      setOrders(orders.map(order =>
+        order.id === orderId ? response.order : order
+      ));
+
+      // Update selected order if it's open in modal
       if (selectedOrder?.id === orderId) {
-        const updatedOrder = await adminAPI.orders.getById(orderId);
-        setSelectedOrder(updatedOrder);
+        setSelectedOrder(response.order);
       }
     } catch (error: unknown) {
+      console.error('Status update error:', error);
       if (error instanceof Error) {
         showError(error.message);
       } else {
         showError('Failed to update order status');
       }
+    } finally {
+      setUpdatingOrderId(null);
     }
   };
 
-  const viewOrderDetails = async (order: Order) => {
-    try {
-      const fullOrder = await adminAPI.orders.getById(order.id);
-      setSelectedOrder(fullOrder);
-      setShowModal(true);
-    } catch (error) {
-      showError('Failed to load order details');
-    }
+  const viewOrderDetails = (order: Order) => {
+    setSelectedOrder(order);
+    setShowModal(true);
   };
 
   const getStatusBadge = (status: Order['status']) => {
@@ -233,19 +238,25 @@ export default function OrderManagementPage() {
                             className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                             title="View Details"
                           >
-                            <Eye className="w-4 h-4" />
+                            <Eye className="w-5 h-5" />
                           </button>
-                          <select
-                            value={order.status}
-                            onChange={(e) => handleStatusUpdate(order.id, e.target.value as Order['status'])}
-                            className="text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-red-500"
-                          >
-                            <option value="PENDING">Pending</option>
-                            <option value="PROCESSING">Processing</option>
-                            <option value="SHIPPED">Shipped</option>
-                            <option value="DELIVERED">Delivered</option>
-                            <option value="CANCELLED">Cancelled</option>
-                          </select>
+                          <div className="relative flex items-center gap-1">
+                            <select
+                              value={order.status}
+                              onChange={(e) => handleStatusUpdate(order.id, e.target.value as Order['status'])}
+                              disabled={updatingOrderId === order.id}
+                              className="text-xs border border-gray-300 rounded px-2 py-1 pr-6 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              <option value="PENDING">Pending</option>
+                              <option value="PROCESSING">Processing</option>
+                              <option value="SHIPPED">Shipped</option>
+                              <option value="DELIVERED">Delivered</option>
+                              <option value="CANCELLED">Cancelled</option>
+                            </select>
+                            {updatingOrderId === order.id && (
+                              <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+                            )}
+                          </div>
                         </div>
                       </td>
                     </tr>
@@ -284,7 +295,7 @@ export default function OrderManagementPage() {
 
       {/* Order Details Modal */}
       {showModal && selectedOrder && (
-        <div className="fixed inset-0 bg-white/30 backdrop-blur-md flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-transparent backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
             <div className="flex justify-between items-center p-6 border-b border-gray-200 z-10">
               <h2 className="text-2xl font-bold text-gray-900">
@@ -416,22 +427,30 @@ export default function OrderManagementPage() {
               {/* Update Status */}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <h3 className="text-sm font-semibold text-gray-700 mb-3">Update Order Status</h3>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   {['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'].map((status) => (
                     <button
                       key={status}
                       onClick={() => handleStatusUpdate(selectedOrder.id, status as Order['status'])}
-                      disabled={selectedOrder.status === status}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      disabled={selectedOrder.status === status || updatingOrderId === selectedOrder.id}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
                         selectedOrder.status === status
                           ? 'bg-red-600 text-white cursor-not-allowed'
+                          : updatingOrderId === selectedOrder.id
+                          ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                           : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
                       }`}
                     >
+                      {updatingOrderId === selectedOrder.id && (
+                        <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                      )}
                       {status}
                     </button>
                   ))}
                 </div>
+                {updatingOrderId === selectedOrder.id && (
+                  <p className="text-xs text-blue-600 mt-2">Updating status...</p>
+                )}
               </div>
             </div>
 
