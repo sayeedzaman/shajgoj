@@ -303,6 +303,142 @@ export const addressesAPI = {
   },
 };
 
+// Reviews API
+export const reviewsAPI = {
+  getProductReviews: async (productId: string, page = 1, limit = 10) => {
+    const response = await fetch(`${API_URL}/api/reviews/products/${productId}?page=${page}&limit=${limit}`, {
+      method: 'GET',
+      headers: createHeaders(),
+    });
+    return handleResponse<{
+      reviews: Array<{
+        id: string;
+        rating: number;
+        comment: string | null;
+        createdAt: string;
+        updatedAt: string;
+        user: {
+          firstName: string | null;
+          lastName: string | null;
+        };
+      }>;
+      statistics: {
+        averageRating: number;
+        totalReviews: number;
+        ratingDistribution: {
+          1: number;
+          2: number;
+          3: number;
+          4: number;
+          5: number;
+        };
+      };
+    }>(response);
+  },
+
+  create: async (productId: string, rating: number, comment?: string) => {
+    const response = await fetch(`${API_URL}/api/reviews`, {
+      method: 'POST',
+      headers: createHeaders(true),
+      body: JSON.stringify({ productId, rating, comment }),
+    });
+    return handleResponse<{
+      id: string;
+      rating: number;
+      comment: string | null;
+      productId: string;
+      userId: string;
+      createdAt: string;
+      updatedAt: string;
+    }>(response);
+  },
+
+  update: async (reviewId: string, rating: number, comment?: string) => {
+    const response = await fetch(`${API_URL}/api/reviews/${reviewId}`, {
+      method: 'PUT',
+      headers: createHeaders(true),
+      body: JSON.stringify({ rating, comment }),
+    });
+    return handleResponse<{
+      id: string;
+      rating: number;
+      comment: string | null;
+      createdAt: string;
+      updatedAt: string;
+    }>(response);
+  },
+
+  delete: async (reviewId: string) => {
+    const response = await fetch(`${API_URL}/api/reviews/${reviewId}`, {
+      method: 'DELETE',
+      headers: createHeaders(true),
+    });
+    return handleResponse<{ message: string }>(response);
+  },
+};
+
+// Wishlist API
+export const wishlistAPI = {
+  get: async () => {
+    const response = await fetch(`${API_URL}/api/wishlist`, {
+      method: 'GET',
+      headers: createHeaders(true),
+    });
+    return handleResponse<{
+      id: string;
+      items: Array<{
+        id: string;
+        productId: string;
+        Product: Product;
+      }>;
+      itemCount: number;
+    }>(response);
+  },
+
+  addItem: async (productId: string) => {
+    const response = await fetch(`${API_URL}/api/wishlist/items`, {
+      method: 'POST',
+      headers: createHeaders(true),
+      body: JSON.stringify({ productId }),
+    });
+    return handleResponse<{
+      id: string;
+      items: Array<{
+        id: string;
+        productId: string;
+        Product: Product;
+      }>;
+      itemCount: number;
+      message: string;
+    }>(response);
+  },
+
+  removeItem: async (productId: string) => {
+    const response = await fetch(`${API_URL}/api/wishlist/items/${productId}`, {
+      method: 'DELETE',
+      headers: createHeaders(true),
+    });
+    return handleResponse<{
+      id: string;
+      items: Array<{
+        id: string;
+        productId: string;
+        Product: Product;
+      }>;
+      itemCount: number;
+      message: string;
+    }>(response);
+  },
+
+  clear: async () => {
+    const response = await fetch(`${API_URL}/api/wishlist`, {
+      method: 'DELETE',
+      headers: createHeaders(true),
+    });
+    return handleResponse<{ message: string }>(response);
+  },
+};
+
 export const api = {
   auth: authAPI,
   products: productsAPI,
@@ -311,6 +447,8 @@ export const api = {
   brands: brandsAPI,
   orders: ordersAPI,
   addresses: addressesAPI,
+  reviews: reviewsAPI,
+  wishlist: wishlistAPI,
 };
 
 export default api;
