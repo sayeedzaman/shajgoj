@@ -20,7 +20,15 @@ import reviewRoutes from './routes/review.routes.js';
 import './config/cloudinary.js';
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = parseInt(process.env.PORT || '5000', 10);
+
+// Log environment info for debugging
+console.log('Environment Variables Check:');
+console.log('- NODE_ENV:', process.env.NODE_ENV);
+console.log('- PORT:', process.env.PORT, '(using:', PORT, ')');
+console.log('- FRONTEND_URL:', process.env.FRONTEND_URL);
+console.log('- FRONTEND_URLS:', process.env.FRONTEND_URLS);
+console.log('- DATABASE_URL:', process.env.DATABASE_URL ? '✓ Set' : '✗ Not set');
 
 // Middleware
 const allowedOrigins = (process.env.FRONTEND_URLS || process.env.FRONTEND_URL || 'http://localhost:3000')
@@ -85,7 +93,7 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server is running on port ${PORT}`);
   console.log(`
 Available routes:
