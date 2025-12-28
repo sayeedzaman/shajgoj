@@ -390,12 +390,16 @@ export const updateOrderStatus = async (req: AuthRequest, res: Response): Promis
             email: true,
             firstName: true,
             lastName: true,
+            phone: true,
           },
         },
       },
     });
 
-    res.json(updatedOrder);
+    res.json({
+      message: 'Order status updated successfully',
+      order: updatedOrder
+    });
   } catch (error) {
     console.error('Update order status error:', error);
     res.status(500).json({ error: 'Failed to update order status' });
