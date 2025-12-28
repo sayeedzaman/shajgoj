@@ -71,7 +71,7 @@ export interface PaginationResponse {
   hasPrev: boolean;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const API_URL = 'http://localhost:5000';
 
 // Helper function to get auth token
 const getAuthToken = (): string | null => {
