@@ -266,6 +266,7 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
       brandId,
       brandName,     // NEW: Accept brand name
       brandSlug,     // NEW: Accept brand slug
+      concernId,
     } = req.body;
 
     console.log('📸 Images received:', images);
@@ -377,6 +378,7 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
       featured: featured === true || featured === 'true',
       categoryId: finalCategoryId,
       brandId: finalBrandId,
+      concernId: concernId || null,
     };
 
     console.log('💾 Creating product with data:', JSON.stringify(productData, null, 2));
@@ -421,6 +423,7 @@ export const updateProduct = async (req: Request, res: Response): Promise<void> 
       brandId,
       brandName,     // NEW: Accept brand name
       brandSlug,     // NEW: Accept brand slug
+      concernId,
     } = req.body;
 
     if (!id) {
@@ -511,6 +514,11 @@ export const updateProduct = async (req: Request, res: Response): Promise<void> 
       }
 
       updateData.brandId = finalBrandId;
+    }
+
+    // Handle concernId if provided
+    if (concernId !== undefined) {
+      updateData.concernId = concernId || null;
     }
 
     // Update product

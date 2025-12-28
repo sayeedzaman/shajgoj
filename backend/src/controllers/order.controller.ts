@@ -80,7 +80,7 @@ export const createOrder = async (req: AuthRequest, res: Response): Promise<any>
         OrderItem: {
           create: orderItems,
         },
-      },
+      } as Prisma.OrderUncheckedCreateInput,
       include: {
         OrderItem: {
           include: {

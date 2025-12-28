@@ -2,6 +2,7 @@ import type {
   Product,
   Category,
   Brand,
+  Concern,
   Review,
 } from '@/src/types/index';
 
@@ -198,6 +199,7 @@ export interface CreateProductRequest {
   brandId?: string;
   brandName?: string;
   brandSlug?: string;
+  concernId?: string;
 }
 
 export type UpdateProductRequest = Partial<CreateProductRequest>;
@@ -430,6 +432,25 @@ export const adminBrandsAPI = {
       headers: createHeaders(),
     });
     return handleResponse<{ message: string }>(response);
+  },
+};
+
+// Admin Concerns API
+export const adminConcernsAPI = {
+  getAll: async (): Promise<Concern[]> => {
+    const response = await fetch(`${API_URL}/api/concerns`, {
+      method: 'GET',
+      headers: createHeaders(),
+    });
+    return handleResponse<Concern[]>(response);
+  },
+
+  getById: async (id: string): Promise<Concern> => {
+    const response = await fetch(`${API_URL}/api/concerns/${id}`, {
+      method: 'GET',
+      headers: createHeaders(),
+    });
+    return handleResponse<Concern>(response);
   },
 };
 
@@ -782,6 +803,7 @@ export const adminAPI = {
   products: adminProductsAPI,
   categories: adminCategoriesAPI,
   brands: adminBrandsAPI,
+  concerns: adminConcernsAPI,
   orders: adminOrdersAPI,
   customers: adminCustomersAPI,
   upload: uploadAPI,

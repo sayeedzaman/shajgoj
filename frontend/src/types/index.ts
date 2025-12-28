@@ -138,6 +138,7 @@ export interface CreateProductRequest {
   featured?: boolean;
   categoryId: string;
   brandId?: string;
+  concernId?: string;
 }
 
 export interface UpdateProductRequest extends Partial<CreateProductRequest> {}

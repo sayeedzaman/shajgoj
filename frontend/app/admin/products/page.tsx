@@ -4,12 +4,13 @@ import { useState, useEffect, useCallback } from 'react';
 import { Package, Plus, Search, Edit, Trash2, Filter, ChevronDown, X, Upload, Image as ImageIcon } from 'lucide-react';
 import { adminAPI, type CreateProductRequest } from '@/src/lib/adminApi';
 import { useAuth } from '@/src/lib/AuthContext';
-import type { Product, Category, Brand } from '@/src/types';
+import type { Product, Category, Brand, Concern } from '@/src/types';
 
 export default function ProductManagementPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
+  const [concerns, setConcerns] = useState<Concern[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -33,6 +34,7 @@ export default function ProductManagementPage() {
     featured: false,
     categoryId: '',
     brandId: '',
+    concernId: '',
   });
 
   const [imagePreviews, setImagePreviews] = useState<string[]>(['', '', '']);
@@ -72,6 +74,7 @@ export default function ProductManagementPage() {
     // Public endpoints; fine to call regardless
     fetchCategories();
     fetchBrands();
+    fetchConcerns();
   }, [authLoading, user, currentPage, searchQuery, categoryFilter, brandFilter, fetchProducts]);
 
   const fetchCategories = async () => {
@@ -89,6 +92,15 @@ export default function ProductManagementPage() {
       setBrands(brandsList);
     } catch (error) {
       console.error('Failed to fetch brands:', error);
+    }
+  };
+
+  const fetchConcerns = async () => {
+    try {
+      const concernsList = await adminAPI.concerns.getAll();
+      setConcerns(concernsList);
+    } catch (error) {
+      console.error('Failed to fetch concerns:', error);
     }
   };
 
@@ -163,6 +175,7 @@ export default function ProductManagementPage() {
         featured: product.featured,
         categoryId: product.categoryId,
         brandId: product.brandId || '',
+        concernId: product.concernId || '',
       });
       setImagePreviews([
         product.images?.[0] || '',
@@ -182,6 +195,7 @@ export default function ProductManagementPage() {
         featured: false,
         categoryId: '',
         brandId: '',
+        concernId: '',
       });
       setImagePreviews(['', '', '']);
     }
@@ -202,6 +216,7 @@ export default function ProductManagementPage() {
       featured: false,
       categoryId: '',
       brandId: '',
+      concernId: '',
     });
     setImagePreviews(['', '', '']);
     setImageFiles([null, null, null]);
@@ -277,6 +292,10 @@ export default function ProductManagementPage() {
 
       if (formData.brandId && formData.brandId.trim()) {
         cleanedData.brandId = formData.brandId.trim();
+      }
+
+      if (formData.concernId && formData.concernId.trim()) {
+        cleanedData.concernId = formData.concernId.trim();
       }
 
       console.log('Submitting product:', cleanedData);
@@ -779,6 +798,24 @@ export default function ProductManagementPage() {
                     {brands.map((brand) => (
                       <option key={brand.id} value={brand.id}>
                         {brand.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Concern
+                  </label>
+                  <select
+                    value={formData.concernId}
+                    onChange={(e) => setFormData({ ...formData, concernId: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                  >
+                    <option value="">No Concern</option>
+                    {concerns.map((concern) => (
+                      <option key={concern.id} value={concern.id}>
+                        {concern.name}
                       </option>
                     ))}
                   </select>

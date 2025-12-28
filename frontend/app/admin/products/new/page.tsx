@@ -3,8 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Upload, X, Loader2 } from 'lucide-react';
-import { adminProductsAPI, adminCategoriesAPI, adminBrandsAPI, uploadAPI } from '@/src/lib/adminApi';
-import type { Category, Brand } from '@/src/types/index';
+import { adminProductsAPI, adminCategoriesAPI, adminBrandsAPI, adminConcernsAPI, uploadAPI } from '@/src/lib/adminApi';
+import type { Category, Brand, Concern } from '@/src/types/index';
 
 export default function NewProductPage() {
   const router = useRouter();
@@ -12,6 +12,7 @@ export default function NewProductPage() {
   const [uploadingImages, setUploadingImages] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
+  const [concerns, setConcerns] = useState<Concern[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
@@ -23,6 +24,7 @@ export default function NewProductPage() {
     stock: '',
     categoryId: '',
     brandId: '',
+    concernId: '',
     images: [] as string[],
     featured: false,
   });
@@ -35,12 +37,14 @@ export default function NewProductPage() {
 
   const fetchCategoriesAndBrands = async () => {
     try {
-      const [categoriesData, brandsData] = await Promise.all([
+      const [categoriesData, brandsData, concernsData] = await Promise.all([
         adminCategoriesAPI.getAll(),
         adminBrandsAPI.getAll(),
+        adminConcernsAPI.getAll(),
       ]);
       setCategories(categoriesData);
       setBrands(brandsData);
+      setConcerns(concernsData);
     } catch (err) {
       console.error('Error fetching data:', err);
     }
@@ -136,6 +140,7 @@ export default function NewProductPage() {
         stock: formData.stock ? parseInt(formData.stock) : 0,
         categoryId: formData.categoryId,
         brandId: formData.brandId || undefined,
+        concernId: formData.concernId || undefined,
         images: formData.images,
         featured: formData.featured,
       };
@@ -319,6 +324,25 @@ export default function NewProductPage() {
                 {brands.map((brand) => (
                   <option key={brand.id} value={brand.id}>
                     {brand.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Concern
+              </label>
+              <select
+                name="concernId"
+                value={formData.concernId}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+              >
+                <option value="">Select Concern (Optional)</option>
+                {concerns.map((concern) => (
+                  <option key={concern.id} value={concern.id}>
+                    {concern.name}
                   </option>
                 ))}
               </select>

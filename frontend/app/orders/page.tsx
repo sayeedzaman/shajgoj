@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ShoppingBag, Package, Eye, X, ChevronLeft } from 'lucide-react';
+import { ShoppingBag, Package, X, ChevronLeft, Star } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -17,6 +17,13 @@ interface OrderItem {
     price: number;
     salePrice: number | null;
   };
+}
+
+interface ProductReview {
+  productId: string;
+  rating: number;
+  comment: string;
+  hasReviewed: boolean;
 }
 
 interface Order {
@@ -45,9 +52,13 @@ export default function OrdersPage() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [reviewStates, setReviewStates] = useState<{ [productId: string]: ProductReview }>({});
+  const [submittingReview, setSubmittingReview] = useState<string | null>(null);
+  const [userReviews, setUserReviews] = useState<{ [productId: string]: boolean }>({});
 
   useEffect(() => {
     fetchOrders();
+    fetchUserReviews();
   }, []);
 
   const fetchOrders = async () => {
@@ -84,6 +95,30 @@ export default function OrdersPage() {
     }
   };
 
+  const fetchUserReviews = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/reviews/user/my-reviews`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        const reviews = await response.json();
+        const reviewMap: { [productId: string]: boolean } = {};
+        reviews.forEach((review: any) => {
+          reviewMap[review.productId] = true;
+        });
+        setUserReviews(reviewMap);
+      }
+    } catch (error) {
+      console.error('Error fetching user reviews:', error);
+    }
+  };
+
   const viewOrderDetails = (order: Order) => {
     setSelectedOrder(order);
     setShowModal(true);
@@ -117,6 +152,81 @@ export default function OrdersPage() {
       }
     } catch (error) {
       alert('Failed to cancel order. Please try again.');
+    }
+  };
+
+  const handleRatingChange = (productId: string, rating: number) => {
+    setReviewStates(prev => ({
+      ...prev,
+      [productId]: {
+        ...prev[productId],
+        productId,
+        rating,
+        comment: prev[productId]?.comment || '',
+        hasReviewed: false,
+      }
+    }));
+  };
+
+  const handleCommentChange = (productId: string, comment: string) => {
+    setReviewStates(prev => ({
+      ...prev,
+      [productId]: {
+        ...prev[productId],
+        productId,
+        rating: prev[productId]?.rating || 0,
+        comment,
+        hasReviewed: false,
+      }
+    }));
+  };
+
+  const handleSubmitReview = async (productId: string) => {
+    const reviewState = reviewStates[productId];
+
+    if (!reviewState || reviewState.rating === 0) {
+      alert('Please select a rating before submitting.');
+      return;
+    }
+
+    try {
+      setSubmittingReview(productId);
+      const token = localStorage.getItem('token');
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/reviews`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          productId,
+          rating: reviewState.rating,
+          comment: reviewState.comment || null,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to submit review');
+      }
+
+      // Update user reviews to mark this product as reviewed
+      setUserReviews(prev => ({ ...prev, [productId]: true }));
+
+      // Clear the review state for this product
+      setReviewStates(prev => {
+        const newState = { ...prev };
+        delete newState[productId];
+        return newState;
+      });
+
+      alert('Review submitted successfully!');
+    } catch (error: any) {
+      console.error('Error submitting review:', error);
+      alert(error.message || 'Failed to submit review. Please try again.');
+    } finally {
+      setSubmittingReview(null);
     }
   };
 
@@ -324,22 +434,19 @@ export default function OrdersPage() {
                 {/* Order Items */}
                 <div>
                   <h3 className="text-sm font-semibold text-gray-700 mb-3">Order Items</h3>
-                  <div className="border border-gray-200 rounded-lg overflow-hidden">
-                    <table className="w-full">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Quantity</th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-200">
-                        {selectedOrder.OrderItem.map((item) => (
-                          <tr key={item.id}>
-                            <td className="px-4 py-3">
-                              <div className="flex items-center gap-3">
-                                <div className="w-12 h-12 bg-gray-100 rounded overflow-hidden flex-shrink-0">
+                  <div className="space-y-4">
+                    {selectedOrder.OrderItem.map((item) => {
+                      const hasReviewed = userReviews[item.Product.id];
+                      const currentReview = reviewStates[item.Product.id];
+                      const isSubmitting = submittingReview === item.Product.id;
+
+                      return (
+                        <div key={item.id} className="border border-gray-200 rounded-lg overflow-hidden">
+                          {/* Product Info */}
+                          <div className="bg-gray-50 p-4">
+                            <div className="flex items-center justify-between gap-4">
+                              <div className="flex items-center gap-3 flex-1">
+                                <div className="w-16 h-16 bg-gray-100 rounded overflow-hidden flex-shrink-0">
                                   {item.Product.images && item.Product.images[0] ? (
                                     <img
                                       src={item.Product.images[0]}
@@ -352,25 +459,88 @@ export default function OrdersPage() {
                                     </div>
                                   )}
                                 </div>
-                                <div>
+                                <div className="flex-1">
                                   <Link
                                     href={`/products/${item.Product.slug}`}
-                                    className="text-sm font-medium text-gray-900 hover:text-red-600"
+                                    className="text-sm font-medium text-gray-900 hover:text-red-600 block"
                                   >
                                     {item.Product.name}
                                   </Link>
+                                  <div className="flex items-center gap-4 mt-1 text-xs text-gray-600">
+                                    <span>Price: ৳{item.price.toFixed(2)}</span>
+                                    <span>Qty: {item.quantity}</span>
+                                    <span className="font-bold text-red-600">Total: ৳{(item.price * item.quantity).toFixed(2)}</span>
+                                  </div>
                                 </div>
                               </div>
-                            </td>
-                            <td className="px-4 py-3 text-sm text-gray-900">৳{item.price.toFixed(2)}</td>
-                            <td className="px-4 py-3 text-sm text-gray-900">{item.quantity}</td>
-                            <td className="px-4 py-3 text-sm font-bold text-red-600">
-                              ৳{(item.price * item.quantity).toFixed(2)}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                            </div>
+                          </div>
+
+                          {/* Review Section - Only show for DELIVERED orders */}
+                          {selectedOrder.status === 'DELIVERED' && (
+                            <div className="p-4 bg-white border-t border-gray-200">
+                              {hasReviewed ? (
+                                <div className="flex items-center gap-2 text-green-600 text-sm">
+                                  <Star className="w-4 h-4 fill-current" />
+                                  <span>You have already reviewed this product</span>
+                                </div>
+                              ) : (
+                                <div className="space-y-3">
+                                  <h4 className="text-sm font-semibold text-gray-700">Rate this product</h4>
+
+                                  {/* Star Rating */}
+                                  <div className="flex items-center gap-1">
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                      <button
+                                        key={star}
+                                        type="button"
+                                        onClick={() => handleRatingChange(item.Product.id, star)}
+                                        className="focus:outline-none"
+                                        disabled={isSubmitting}
+                                      >
+                                        <Star
+                                          className={`w-6 h-6 transition-colors ${
+                                            star <= (currentReview?.rating || 0)
+                                              ? 'fill-yellow-400 text-yellow-400'
+                                              : 'text-gray-300'
+                                          }`}
+                                        />
+                                      </button>
+                                    ))}
+                                    {currentReview?.rating > 0 && (
+                                      <span className="ml-2 text-sm text-gray-600">
+                                        {currentReview.rating} star{currentReview.rating > 1 ? 's' : ''}
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  {/* Comment */}
+                                  <div>
+                                    <textarea
+                                      value={currentReview?.comment || ''}
+                                      onChange={(e) => handleCommentChange(item.Product.id, e.target.value)}
+                                      placeholder="Write your review (optional)..."
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none text-sm"
+                                      rows={3}
+                                      disabled={isSubmitting}
+                                    />
+                                  </div>
+
+                                  {/* Submit Button */}
+                                  <button
+                                    onClick={() => handleSubmitReview(item.Product.id)}
+                                    disabled={!currentReview?.rating || isSubmitting}
+                                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium disabled:bg-gray-300 disabled:cursor-not-allowed"
+                                  >
+                                    {isSubmitting ? 'Submitting...' : 'Submit Review'}
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -388,7 +558,7 @@ export default function OrdersPage() {
                 {selectedOrder.status === 'PENDING' && (
                   <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                     <p className="text-sm text-gray-700 mb-3">
-                      You can cancel this order while it's still pending.
+                      You can cancel this order while it&apos;s still pending.
                     </p>
                     <button
                       onClick={() => handleCancelOrder(selectedOrder.id)}
