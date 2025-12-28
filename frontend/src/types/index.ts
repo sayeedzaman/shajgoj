@@ -31,6 +31,14 @@ export interface Brand {
   updatedAt?: string;
 }
 
+export interface Concern {
+  id: string;
+  name: string;
+  slug: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -46,6 +54,8 @@ export interface Product {
   Category: Category;
   brandId: string | null;
   Brand: Brand | null;
+  concernId?: string | null;
+  Concern?: Concern | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -144,6 +154,7 @@ export interface UpdateCartItemRequest {
 export interface ProductFilters {
   categoryId?: string;
   brandId?: string;
+  concernId?: string;
   minPrice?: number;
   maxPrice?: number;
   featured?: boolean;

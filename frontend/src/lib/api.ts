@@ -11,6 +11,7 @@ import type {
   User,
   Category,
   Brand,
+  Concern,
   Order,
   CreateOrderRequest,
   Address,
@@ -217,6 +218,45 @@ export const brandsAPI = {
       headers: createHeaders(),
     });
     return handleResponse<Brand>(response);
+  },
+};
+
+// Concerns API
+export const concernsAPI = {
+  getAll: async (): Promise<Concern[]> => {
+    const response = await fetch(`${API_URL}/api/concerns`, {
+      method: 'GET',
+      headers: createHeaders(),
+    });
+    return handleResponse<Concern[]>(response);
+  },
+
+  getById: async (id: string): Promise<Concern> => {
+    const response = await fetch(`${API_URL}/api/concerns/${id}`, {
+      method: 'GET',
+      headers: createHeaders(),
+    });
+    return handleResponse<Concern>(response);
+  },
+
+  searchProducts: async (concernId: string, filters?: Omit<ProductFilters, 'concernId'>): Promise<ProductsResponse> => {
+    const params = new URLSearchParams();
+    params.append('concernId', concernId);
+
+    if (filters) {
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          params.append(key, String(value));
+        }
+      });
+    }
+
+    const url = `${API_URL}/api/concerns/search?${params.toString()}`;
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: createHeaders(),
+    });
+    return handleResponse<ProductsResponse>(response);
   },
 };
 
@@ -445,6 +485,7 @@ export const api = {
   cart: cartAPI,
   categories: categoriesAPI,
   brands: brandsAPI,
+  concerns: concernsAPI,
   orders: ordersAPI,
   addresses: addressesAPI,
   reviews: reviewsAPI,

@@ -62,6 +62,15 @@ model Category {
   Product     Product[]
 }
 
+model Concern {
+  id        String    @id @default(uuid())
+  name      String    @unique
+  slug      String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  Product   Product[]
+}
+
 model Offer {
   id                String   @id @default(uuid())
   name              String
@@ -136,15 +145,18 @@ model Product {
   updatedAt    DateTime       @updatedAt
   categoryId   String
   brandId      String?
+  concernId    String?
   CartItem     CartItem[]
   OrderItem    OrderItem[]
   Brand        Brand?         @relation(fields: [brandId], references: [id])
   Category     Category       @relation(fields: [categoryId], references: [id])
+  Concern      Concern?       @relation(fields: [concernId], references: [id])
   Review       Review[]
   WishlistItem WishlistItem[]
 
   @@index([brandId])
   @@index([categoryId])
+  @@index([concernId])
   @@index([createdAt])
   @@index([featured])
   @@index([name])

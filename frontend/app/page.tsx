@@ -493,16 +493,16 @@ export default function Home() {
 
   // Shop by concern
   const concerns = [
-    { name: 'Acne', link: '/concern/acne' },
-    { name: 'Anti-Aging', link: '/concern/anti-aging' },
-    { name: 'Dandruff', link: '/concern/dandruff' },
-    { name: 'Dry Skin', link: '/concern/dry-skin' },
-    { name: 'Hair Fall', link: '/concern/hair-fall' },
-    { name: 'Oil Control', link: '/concern/oil-control' },
-    { name: 'Pore Care', link: '/concern/pore-care' },
-    { name: 'Hyperpigmentation', link: '/concern/hyperpigmentation' },
-    { name: 'Hair Thinning', link: '/concern/hair-thinning' },
-    { name: 'Sun Protection', link: '/concern/sun-protection' },
+    { name: 'Acne', link: '/concerns/acne' },
+    { name: 'Anti-Aging', link: '/concerns/anti-aging' },
+    { name: 'Dandruff', link: '/concerns/dandruff' },
+    { name: 'Dry Skin', link: '/concerns/dry-skin' },
+    { name: 'Hair Fall', link: '/concerns/hair-fall' },
+    { name: 'Oil Control', link: '/concerns/oil-control' },
+    { name: 'Pore Care', link: '/concerns/pore-care' },
+    { name: 'Hyperpigmentation', link: '/concerns/hyperpigmentation' },
+    { name: 'Hair Thinning', link: '/concerns/hair-thinning' },
+    { name: 'Sun Protection', link: '/concerns/sun-protection' },
   ];
 
   if (loading) {
@@ -726,9 +726,9 @@ export default function Home() {
             <Link
               key={index}
               href={concern.link}
-              className="group p-6 bg-linear-to-br from-gray-50 to-gray-100 rounded-lg border border-gray-200 hover:border-red-300 hover:shadow-lg transition-all text-center"
+              className="group p-6 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border-2 border-gray-200 hover:border-red-400 hover:shadow-lg transition-all text-center"
             >
-              <h3 className="text-base font-semibold text-gray-800 group-hover:text-red-500 transition-colors">
+              <h3 className="text-base font-semibold text-gray-800 group-hover:text-red-600 transition-colors">
                 {concern.name}
               </h3>
             </Link>
