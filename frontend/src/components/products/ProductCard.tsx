@@ -3,13 +3,18 @@
 import Link from 'next/link';
 import { Product } from '@/src/types/index';
 import { Heart, ShoppingCart, Star } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCart } from '@/src/lib/CartContext';
 import { useWishlist } from '@/src/lib/WishlistContext';
 
 interface ProductCardProps {
   product: Product;
   showAddToCart?: boolean;
+}
+
+interface ReviewStats {
+  averageRating: number;
+  totalReviews: number;
 }
 
 export default function ProductCard({
@@ -19,15 +24,35 @@ export default function ProductCard({
   const { addToCart, isLoading } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [reviewStats, setReviewStats] = useState<ReviewStats>({ averageRating: 0, totalReviews: 0 });
   const displayPrice = product.salePrice || product.price;
   const hasDiscount = product.salePrice && product.salePrice < product.price;
   const discountPercent = hasDiscount
     ? Math.round(((product.price - product.salePrice!) / product.price) * 100)
     : 0;
 
-  // Mock rating (you can replace with actual rating data later)
-  const rating = 4.5;
-  const reviewCount = 128;
+  // Fetch review stats for this product
+  useEffect(() => {
+    const fetchReviewStats = async () => {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reviews/products/${product.id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setReviewStats({
+            averageRating: data.stats?.averageRating || 0,
+            totalReviews: data.stats?.totalReviews || 0
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching review stats:', error);
+      }
+    };
+
+    fetchReviewStats();
+  }, [product.id]);
+
+  const rating = reviewStats.averageRating;
+  const reviewCount = reviewStats.totalReviews;
 
   const isWishlisted = isInWishlist(product.id);
 
@@ -177,21 +202,29 @@ export default function ProductCard({
         </h3>
 
         {/* Rating */}
-        <div className="flex items-center gap-1 mb-2">
-          <div className="flex">
-            {[1, 2, 3, 4, 5].map((star) => (
-              <Star
-                key={star}
-                className={`w-3 h-3 ${
-                  star <= rating
-                    ? 'fill-yellow-400 text-yellow-400'
-                    : 'fill-gray-200 text-gray-200'
-                }`}
-              />
-            ))}
+        {reviewCount > 0 ? (
+          <div className="flex items-center gap-1 mb-2">
+            <div className="flex">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <Star
+                  key={star}
+                  className={`w-3 h-3 ${
+                    star <= Math.round(rating)
+                      ? 'fill-yellow-400 text-yellow-400'
+                      : 'fill-gray-200 text-gray-200'
+                  }`}
+                />
+              ))}
+            </div>
+            <span className="text-xs text-gray-500">
+              {rating.toFixed(1)} ({reviewCount})
+            </span>
           </div>
-          <span className="text-xs text-gray-500">({reviewCount})</span>
-        </div>
+        ) : (
+          <div className="flex items-center gap-1 mb-2">
+            <span className="text-xs text-gray-400">No reviews yet</span>
+          </div>
+        )}
 
         {/* Price Section */}
         <div className="flex items-center gap-2 mb-2 mt-auto">
