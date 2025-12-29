@@ -2,18 +2,26 @@
 
 import { useState, useEffect } from 'react';
 import { FolderTree, Plus, Search, Edit, Trash2, X, Upload, Image as ImageIcon } from 'lucide-react';
-import { adminAPI } from '@/src/lib/adminApi';
+import { adminAPI, Type, SubCategory } from '@/src/lib/adminApi';
 import type { Category } from '@/src/types';
 
 interface SubCategoryFormData {
+  id?: string;
   name: string;
   slug: string;
+  typeId?: string;
+  isNew?: boolean;
+  isDeleted?: boolean;
 }
 
 interface TypeFormData {
+  id?: string;
   name: string;
   slug: string;
+  categoryId?: string;
   subCategories: SubCategoryFormData[];
+  isNew?: boolean;
+  isDeleted?: boolean;
 }
 
 interface CategoryFormData {
@@ -136,13 +144,27 @@ export default function CategoryManagementPage() {
   const addType = () => {
     setFormData({
       ...formData,
-      types: [...(formData.types || []), { name: '', slug: '', subCategories: [] }],
+      types: [...(formData.types || []), {
+        name: '',
+        slug: '',
+        subCategories: [],
+        isNew: true,
+        isDeleted: false
+      }],
     });
   };
 
   const removeType = (index: number) => {
     const newTypes = [...(formData.types || [])];
-    newTypes.splice(index, 1);
+    const typeToRemove = newTypes[index];
+
+    // If it's a new type, just remove it from the array
+    if (typeToRemove.isNew) {
+      newTypes.splice(index, 1);
+    } else {
+      // If it's an existing type, mark it as deleted
+      newTypes[index] = { ...typeToRemove, isDeleted: true };
+    }
     setFormData({ ...formData, types: newTypes });
   };
 
@@ -157,13 +179,29 @@ export default function CategoryManagementPage() {
 
   const addSubCategory = (typeIndex: number) => {
     const newTypes = [...(formData.types || [])];
-    newTypes[typeIndex].subCategories.push({ name: '', slug: '' });
+    newTypes[typeIndex].subCategories.push({
+      name: '',
+      slug: '',
+      isNew: true,
+      isDeleted: false
+    });
     setFormData({ ...formData, types: newTypes });
   };
 
   const removeSubCategory = (typeIndex: number, subCatIndex: number) => {
     const newTypes = [...(formData.types || [])];
-    newTypes[typeIndex].subCategories.splice(subCatIndex, 1);
+    const subCatToRemove = newTypes[typeIndex].subCategories[subCatIndex];
+
+    // If it's a new subcategory, just remove it from the array
+    if (subCatToRemove.isNew) {
+      newTypes[typeIndex].subCategories.splice(subCatIndex, 1);
+    } else {
+      // If it's an existing subcategory, mark it as deleted
+      newTypes[typeIndex].subCategories[subCatIndex] = {
+        ...subCatToRemove,
+        isDeleted: true
+      };
+    }
     setFormData({ ...formData, types: newTypes });
   };
 
@@ -176,7 +214,7 @@ export default function CategoryManagementPage() {
     setFormData({ ...formData, types: newTypes });
   };
 
-  const openModal = (category?: Category) => {
+  const openModal = async (category?: Category) => {
     if (category) {
       setEditingCategory(category);
       setFormData({
@@ -193,6 +231,36 @@ export default function CategoryManagementPage() {
         category.image2 || '',
         category.image3 || '',
       ]);
+
+      // Fetch existing types and subcategories for this category
+      try {
+        const types = await adminAPI.types.getByCategoryId(category.id);
+        const typesWithSubCategories: TypeFormData[] = await Promise.all(
+          types.map(async (type) => {
+            const subCategories = await adminAPI.subCategories.getByTypeId(type.id);
+            return {
+              id: type.id,
+              name: type.name,
+              slug: type.slug,
+              categoryId: type.categoryId,
+              subCategories: subCategories.map(sub => ({
+                id: sub.id,
+                name: sub.name,
+                slug: sub.slug,
+                typeId: sub.typeId,
+                isNew: false,
+                isDeleted: false,
+              })),
+              isNew: false,
+              isDeleted: false,
+            };
+          })
+        );
+        setFormData(prev => ({ ...prev, types: typesWithSubCategories }));
+      } catch (error) {
+        console.error('Failed to fetch types and subcategories:', error);
+        showError('Failed to load types and subcategories');
+      }
     } else {
       setEditingCategory(null);
       setFormData({
@@ -274,7 +342,64 @@ export default function CategoryManagementPage() {
       if (finalData.image3?.startsWith('data:image')) finalData.image3 = '';
 
       if (editingCategory) {
+        // Update the category
         await adminAPI.categories.update(editingCategory.id, finalData);
+
+        // Handle types and subcategories for editing
+        if (formData.types && formData.types.length > 0) {
+          for (const type of formData.types) {
+            if (type.isDeleted && type.id) {
+              // Delete existing type
+              await adminAPI.types.delete(type.id);
+            } else if (type.isNew) {
+              // Create new type
+              const createdType = await adminAPI.types.create({
+                name: type.name,
+                slug: type.slug,
+                categoryId: editingCategory.id,
+              });
+
+              // Create subcategories for the new type
+              for (const subCat of type.subCategories) {
+                if (!subCat.isDeleted && subCat.name) {
+                  await adminAPI.subCategories.create({
+                    name: subCat.name,
+                    slug: subCat.slug,
+                    typeId: createdType.type.id,
+                  });
+                }
+              }
+            } else if (type.id) {
+              // Update existing type
+              await adminAPI.types.update(type.id, {
+                name: type.name,
+                slug: type.slug,
+              });
+
+              // Handle subcategories
+              for (const subCat of type.subCategories) {
+                if (subCat.isDeleted && subCat.id) {
+                  // Delete existing subcategory
+                  await adminAPI.subCategories.delete(subCat.id);
+                } else if (subCat.isNew && subCat.name) {
+                  // Create new subcategory
+                  await adminAPI.subCategories.create({
+                    name: subCat.name,
+                    slug: subCat.slug,
+                    typeId: type.id,
+                  });
+                } else if (subCat.id && subCat.name) {
+                  // Update existing subcategory
+                  await adminAPI.subCategories.update(subCat.id, {
+                    name: subCat.name,
+                    slug: subCat.slug,
+                  });
+                }
+              }
+            }
+          }
+        }
+
         showSuccess('Category updated successfully');
       } else {
         await adminAPI.categories.create(finalData);
@@ -561,29 +686,33 @@ export default function CategoryManagementPage() {
                 </div>
               </div>
 
-              {/* Types and SubCategories Section - Only for new categories */}
-              {!editingCategory && (
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <label className="block text-sm font-medium text-gray-700">
-                      Types & Sub-Categories (Optional)
-                    </label>
-                    <button
-                      type="button"
-                      onClick={addType}
-                      className="flex items-center gap-2 px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                      <Plus className="w-4 h-4" />
-                      Add Type
-                    </button>
-                  </div>
+              {/* Types and SubCategories Section */}
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Types & Sub-Categories {editingCategory ? '' : '(Optional)'}
+                  </label>
+                  <button
+                    type="button"
+                    onClick={addType}
+                    className="flex items-center gap-2 px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Type
+                  </button>
+                </div>
 
-                  {formData.types && formData.types.length > 0 && (
-                    <div className="space-y-4 max-h-96 overflow-y-auto border border-gray-200 rounded-lg p-4">
-                      {formData.types.map((type, typeIndex) => (
+                {formData.types && formData.types.filter(t => !t.isDeleted).length > 0 && (
+                  <div className="space-y-4 max-h-96 overflow-y-auto border border-gray-200 rounded-lg p-4">
+                    {formData.types.map((type, typeIndex) => {
+                      if (type.isDeleted) return null;
+                      return (
                         <div key={typeIndex} className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-3">
                           <div className="flex justify-between items-start">
-                            <h4 className="text-sm font-semibold text-gray-700">Type #{typeIndex + 1}</h4>
+                            <h4 className="text-sm font-semibold text-gray-700">
+                              Type #{formData.types!.filter((t, i) => i <= typeIndex && !t.isDeleted).length}
+                              {type.isNew && <span className="ml-2 text-xs text-green-600">(New)</span>}
+                            </h4>
                             <button
                               type="button"
                               onClick={() => removeType(typeIndex)}
@@ -629,43 +758,47 @@ export default function CategoryManagementPage() {
                               </button>
                             </div>
 
-                            {type.subCategories.length > 0 && (
+                            {type.subCategories.filter(sc => !sc.isDeleted).length > 0 && (
                               <div className="space-y-2">
-                                {type.subCategories.map((subCat, subCatIndex) => (
-                                  <div key={subCatIndex} className="flex gap-2 items-center bg-white p-2 rounded border border-gray-200">
-                                    <input
-                                      type="text"
-                                      placeholder="Sub-Category Name *"
-                                      value={subCat.name}
-                                      onChange={(e) => updateSubCategory(typeIndex, subCatIndex, 'name', e.target.value)}
-                                      className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500"
-                                    />
-                                    <input
-                                      type="text"
-                                      placeholder="Slug"
-                                      value={subCat.slug}
-                                      onChange={(e) => updateSubCategory(typeIndex, subCatIndex, 'slug', e.target.value)}
-                                      className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500 bg-gray-50"
-                                    />
-                                    <button
-                                      type="button"
-                                      onClick={() => removeSubCategory(typeIndex, subCatIndex)}
-                                      className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
-                                      aria-label="Remove sub-category"
-                                    >
-                                      <X className="w-3 h-3" />
-                                    </button>
-                                  </div>
-                                ))}
+                                {type.subCategories.map((subCat, subCatIndex) => {
+                                  if (subCat.isDeleted) return null;
+                                  return (
+                                    <div key={subCatIndex} className="flex gap-2 items-center bg-white p-2 rounded border border-gray-200">
+                                      <input
+                                        type="text"
+                                        placeholder="Sub-Category Name *"
+                                        value={subCat.name}
+                                        onChange={(e) => updateSubCategory(typeIndex, subCatIndex, 'name', e.target.value)}
+                                        className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500"
+                                      />
+                                      <input
+                                        type="text"
+                                        placeholder="Slug"
+                                        value={subCat.slug}
+                                        onChange={(e) => updateSubCategory(typeIndex, subCatIndex, 'slug', e.target.value)}
+                                        className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500 bg-gray-50"
+                                      />
+                                      <button
+                                        type="button"
+                                        onClick={() => removeSubCategory(typeIndex, subCatIndex)}
+                                        className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                        aria-label="Remove sub-category"
+                                      >
+                                        <X className="w-3 h-3" />
+                                      </button>
+                                      {subCat.isNew && <span className="text-xs text-green-600 whitespace-nowrap">New</span>}
+                                    </div>
+                                  );
+                                })}
                               </div>
                             )}
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
 
               {/* Actions */}
               <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
