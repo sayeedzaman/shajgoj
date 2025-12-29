@@ -362,6 +362,13 @@ export const reviewsAPI = {
           lastName: string | null;
         };
       }>;
+      pagination: {
+        currentPage: number;
+        totalPages: number;
+        total: number;
+        hasNext: boolean;
+        hasPrev: boolean;
+      };
       statistics: {
         averageRating: number;
         totalReviews: number;

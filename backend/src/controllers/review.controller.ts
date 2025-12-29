@@ -144,7 +144,7 @@ export const getProductReviews = async (req: Request, res: Response): Promise<vo
         hasNext: pageNum < Math.ceil(totalReviews / limitNum),
         hasPrev: pageNum > 1,
       },
-      stats: productStats,
+      statistics: productStats,
     });
   } catch (error) {
     console.error('Error fetching product reviews:', error);
