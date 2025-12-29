@@ -39,8 +39,8 @@ export default function ProductCard({
         if (response.ok) {
           const data = await response.json();
           setReviewStats({
-            averageRating: data.stats?.averageRating || 0,
-            totalReviews: data.stats?.totalReviews || 0
+            averageRating: data.statistics?.averageRating || 0,
+            totalReviews: data.statistics?.totalReviews || 0
           });
         }
       } catch (error) {
