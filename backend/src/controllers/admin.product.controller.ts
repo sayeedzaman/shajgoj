@@ -1,28 +1,28 @@
 import type{ Request, Response } from 'express';
 import { prisma } from '../lib/prisma.js';
 
-// Helper function to resolve category ID from name or ID
-async function resolveCategoryId(categoryIdentifier: string): Promise<string | null> {
+// Helper function to resolve subcategory ID from name or ID
+async function resolveSubCategoryId(subCategoryIdentifier: string): Promise<string | null> {
   // First try to find by ID
-  let category = await prisma.category.findUnique({
-    where: { id: categoryIdentifier },
+  let subCategory = await prisma.subCategory.findUnique({
+    where: { id: subCategoryIdentifier },
   });
 
   // If not found by ID, try to find by name
-  if (!category) {
-    category = await prisma.category.findFirst({
-      where: { name: categoryIdentifier },
+  if (!subCategory) {
+    subCategory = await prisma.subCategory.findFirst({
+      where: { name: subCategoryIdentifier },
     });
   }
 
   // If still not found, try to find by slug
-  if (!category) {
-    category = await prisma.category.findUnique({
-      where: { slug: categoryIdentifier },
+  if (!subCategory) {
+    subCategory = await prisma.subCategory.findFirst({
+      where: { slug: subCategoryIdentifier },
     });
   }
 
-  return category?.id || null;
+  return subCategory?.id || null;
 }
 
 // Helper function to resolve brand ID from name or ID

@@ -6,6 +6,8 @@ export const getAllProducts = async (req: Request, res: Response) => {
   try {
     const {
       categoryId,
+      typeId,
+      subCategoryId,
       brandId,
       minPrice,
       maxPrice,
@@ -23,8 +25,18 @@ export const getAllProducts = async (req: Request, res: Response) => {
     // Build where clause for filtering
     const where: any = {};
 
-    if (categoryId) {
-      where.categoryId = categoryId as string;
+    if (subCategoryId) {
+      where.subCategoryId = subCategoryId as string;
+    } else if (typeId) {
+      where.SubCategory = {
+        typeId: typeId as string,
+      };
+    } else if (categoryId) {
+      where.SubCategory = {
+        Type: {
+          categoryId: categoryId as string,
+        },
+      };
     }
 
     if (brandId) {
@@ -53,11 +65,25 @@ export const getAllProducts = async (req: Request, res: Response) => {
       prisma.product.findMany({
         where,
         include: {
-          Category: {
+          SubCategory: {
             select: {
               id: true,
               name: true,
               slug: true,
+              Type: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true,
+                  Category: {
+                    select: {
+                      id: true,
+                      name: true,
+                      slug: true,
+                    },
+                  },
+                },
+              },
             },
           },
           Brand: {
@@ -111,11 +137,25 @@ export const getProductById = async (req: Request, res: Response) => {
     let product = await prisma.product.findUnique({
       where: { id },
       include: {
-        Category: {
+        SubCategory: {
           select: {
             id: true,
             name: true,
             slug: true,
+            Type: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                Category: {
+                  select: {
+                    id: true,
+                    name: true,
+                    slug: true,
+                  },
+                },
+              },
+            },
           },
         },
         Brand: {
@@ -146,11 +186,25 @@ export const getProductById = async (req: Request, res: Response) => {
       product = await prisma.product.findUnique({
         where: { slug: id },
         include: {
-          Category: {
+          SubCategory: {
             select: {
               id: true,
               name: true,
               slug: true,
+              Type: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true,
+                  Category: {
+                    select: {
+                      id: true,
+                      name: true,
+                      slug: true,
+                    },
+                  },
+                },
+              },
             },
           },
           Brand: {
@@ -214,14 +268,14 @@ export const createProduct = async (req: Request, res: Response) => {
       stock,
       images,
       featured,
-      categoryId,
+      subCategoryId,
       brandId,
     } = req.body;
 
     // Validate required fields
-    if (!name || !slug || !price || !categoryId) {
+    if (!name || !slug || !price || !subCategoryId) {
       return res.status(400).json({
-        error: 'Missing required fields: name, slug, price, categoryId',
+        error: 'Missing required fields: name, slug, price, subCategoryId',
       });
     }
 
@@ -234,13 +288,13 @@ export const createProduct = async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Product slug already exists' });
     }
 
-    // Check if category exists
-    const category = await prisma.category.findUnique({
-      where: { id: categoryId },
+    // Check if subcategory exists
+    const subCategory = await prisma.subCategory.findUnique({
+      where: { id: subCategoryId },
     });
 
-    if (!category) {
-      return res.status(404).json({ error: 'Category not found' });
+    if (!subCategory) {
+      return res.status(404).json({ error: 'SubCategory not found' });
     }
 
     // Check if brand exists (if provided)
@@ -264,11 +318,19 @@ export const createProduct = async (req: Request, res: Response) => {
         stock: parseInt(stock) || 0,
         images: images || [],
         featured: featured === true || featured === 'true',
-        categoryId,
+        subCategoryId,
         brandId: brandId || null,
       },
       include: {
-        Category: true,
+        SubCategory: {
+          include: {
+            Type: {
+              include: {
+                Category: true,
+              },
+            },
+          },
+        },
         Brand: true,
       },
     });
@@ -298,7 +360,7 @@ export const updateProduct = async (req: Request, res: Response) => {
       stock,
       images,
       featured,
-      categoryId,
+      subCategoryId,
       brandId,
     } = req.body;
 
@@ -334,14 +396,22 @@ export const updateProduct = async (req: Request, res: Response) => {
     if (images) updateData.images = images;
     if (featured !== undefined)
       updateData.featured = featured === true || featured === 'true';
-    if (categoryId) updateData.categoryId = categoryId;
+    if (subCategoryId) updateData.subCategoryId = subCategoryId;
     if (brandId !== undefined) updateData.brandId = brandId || null;
 
     const product = await prisma.product.update({
       where: { id },
       data: updateData,
       include: {
-        Category: true,
+        SubCategory: {
+          include: {
+            Type: {
+              include: {
+                Category: true,
+              },
+            },
+          },
+        },
         Brand: true,
       },
     });
@@ -396,6 +466,37 @@ export const getFeaturedProducts = async (req: Request, res: Response) => {
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
 
+    const includeHierarchy = {
+      SubCategory: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          Type: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              Category: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      Brand: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+        },
+      },
+    };
+
     // Step 1: Try to get products uploaded TODAY
     let products = await prisma.product.findMany({
       where: {
@@ -403,22 +504,7 @@ export const getFeaturedProducts = async (req: Request, res: Response) => {
           gte: todayStart, // Greater than or equal to today's start
         },
       },
-      include: {
-        Category: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-          },
-        },
-        Brand: {
-          select: {
-            id: true,
-            name: true,
-            slug: true,
-          },
-        },
-      },
+      include: includeHierarchy,
       orderBy: {
         createdAt: 'desc', // Latest first
       },
@@ -435,22 +521,7 @@ export const getFeaturedProducts = async (req: Request, res: Response) => {
             gte: sevenDaysAgo, // Within last 7 days
           },
         },
-        include: {
-          Category: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-            },
-          },
-          Brand: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-            },
-          },
-        },
+        include: includeHierarchy,
         orderBy: {
           createdAt: 'desc',
         },
@@ -462,22 +533,7 @@ export const getFeaturedProducts = async (req: Request, res: Response) => {
     // Step 3: If still no products, get the absolute latest products (no date filter)
     if (products.length === 0) {
       products = await prisma.product.findMany({
-        include: {
-          Category: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-            },
-          },
-          Brand: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-            },
-          },
-        },
+        include: includeHierarchy,
         orderBy: {
           createdAt: 'desc',
         },
@@ -552,7 +608,11 @@ export const getTopSellingProducts = async (req: Request, res: Response) => {
 
     // Apply filters
     if (category) {
-      where.categoryId = category as string;
+      where.SubCategory = {
+        Type: {
+          categoryId: category as string,
+        },
+      };
     }
 
     if (brand) {
@@ -570,11 +630,25 @@ export const getTopSellingProducts = async (req: Request, res: Response) => {
       prisma.product.findMany({
         where,
         include: {
-          Category: {
+          SubCategory: {
             select: {
               id: true,
               name: true,
               slug: true,
+              Type: {
+                select: {
+                  id: true,
+                  name: true,
+                  slug: true,
+                  Category: {
+                    select: {
+                      id: true,
+                      name: true,
+                      slug: true,
+                    },
+                  },
+                },
+              },
             },
           },
           Brand: {

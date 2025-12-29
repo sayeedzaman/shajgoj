@@ -57,10 +57,40 @@ model Category {
   description String?
   image       String?
   createdAt   DateTime  @default(now())
-  updatedAt   DateTime @updatedAt
+  updatedAt   DateTime  @updatedAt
   image2      String?
   image3      String?
+  Type        Type[]
+}
+
+model Type {
+  id          String        @id @default(uuid())
+  name        String
+  slug        String
+  description String?
+  categoryId  String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  Category    Category      @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  SubCategory SubCategory[]
+
+  @@unique([slug, categoryId])
+  @@index([categoryId])
+}
+
+model SubCategory {
+  id          String    @id @default(uuid())
+  name        String
+  slug        String
+  description String?
+  typeId      String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  Type        Type      @relation(fields: [typeId], references: [id], onDelete: Cascade)
   Product     Product[]
+
+  @@unique([slug, typeId])
+  @@index([typeId])
 }
 
 model Concern {
@@ -133,30 +163,30 @@ model OrderItem {
 }
 
 model Product {
-  id           String         @id @default(uuid())
-  name         String
-  slug         String         @unique
-  description  String?
-  price        Float
-  salePrice    Float?
-  stock        Int            @default(0)
-  images       String[]
-  featured     Boolean        @default(false)
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  categoryId   String
-  brandId      String?
-  concernId    String?
-  CartItem     CartItem[]
-  OrderItem    OrderItem[]
-  Brand        Brand?         @relation(fields: [brandId], references: [id])
-  Category     Category       @relation(fields: [categoryId], references: [id])
-  Concern      Concern?       @relation(fields: [concernId], references: [id])
-  Review       Review[]
-  WishlistItem WishlistItem[]
+  id            String         @id @default(uuid())
+  name          String
+  slug          String         @unique
+  description   String?
+  price         Float
+  salePrice     Float?
+  stock         Int            @default(0)
+  images        String[]
+  featured      Boolean        @default(false)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  subCategoryId String
+  brandId       String?
+  concernId     String?
+  CartItem      CartItem[]
+  OrderItem     OrderItem[]
+  Brand         Brand?         @relation(fields: [brandId], references: [id])
+  SubCategory   SubCategory    @relation(fields: [subCategoryId], references: [id])
+  Concern       Concern?       @relation(fields: [concernId], references: [id])
+  Review        Review[]
+  WishlistItem  WishlistItem[]
 
   @@index([brandId])
-  @@index([categoryId])
+  @@index([subCategoryId])
   @@index([concernId])
   @@index([createdAt])
   @@index([featured])

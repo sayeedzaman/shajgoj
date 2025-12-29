@@ -9,14 +9,36 @@ export const getAllCategories = async (req: Request, res: Response): Promise<voi
   try {
     const categories = await prisma.category.findMany({
       include: {
-        _count: {
-          select: { Product: true },
+        Type: {
+          include: {
+            SubCategory: {
+              include: {
+                _count: {
+                  select: { Product: true },
+                },
+              },
+            },
+          },
         },
       },
       orderBy: { name: 'asc' },
     });
 
-    res.json({ categories });
+    // Calculate product count through the hierarchy
+    const categoriesWithCount = categories.map(category => {
+      const productCount = category.Type.reduce((total, type) => {
+        return total + type.SubCategory.reduce((typeTotal, subCat) => {
+          return typeTotal + subCat._count.Product;
+        }, 0);
+      }, 0);
+
+      return {
+        ...category,
+        _count: { Product: productCount },
+      };
+    });
+
+    res.json({ categories: categoriesWithCount });
   } catch (error) {
     console.error('Get all categories error:', error);
     res.status(500).json({ error: 'Failed to fetch categories' });
@@ -35,8 +57,16 @@ export const getCategoryById = async (req: Request, res: Response): Promise<void
     const category = await prisma.category.findUnique({
       where: { id },
       include: {
-        _count: {
-          select: { Product: true },
+        Type: {
+          include: {
+            SubCategory: {
+              include: {
+                _count: {
+                  select: { Product: true },
+                },
+              },
+            },
+          },
         },
       },
     });
@@ -46,7 +76,19 @@ export const getCategoryById = async (req: Request, res: Response): Promise<void
       return;
     }
 
-    res.json({ category });
+    // Calculate product count through the hierarchy
+    const productCount = category.Type.reduce((total, type) => {
+      return total + type.SubCategory.reduce((typeTotal, subCat) => {
+        return typeTotal + subCat._count.Product;
+      }, 0);
+    }, 0);
+
+    const categoryWithCount = {
+      ...category,
+      _count: { Product: productCount },
+    };
+
+    res.json({ category: categoryWithCount });
   } catch (error) {
     console.error('Get category by ID error:', error);
     res.status(500).json({ error: 'Failed to fetch category' });
@@ -189,14 +231,23 @@ export const deleteCategory = async (req: Request, res: Response): Promise<void>
     const { id } = req.params;
 
     if (!id) {
-      throw new Error('Product ID is required');
+      throw new Error('Category ID is required');
     }
-
 
     const category = await prisma.category.findUnique({
       where: { id },
       include: {
-        Product: true,
+        Type: {
+          include: {
+            SubCategory: {
+              include: {
+                _count: {
+                  select: { Product: true },
+                },
+              },
+            },
+          },
+        },
       },
     });
 
@@ -205,13 +256,21 @@ export const deleteCategory = async (req: Request, res: Response): Promise<void>
       return;
     }
 
-    if (category.Product.length > 0) {
+    // Check if any products exist in the hierarchy
+    const productCount = category.Type.reduce((total, type) => {
+      return total + type.SubCategory.reduce((typeTotal, subCat) => {
+        return typeTotal + subCat._count.Product;
+      }, 0);
+    }, 0);
+
+    if (productCount > 0) {
       res.status(400).json({
         error: 'Cannot delete category with existing products',
       });
       return;
     }
 
+    // Delete will cascade to Types and SubCategories due to schema constraints
     await prisma.category.delete({
       where: { id },
     });

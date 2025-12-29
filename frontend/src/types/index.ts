@@ -22,6 +22,28 @@ export interface Category {
   updatedAt?: string;
 }
 
+export interface Type {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string | null;
+  categoryId: string;
+  Category?: Category;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface SubCategory {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string | null;
+  typeId: string;
+  Type?: Type;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface Brand {
   id: string;
   name: string;
@@ -50,8 +72,12 @@ export interface Product {
   images: string[];
   imageUrl: string | null;
   featured: boolean;
-  categoryId: string;
-  Category: Category;
+  subCategoryId: string;
+  SubCategory: SubCategory & {
+    Type: Type & {
+      Category: Category;
+    };
+  };
   brandId: string | null;
   Brand: Brand | null;
   concernId?: string | null;
@@ -136,7 +162,7 @@ export interface CreateProductRequest {
   stock?: number;
   images?: string[];
   featured?: boolean;
-  categoryId: string;
+  subCategoryId: string;
   brandId?: string;
   concernId?: string;
 }
@@ -154,6 +180,8 @@ export interface UpdateCartItemRequest {
 
 export interface ProductFilters {
   categoryId?: string;
+  typeId?: string;
+  subCategoryId?: string;
   brandId?: string;
   concernId?: string;
   minPrice?: number;
