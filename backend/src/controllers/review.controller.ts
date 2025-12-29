@@ -135,8 +135,18 @@ export const getProductReviews = async (req: Request, res: Response): Promise<vo
     // Calculate product-specific stats
     const productStats = await calculateProductReviewStats(productId);
 
+    // Transform reviews to use lowercase 'user' field
+    const transformedReviews = reviews.map((review: any) => ({
+      id: review.id,
+      rating: review.rating,
+      comment: review.comment,
+      createdAt: review.createdAt,
+      updatedAt: review.updatedAt,
+      user: review.User,
+    }));
+
     res.json({
-      reviews,
+      reviews: transformedReviews,
       pagination: {
         currentPage: pageNum,
         totalPages: Math.ceil(totalReviews / limitNum),

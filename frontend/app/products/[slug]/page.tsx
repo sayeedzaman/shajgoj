@@ -29,7 +29,7 @@ interface Review {
   comment: string | null;
   createdAt: string;
   updatedAt: string;
-  user: {
+  user?: {
     firstName: string | null;
     lastName: string | null;
   };
@@ -507,7 +507,7 @@ export default function ProductDetailPage() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="font-semibold text-gray-900">
-                          {review.user.firstName} {review.user.lastName}
+                          {review.user?.firstName || 'Anonymous'} {review.user?.lastName || ''}
                         </span>
                         <span className="text-sm text-gray-500">
                           {new Date(review.createdAt).toLocaleDateString()}
