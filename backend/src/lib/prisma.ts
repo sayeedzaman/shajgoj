@@ -11,3 +11,12 @@ export const prisma =
   });
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+
+// Graceful shutdown handling
+const shutdownHandler = async () => {
+  await prisma.$disconnect();
+};
+
+process.on('beforeExit', shutdownHandler);
+process.on('SIGINT', shutdownHandler);
+process.on('SIGTERM', shutdownHandler);
