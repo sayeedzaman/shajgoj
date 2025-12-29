@@ -5,6 +5,17 @@ import { FolderTree, Plus, Search, Edit, Trash2, X, Upload, Image as ImageIcon }
 import { adminAPI } from '@/src/lib/adminApi';
 import type { Category } from '@/src/types';
 
+interface SubCategoryFormData {
+  name: string;
+  slug: string;
+}
+
+interface TypeFormData {
+  name: string;
+  slug: string;
+  subCategories: SubCategoryFormData[];
+}
+
 interface CategoryFormData {
   name: string;
   slug: string;
@@ -12,6 +23,7 @@ interface CategoryFormData {
   image?: string;
   image2?: string;
   image3?: string;
+  types?: TypeFormData[];
 }
 
 export default function CategoryManagementPage() {
@@ -32,6 +44,7 @@ export default function CategoryManagementPage() {
     image: '',
     image2: '',
     image3: '',
+    types: [],
   });
 
   const [imagePreviews, setImagePreviews] = useState<string[]>(['', '', '']);
@@ -119,6 +132,50 @@ export default function CategoryManagementPage() {
       .replace(/^-+|-+$/g, '');
   };
 
+  // Type and SubCategory management functions
+  const addType = () => {
+    setFormData({
+      ...formData,
+      types: [...(formData.types || []), { name: '', slug: '', subCategories: [] }],
+    });
+  };
+
+  const removeType = (index: number) => {
+    const newTypes = [...(formData.types || [])];
+    newTypes.splice(index, 1);
+    setFormData({ ...formData, types: newTypes });
+  };
+
+  const updateType = (index: number, field: 'name' | 'slug', value: string) => {
+    const newTypes = [...(formData.types || [])];
+    newTypes[index][field] = value;
+    if (field === 'name') {
+      newTypes[index].slug = generateSlug(value);
+    }
+    setFormData({ ...formData, types: newTypes });
+  };
+
+  const addSubCategory = (typeIndex: number) => {
+    const newTypes = [...(formData.types || [])];
+    newTypes[typeIndex].subCategories.push({ name: '', slug: '' });
+    setFormData({ ...formData, types: newTypes });
+  };
+
+  const removeSubCategory = (typeIndex: number, subCatIndex: number) => {
+    const newTypes = [...(formData.types || [])];
+    newTypes[typeIndex].subCategories.splice(subCatIndex, 1);
+    setFormData({ ...formData, types: newTypes });
+  };
+
+  const updateSubCategory = (typeIndex: number, subCatIndex: number, field: 'name' | 'slug', value: string) => {
+    const newTypes = [...(formData.types || [])];
+    newTypes[typeIndex].subCategories[subCatIndex][field] = value;
+    if (field === 'name') {
+      newTypes[typeIndex].subCategories[subCatIndex].slug = generateSlug(value);
+    }
+    setFormData({ ...formData, types: newTypes });
+  };
+
   const openModal = (category?: Category) => {
     if (category) {
       setEditingCategory(category);
@@ -129,6 +186,7 @@ export default function CategoryManagementPage() {
         image: category.image || '',
         image2: category.image2 || '',
         image3: category.image3 || '',
+        types: [],
       });
       setImagePreviews([
         category.image || '',
@@ -144,6 +202,7 @@ export default function CategoryManagementPage() {
         image: '',
         image2: '',
         image3: '',
+        types: [],
       });
       setImagePreviews(['', '', '']);
     }
@@ -160,6 +219,7 @@ export default function CategoryManagementPage() {
       image: '',
       image2: '',
       image3: '',
+      types: [],
     });
     setImagePreviews(['', '', '']);
     setImageFiles([null, null, null]);
@@ -500,6 +560,112 @@ export default function CategoryManagementPage() {
                   />
                 </div>
               </div>
+
+              {/* Types and SubCategories Section - Only for new categories */}
+              {!editingCategory && (
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Types & Sub-Categories (Optional)
+                    </label>
+                    <button
+                      type="button"
+                      onClick={addType}
+                      className="flex items-center gap-2 px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add Type
+                    </button>
+                  </div>
+
+                  {formData.types && formData.types.length > 0 && (
+                    <div className="space-y-4 max-h-96 overflow-y-auto border border-gray-200 rounded-lg p-4">
+                      {formData.types.map((type, typeIndex) => (
+                        <div key={typeIndex} className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-3">
+                          <div className="flex justify-between items-start">
+                            <h4 className="text-sm font-semibold text-gray-700">Type #{typeIndex + 1}</h4>
+                            <button
+                              type="button"
+                              onClick={() => removeType(typeIndex)}
+                              className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+                              aria-label="Remove type"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <input
+                                type="text"
+                                placeholder="Type Name *"
+                                value={type.name}
+                                onChange={(e) => updateType(typeIndex, 'name', e.target.value)}
+                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              />
+                            </div>
+                            <div>
+                              <input
+                                type="text"
+                                placeholder="Slug (auto-generated)"
+                                value={type.slug}
+                                onChange={(e) => updateType(typeIndex, 'slug', e.target.value)}
+                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50"
+                              />
+                            </div>
+                          </div>
+
+                          {/* SubCategories for this Type */}
+                          <div className="ml-4 space-y-2">
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs font-medium text-gray-600">Sub-Categories</span>
+                              <button
+                                type="button"
+                                onClick={() => addSubCategory(typeIndex)}
+                                className="flex items-center gap-1 px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+                              >
+                                <Plus className="w-3 h-3" />
+                                Add Sub-Category
+                              </button>
+                            </div>
+
+                            {type.subCategories.length > 0 && (
+                              <div className="space-y-2">
+                                {type.subCategories.map((subCat, subCatIndex) => (
+                                  <div key={subCatIndex} className="flex gap-2 items-center bg-white p-2 rounded border border-gray-200">
+                                    <input
+                                      type="text"
+                                      placeholder="Sub-Category Name *"
+                                      value={subCat.name}
+                                      onChange={(e) => updateSubCategory(typeIndex, subCatIndex, 'name', e.target.value)}
+                                      className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500"
+                                    />
+                                    <input
+                                      type="text"
+                                      placeholder="Slug"
+                                      value={subCat.slug}
+                                      onChange={(e) => updateSubCategory(typeIndex, subCatIndex, 'slug', e.target.value)}
+                                      className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500 bg-gray-50"
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={() => removeSubCategory(typeIndex, subCatIndex)}
+                                      className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                      aria-label="Remove sub-category"
+                                    >
+                                      <X className="w-3 h-3" />
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Actions */}
               <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">

@@ -219,6 +219,67 @@ export interface CreateBrandRequest {
   logo?: string;
 }
 
+export interface Type {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  image?: string;
+  categoryId: string;
+  createdAt: string;
+  updatedAt: string;
+  Category?: {
+    id: string;
+    name: string;
+    slug: string;
+  };
+  SubCategory?: SubCategory[];
+  _count?: {
+    SubCategory: number;
+    Product: number;
+  };
+}
+
+export interface SubCategory {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  image?: string;
+  typeId: string;
+  createdAt: string;
+  updatedAt: string;
+  Type?: {
+    id: string;
+    name: string;
+    slug: string;
+    Category?: {
+      id: string;
+      name: string;
+      slug: string;
+    };
+  };
+  _count?: {
+    Product: number;
+  };
+}
+
+export interface CreateTypeRequest {
+  name: string;
+  slug: string;
+  description?: string;
+  image?: string;
+  categoryId: string;
+}
+
+export interface CreateSubCategoryRequest {
+  name: string;
+  slug: string;
+  description?: string;
+  image?: string;
+  typeId: string;
+}
+
 // Admin Products API
 export const adminProductsAPI = {
   getAll: async (params?: {
@@ -799,6 +860,124 @@ export const adminAnalyticsAPI = {
   },
 };
 
+// Admin Types API
+export const adminTypesAPI = {
+  getAll: async (categoryId?: string): Promise<Type[]> => {
+    const url = categoryId
+      ? `${API_URL}/api/types?categoryId=${categoryId}`
+      : `${API_URL}/api/types`;
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: createHeaders(),
+    });
+    const data = await handleResponse<{ types: Type[] }>(response);
+    return data.types;
+  },
+
+  getByCategoryId: async (categoryId: string): Promise<Type[]> => {
+    const response = await fetch(`${API_URL}/api/types/category/${categoryId}`, {
+      method: 'GET',
+      headers: createHeaders(),
+    });
+    const data = await handleResponse<{ types: Type[] }>(response);
+    return data.types;
+  },
+
+  getById: async (id: string): Promise<Type> => {
+    const response = await fetch(`${API_URL}/api/types/${id}`, {
+      method: 'GET',
+      headers: createHeaders(),
+    });
+    const data = await handleResponse<{ type: Type }>(response);
+    return data.type;
+  },
+
+  create: async (data: CreateTypeRequest): Promise<{ message: string; type: Type }> => {
+    const response = await fetch(`${API_URL}/api/types`, {
+      method: 'POST',
+      headers: createHeaders(),
+      body: JSON.stringify(data),
+    });
+    return handleResponse<{ message: string; type: Type }>(response);
+  },
+
+  update: async (id: string, data: Partial<CreateTypeRequest>): Promise<{ message: string; type: Type }> => {
+    const response = await fetch(`${API_URL}/api/types/${id}`, {
+      method: 'PUT',
+      headers: createHeaders(),
+      body: JSON.stringify(data),
+    });
+    return handleResponse<{ message: string; type: Type }>(response);
+  },
+
+  delete: async (id: string): Promise<{ message: string }> => {
+    const response = await fetch(`${API_URL}/api/types/${id}`, {
+      method: 'DELETE',
+      headers: createHeaders(),
+    });
+    return handleResponse<{ message: string }>(response);
+  },
+};
+
+// Admin SubCategories API
+export const adminSubCategoriesAPI = {
+  getAll: async (typeId?: string): Promise<SubCategory[]> => {
+    const url = typeId
+      ? `${API_URL}/api/subcategories?typeId=${typeId}`
+      : `${API_URL}/api/subcategories`;
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: createHeaders(),
+    });
+    const data = await handleResponse<{ subCategories: SubCategory[] }>(response);
+    return data.subCategories;
+  },
+
+  getByTypeId: async (typeId: string): Promise<SubCategory[]> => {
+    const response = await fetch(`${API_URL}/api/subcategories/type/${typeId}`, {
+      method: 'GET',
+      headers: createHeaders(),
+    });
+    const data = await handleResponse<{ subCategories: SubCategory[] }>(response);
+    return data.subCategories;
+  },
+
+  getById: async (id: string): Promise<SubCategory> => {
+    const response = await fetch(`${API_URL}/api/subcategories/${id}`, {
+      method: 'GET',
+      headers: createHeaders(),
+    });
+    const data = await handleResponse<{ subCategory: SubCategory }>(response);
+    return data.subCategory;
+  },
+
+  create: async (data: CreateSubCategoryRequest): Promise<{ message: string; subCategory: SubCategory }> => {
+    const response = await fetch(`${API_URL}/api/subcategories`, {
+      method: 'POST',
+      headers: createHeaders(),
+      body: JSON.stringify(data),
+    });
+    return handleResponse<{ message: string; subCategory: SubCategory }>(response);
+  },
+
+  update: async (id: string, data: Partial<CreateSubCategoryRequest>): Promise<{ message: string; subCategory: SubCategory }> => {
+    const response = await fetch(`${API_URL}/api/subcategories/${id}`, {
+      method: 'PUT',
+      headers: createHeaders(),
+      body: JSON.stringify(data),
+    });
+    return handleResponse<{ message: string; subCategory: SubCategory }>(response);
+  },
+
+  delete: async (id: string): Promise<{ message: string }> => {
+    const response = await fetch(`${API_URL}/api/subcategories/${id}`, {
+      method: 'DELETE',
+      headers: createHeaders(),
+    });
+    return handleResponse<{ message: string }>(response);
+  },
+};
+
 export const adminAPI = {
   products: adminProductsAPI,
   categories: adminCategoriesAPI,
@@ -808,6 +987,8 @@ export const adminAPI = {
   customers: adminCustomersAPI,
   upload: uploadAPI,
   analytics: adminAnalyticsAPI,
+  types: adminTypesAPI,
+  subCategories: adminSubCategoriesAPI,
 };
 
 export default adminAPI;

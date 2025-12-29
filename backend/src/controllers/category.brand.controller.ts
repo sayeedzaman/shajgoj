@@ -120,7 +120,7 @@ export const uploadCategoryImages = async (req: Request, res: Response): Promise
 // Create category (Admin only)
 export const createCategory = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { name, slug, description, image, image2, image3 } = req.body;
+    const { name, slug, description, image, image2, image3, types } = req.body;
 
     if (!name || !slug) {
       res.status(400).json({
@@ -139,6 +139,7 @@ export const createCategory = async (req: Request, res: Response): Promise<void>
       return;
     }
 
+    // Create category with types and subcategories in a transaction
     const category = await prisma.category.create({
       data: {
         name,
@@ -147,7 +148,30 @@ export const createCategory = async (req: Request, res: Response): Promise<void>
         image: image || null,
         image2: image2 || null,
         image3: image3 || null,
+        Type: types && Array.isArray(types) && types.length > 0 ? {
+          create: types.map((type: any) => ({
+            name: type.name,
+            slug: type.slug,
+            description: type.description || null,
+            image: type.image || null,
+            SubCategory: type.subCategories && Array.isArray(type.subCategories) && type.subCategories.length > 0 ? {
+              create: type.subCategories.map((subCat: any) => ({
+                name: subCat.name,
+                slug: subCat.slug,
+                description: subCat.description || null,
+                image: subCat.image || null,
+              }))
+            } : undefined,
+          }))
+        } : undefined,
       } as any,
+      include: {
+        Type: {
+          include: {
+            SubCategory: true,
+          },
+        },
+      },
     });
 
     res.status(201).json({
@@ -200,9 +224,20 @@ export const updateCategory = async (req: Request, res: Response): Promise<void>
     if (image2 !== undefined) updateData.image2 = image2;
     if (image3 !== undefined) updateData.image3 = image3;
 
+    // If types are provided, handle them separately
+    // Note: For updates, types and subcategories should be managed individually
+    // through their own endpoints for better control and to avoid data loss
+
     const category = await prisma.category.update({
       where: { id },
       data: updateData,
+      include: {
+        Type: {
+          include: {
+            SubCategory: true,
+          },
+        },
+      },
     });
 
     res.json({
