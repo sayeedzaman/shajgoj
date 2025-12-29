@@ -9,8 +9,24 @@ export const getAllCategories = async (req: Request, res: Response): Promise<voi
   try {
     const categories = await prisma.category.findMany({
       include: {
+        Type: {
+          include: {
+            SubCategory: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+              },
+              orderBy: { name: 'asc' },
+            },
+            _count: {
+              select: { Product: true },
+            },
+          },
+          orderBy: { name: 'asc' },
+        },
         _count: {
-          select: { Product: true },
+          select: { Product: true, Type: true },
         },
       },
       orderBy: { name: 'asc' },
@@ -35,8 +51,24 @@ export const getCategoryById = async (req: Request, res: Response): Promise<void
     const category = await prisma.category.findUnique({
       where: { id },
       include: {
+        Type: {
+          include: {
+            SubCategory: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+              },
+              orderBy: { name: 'asc' },
+            },
+            _count: {
+              select: { Product: true },
+            },
+          },
+          orderBy: { name: 'asc' },
+        },
         _count: {
-          select: { Product: true },
+          select: { Product: true, Type: true },
         },
       },
     });

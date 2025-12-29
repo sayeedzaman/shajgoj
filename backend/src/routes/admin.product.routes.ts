@@ -8,6 +8,8 @@ import {
   bulkUpdateProducts,
   getProductsByCategory,
   getProductsByBrand,
+  getProductsByType,
+  getProductsBySubCategory,
   getInventoryStats,
   uploadProductImages,
 } from '../controllers/admin.product.controller.js';
@@ -47,6 +49,20 @@ router.get('/category/:categoryId', getProductsByCategory);
  * @access  Admin
  */
 router.get('/brand/:brandId', getProductsByBrand);
+
+/**
+ * @route   GET /api/admin/products/type/:typeId
+ * @desc    Get products by type
+ * @access  Admin
+ */
+router.get('/type/:typeId', getProductsByType);
+
+/**
+ * @route   GET /api/admin/products/subcategory/:subCategoryId
+ * @desc    Get products by subcategory
+ * @access  Admin
+ */
+router.get('/subcategory/:subCategoryId', getProductsBySubCategory);
 
 /**
  * @route   GET /api/admin/products/:id

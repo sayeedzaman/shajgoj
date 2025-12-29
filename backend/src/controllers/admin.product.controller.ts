@@ -49,6 +49,82 @@ async function resolveBrandId(brandIdentifier: string): Promise<string | null> {
   return brand?.id || null;
 }
 
+// Helper function to resolve type ID from name, slug, or ID
+async function resolveTypeId(typeIdentifier: string): Promise<string | null> {
+  // First try to find by ID
+  let type = await prisma.type.findUnique({
+    where: { id: typeIdentifier },
+  });
+
+  // If not found by ID, try to find by name
+  if (!type) {
+    type = await prisma.type.findFirst({
+      where: { name: typeIdentifier },
+    });
+  }
+
+  // If still not found, try to find by slug
+  if (!type) {
+    type = await prisma.type.findFirst({
+      where: { slug: typeIdentifier },
+    });
+  }
+
+  return type?.id || null;
+}
+
+// Helper function to resolve subcategory ID from name, slug, or ID
+async function resolveSubCategoryId(subCategoryIdentifier: string): Promise<string | null> {
+  // First try to find by ID
+  let subCategory = await prisma.subCategory.findUnique({
+    where: { id: subCategoryIdentifier },
+  });
+
+  // If not found by ID, try to find by name
+  if (!subCategory) {
+    subCategory = await prisma.subCategory.findFirst({
+      where: { name: subCategoryIdentifier },
+    });
+  }
+
+  // If still not found, try to find by slug
+  if (!subCategory) {
+    subCategory = await prisma.subCategory.findFirst({
+      where: { slug: subCategoryIdentifier },
+    });
+  }
+
+  return subCategory?.id || null;
+}
+
+// Helper function to get hierarchy from subCategory
+async function getHierarchyFromSubCategory(subCategoryId: string): Promise<{
+  categoryId: string;
+  typeId: string;
+  subCategoryId: string;
+} | null> {
+  const subCategory = await prisma.subCategory.findUnique({
+    where: { id: subCategoryId },
+    include: {
+      Type: {
+        include: {
+          Category: true,
+        },
+      },
+    },
+  });
+
+  if (!subCategory) {
+    return null;
+  }
+
+  return {
+    categoryId: subCategory.Type.Category.id,
+    typeId: subCategory.Type.id,
+    subCategoryId: subCategory.id,
+  };
+}
+
 // Get all products with filtering (Admin view)
 export const getAllProductsAdmin = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -56,6 +132,8 @@ export const getAllProductsAdmin = async (req: Request, res: Response): Promise<
       page = '1',
       limit = '20',
       category,
+      type,
+      subCategory,
       brand,
       featured,
       inStock,
@@ -86,6 +164,22 @@ export const getAllProductsAdmin = async (req: Request, res: Response): Promise<
       }
     }
 
+    // Resolve type ID from name or ID
+    if (type) {
+      const typeId = await resolveTypeId(type as string);
+      if (typeId) {
+        where.typeId = typeId;
+      }
+    }
+
+    // Resolve subcategory ID from name or ID
+    if (subCategory) {
+      const subCategoryId = await resolveSubCategoryId(subCategory as string);
+      if (subCategoryId) {
+        where.subCategoryId = subCategoryId;
+      }
+    }
+
     // Resolve brand ID from name or ID
     if (brand) {
       const brandId = await resolveBrandId(brand as string);
@@ -110,6 +204,8 @@ export const getAllProductsAdmin = async (req: Request, res: Response): Promise<
         where,
         include: {
           Category: true,
+          Type: true,
+          SubCategory: true,
           Brand: true,
           Review: {
             select: { rating: true },
@@ -178,6 +274,8 @@ export const getProductByIdAdmin = async (req: Request, res: Response): Promise<
       where: { id },
       include: {
         Category: true,
+        Type: true,
+        SubCategory: true,
         Brand: true,
         Review: {
           include: {
@@ -245,7 +343,7 @@ export const getProductByIdAdmin = async (req: Request, res: Response): Promise<
   }
 };
 
-// Create new product - ACCEPTS BOTH ID AND NAME
+// Create new product - ACCEPTS SUBCATEGORY AND AUTO-POPULATES HIERARCHY
 export const createProduct = async (req: Request, res: Response): Promise<void> => {
   try {
     console.log('📝 Create product request received');
@@ -260,12 +358,18 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
       stock,
       images,
       featured,
-      categoryId,
-      categoryName,  // NEW: Accept category name
-      categorySlug,  // NEW: Accept category slug
+      subCategoryId,      // NEW: Primary way to specify category hierarchy
+      subCategoryName,    // NEW: Accept subcategory name
+      subCategorySlug,    // NEW: Accept subcategory slug
+      categoryId,         // Optional: Backward compatibility
+      categoryName,
+      categorySlug,
+      typeId,             // Optional: Backward compatibility
+      typeName,
+      typeSlug,
       brandId,
-      brandName,     // NEW: Accept brand name
-      brandSlug,     // NEW: Accept brand slug
+      brandName,
+      brandSlug,
       concernId,
     } = req.body;
 
@@ -277,14 +381,6 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
     if (!name || !slug || !price) {
       res.status(400).json({
         error: 'Missing required fields: name, slug, price',
-      });
-      return;
-    }
-
-    // Must provide either categoryId, categoryName, or categorySlug
-    if (!categoryId && !categoryName && !categorySlug) {
-      res.status(400).json({
-        error: 'Must provide either categoryId, categoryName, or categorySlug',
       });
       return;
     }
@@ -313,31 +409,85 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
-    // Resolve category ID
-    let finalCategoryId: string | null = null;
-    
-    if (categoryId) {
-      finalCategoryId = categoryId;
-    } else if (categoryName) {
-      finalCategoryId = await resolveCategoryId(categoryName);
-    } else if (categorySlug) {
-      finalCategoryId = await resolveCategoryId(categorySlug);
-    }
+    // HIERARCHY RESOLUTION
+    // Priority: subCategory > explicit category/type > error
+    let finalCategoryId: string;
+    let finalTypeId: string;
+    let finalSubCategoryId: string;
 
-    if (!finalCategoryId) {
-      res.status(404).json({ 
-        error: 'Category not found. Please check the category identifier.' 
+    // Option 1: Resolve from subCategory (RECOMMENDED - auto-populates everything)
+    if (subCategoryId || subCategoryName || subCategorySlug) {
+      let resolvedSubCategoryId: string | null = null;
+
+      if (subCategoryId) {
+        resolvedSubCategoryId = subCategoryId;
+      } else if (subCategoryName) {
+        resolvedSubCategoryId = await resolveSubCategoryId(subCategoryName);
+      } else if (subCategorySlug) {
+        resolvedSubCategoryId = await resolveSubCategoryId(subCategorySlug);
+      }
+
+      if (!resolvedSubCategoryId) {
+        res.status(404).json({ error: 'SubCategory not found' });
+        return;
+      }
+
+      // Get full hierarchy from subcategory
+      const hierarchy = await getHierarchyFromSubCategory(resolvedSubCategoryId);
+
+      if (!hierarchy) {
+        res.status(404).json({ error: 'SubCategory not found or invalid' });
+        return;
+      }
+
+      finalCategoryId = hierarchy.categoryId;
+      finalTypeId = hierarchy.typeId;
+      finalSubCategoryId = hierarchy.subCategoryId;
+
+      console.log('✅ Hierarchy resolved from SubCategory:', hierarchy);
+    }
+    // Option 2: Manual specification (backward compatibility)
+    else if ((categoryId || categoryName || categorySlug) && (typeId || typeName || typeSlug)) {
+      // Resolve category
+      let resolvedCategoryId: string | null = null;
+      if (categoryId) {
+        resolvedCategoryId = categoryId;
+      } else if (categoryName) {
+        resolvedCategoryId = await resolveCategoryId(categoryName);
+      } else if (categorySlug) {
+        resolvedCategoryId = await resolveCategoryId(categorySlug);
+      }
+
+      if (!resolvedCategoryId) {
+        res.status(404).json({ error: 'Category not found' });
+        return;
+      }
+
+      // Resolve type
+      let resolvedTypeId: string | null = null;
+      if (typeId) {
+        resolvedTypeId = typeId;
+      } else if (typeName) {
+        resolvedTypeId = await resolveTypeId(typeName);
+      } else if (typeSlug) {
+        resolvedTypeId = await resolveTypeId(typeSlug);
+      }
+
+      if (!resolvedTypeId) {
+        res.status(404).json({ error: 'Type not found' });
+        return;
+      }
+
+      // For backward compatibility, if no subcategory is provided but category and type are,
+      // we need a subcategory. This should be an error.
+      res.status(400).json({
+        error: 'SubCategory is required. Please provide subCategoryId, subCategoryName, or subCategorySlug',
       });
       return;
-    }
-
-    // Verify category exists
-    const category = await prisma.category.findUnique({
-      where: { id: finalCategoryId },
-    });
-
-    if (!category) {
-      res.status(404).json({ error: 'Category not found' });
+    } else {
+      res.status(400).json({
+        error: 'Must provide subCategory identifier (subCategoryId, subCategoryName, or subCategorySlug)',
+      });
       return;
     }
 
@@ -359,8 +509,8 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
       });
 
       if (!brand) {
-        res.status(404).json({ 
-          error: 'Brand not found. Please check the brand identifier.' 
+        res.status(404).json({
+          error: 'Brand not found. Please check the brand identifier.'
         });
         return;
       }
@@ -377,6 +527,8 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
       images: images || [],
       featured: featured === true || featured === 'true',
       categoryId: finalCategoryId,
+      typeId: finalTypeId,
+      subCategoryId: finalSubCategoryId,
       brandId: finalBrandId,
       concernId: concernId || null,
     };
@@ -387,6 +539,8 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
       data: productData,
       include: {
         Category: true,
+        Type: true,
+        SubCategory: true,
         Brand: true,
       },
     });
@@ -404,7 +558,7 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
   }
 };
 
-// Update product - ACCEPTS BOTH ID AND NAME
+// Update product - ACCEPTS SUBCATEGORY AND AUTO-POPULATES HIERARCHY
 export const updateProduct = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
@@ -417,12 +571,18 @@ export const updateProduct = async (req: Request, res: Response): Promise<void> 
       stock,
       images,
       featured,
-      categoryId,
-      categoryName,  // NEW: Accept category name
-      categorySlug,  // NEW: Accept category slug
+      subCategoryId,      // NEW: Primary way to update category hierarchy
+      subCategoryName,
+      subCategorySlug,
+      categoryId,         // Optional: Backward compatibility
+      categoryName,
+      categorySlug,
+      typeId,
+      typeName,
+      typeSlug,
       brandId,
-      brandName,     // NEW: Accept brand name
-      brandSlug,     // NEW: Accept brand slug
+      brandName,
+      brandSlug,
       concernId,
     } = req.body;
 
@@ -472,26 +632,43 @@ export const updateProduct = async (req: Request, res: Response): Promise<void> 
     if (images !== undefined) updateData.images = images;
     if (featured !== undefined) updateData.featured = featured;
 
-    // Resolve category ID if provided
-    if (categoryId || categoryName || categorySlug) {
-      let finalCategoryId: string | null = null;
+    // HIERARCHY RESOLUTION - Auto-populate from subCategory if provided
+    if (subCategoryId || subCategoryName || subCategorySlug) {
+      let resolvedSubCategoryId: string | null = null;
 
-      if (categoryId) {
-        finalCategoryId = categoryId;
-      } else if (categoryName) {
-        finalCategoryId = await resolveCategoryId(categoryName);
-      } else if (categorySlug) {
-        finalCategoryId = await resolveCategoryId(categorySlug);
+      if (subCategoryId) {
+        resolvedSubCategoryId = subCategoryId;
+      } else if (subCategoryName) {
+        resolvedSubCategoryId = await resolveSubCategoryId(subCategoryName);
+      } else if (subCategorySlug) {
+        resolvedSubCategoryId = await resolveSubCategoryId(subCategorySlug);
       }
 
-      if (!finalCategoryId) {
-        res.status(404).json({ 
-          error: 'Category not found. Please check the category identifier.' 
-        });
+      if (!resolvedSubCategoryId) {
+        res.status(404).json({ error: 'SubCategory not found' });
         return;
       }
 
-      updateData.categoryId = finalCategoryId;
+      // Get full hierarchy from subcategory
+      const hierarchy = await getHierarchyFromSubCategory(resolvedSubCategoryId);
+
+      if (!hierarchy) {
+        res.status(404).json({ error: 'SubCategory not found or invalid' });
+        return;
+      }
+
+      updateData.categoryId = hierarchy.categoryId;
+      updateData.typeId = hierarchy.typeId;
+      updateData.subCategoryId = hierarchy.subCategoryId;
+
+      console.log('✅ Hierarchy resolved from SubCategory:', hierarchy);
+    }
+    // Manual category/type update (requires all three to be provided)
+    else if (categoryId || categoryName || categorySlug || typeId || typeName || typeSlug) {
+      res.status(400).json({
+        error: 'Please provide subCategory identifier to update category hierarchy. SubCategory will auto-populate Category and Type.',
+      });
+      return;
     }
 
     // Resolve brand ID if provided
@@ -507,8 +684,8 @@ export const updateProduct = async (req: Request, res: Response): Promise<void> 
       }
 
       if (brandId && !finalBrandId) {
-        res.status(404).json({ 
-          error: 'Brand not found. Please check the brand identifier.' 
+        res.status(404).json({
+          error: 'Brand not found. Please check the brand identifier.'
         });
         return;
       }
@@ -527,6 +704,8 @@ export const updateProduct = async (req: Request, res: Response): Promise<void> 
       data: updateData,
       include: {
         Category: true,
+        Type: true,
+        SubCategory: true,
         Brand: true,
       },
     });
@@ -799,6 +978,146 @@ export const getProductsByBrand = async (req: Request, res: Response): Promise<v
     });
   } catch (error) {
     console.error('Get products by brand error:', error);
+    res.status(500).json({ error: 'Failed to fetch products' });
+  }
+};
+
+// Get products by type
+export const getProductsByType = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { typeId } = req.params;
+    const { page = '1', limit = '20' } = req.query;
+
+    const pageNum = parseInt(page as string);
+    const limitNum = parseInt(limit as string);
+    const skip = (pageNum - 1) * limitNum;
+
+    if (!typeId) {
+      res.status(400).json({ error: 'Type ID is required' });
+      return;
+    }
+
+    // Resolve type ID from name, slug, or ID
+    const finalTypeId = await resolveTypeId(typeId);
+
+    if (!finalTypeId) {
+      res.status(404).json({ error: 'Type not found' });
+      return;
+    }
+
+    // Verify type exists
+    const type = await prisma.type.findUnique({
+      where: { id: finalTypeId },
+      include: {
+        Category: true,
+      },
+    });
+
+    if (!type) {
+      res.status(404).json({ error: 'Type not found' });
+      return;
+    }
+
+    // Get products
+    const [products, total] = await Promise.all([
+      prisma.product.findMany({
+        where: { typeId: finalTypeId },
+        include: {
+          Category: true,
+          Type: true,
+          SubCategory: true,
+          Brand: true,
+        },
+        skip,
+        take: limitNum,
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.product.count({ where: { typeId: finalTypeId } }),
+    ]);
+
+    res.json({
+      type,
+      products,
+      pagination: {
+        currentPage: pageNum,
+        totalPages: Math.ceil(total / limitNum),
+        totalProducts: total,
+      },
+    });
+  } catch (error) {
+    console.error('Get products by type error:', error);
+    res.status(500).json({ error: 'Failed to fetch products' });
+  }
+};
+
+// Get products by subcategory
+export const getProductsBySubCategory = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { subCategoryId } = req.params;
+    const { page = '1', limit = '20' } = req.query;
+
+    const pageNum = parseInt(page as string);
+    const limitNum = parseInt(limit as string);
+    const skip = (pageNum - 1) * limitNum;
+
+    if (!subCategoryId) {
+      res.status(400).json({ error: 'SubCategory ID is required' });
+      return;
+    }
+
+    // Resolve subcategory ID from name, slug, or ID
+    const finalSubCategoryId = await resolveSubCategoryId(subCategoryId);
+
+    if (!finalSubCategoryId) {
+      res.status(404).json({ error: 'SubCategory not found' });
+      return;
+    }
+
+    // Verify subcategory exists
+    const subCategory = await prisma.subCategory.findUnique({
+      where: { id: finalSubCategoryId },
+      include: {
+        Type: {
+          include: {
+            Category: true,
+          },
+        },
+      },
+    });
+
+    if (!subCategory) {
+      res.status(404).json({ error: 'SubCategory not found' });
+      return;
+    }
+
+    // Get products
+    const [products, total] = await Promise.all([
+      prisma.product.findMany({
+        where: { subCategoryId: finalSubCategoryId },
+        include: {
+          Category: true,
+          Type: true,
+          SubCategory: true,
+          Brand: true,
+        },
+        skip,
+        take: limitNum,
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.product.count({ where: { subCategoryId: finalSubCategoryId } }),
+    ]);
+
+    res.json({
+      subCategory,
+      products,
+      pagination: {
+        currentPage: pageNum,
+        totalPages: Math.ceil(total / limitNum),
+        totalProducts: total,
+      },
+    });
+  } catch (error) {
+    console.error('Get products by subcategory error:', error);
     res.status(500).json({ error: 'Failed to fetch products' });
   }
 };

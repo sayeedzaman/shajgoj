@@ -51,16 +51,54 @@ model CartItem {
 }
 
 model Category {
-  id          String    @id @default(uuid())
-  name        String    @unique
-  slug        String    @unique
+  id          String        @id @default(uuid())
+  name        String        @unique
+  slug        String        @unique
   description String?
   image       String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
   image2      String?
   image3      String?
   Product     Product[]
+  Type        Type[]
+
+  @@index([slug])
+}
+
+model Type {
+  id          String        @id @default(uuid())
+  name        String
+  slug        String
+  description String?
+  image       String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  categoryId  String
+  Category    Category      @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  SubCategory SubCategory[]
+  Product     Product[]
+
+  @@unique([categoryId, slug])
+  @@index([categoryId])
+  @@index([slug])
+}
+
+model SubCategory {
+  id          String    @id @default(uuid())
+  name        String
+  slug        String
+  description String?
+  image       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  typeId      String
+  Type        Type      @relation(fields: [typeId], references: [id], onDelete: Cascade)
+  Product     Product[]
+
+  @@unique([typeId, slug])
+  @@index([typeId])
+  @@index([slug])
 }
 
 model Concern {
@@ -133,30 +171,36 @@ model OrderItem {
 }
 
 model Product {
-  id           String         @id @default(uuid())
-  name         String
-  slug         String         @unique
-  description  String?
-  price        Float
-  salePrice    Float?
-  stock        Int            @default(0)
-  images       String[]
-  featured     Boolean        @default(false)
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  categoryId   String
-  brandId      String?
-  concernId    String?
-  CartItem     CartItem[]
-  OrderItem    OrderItem[]
-  Brand        Brand?         @relation(fields: [brandId], references: [id])
-  Category     Category       @relation(fields: [categoryId], references: [id])
-  Concern      Concern?       @relation(fields: [concernId], references: [id])
-  Review       Review[]
-  WishlistItem WishlistItem[]
+  id            String         @id @default(uuid())
+  name          String
+  slug          String         @unique
+  description   String?
+  price         Float
+  salePrice     Float?
+  stock         Int            @default(0)
+  images        String[]
+  featured      Boolean        @default(false)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  categoryId    String
+  typeId        String
+  subCategoryId String
+  brandId       String?
+  concernId     String?
+  CartItem      CartItem[]
+  OrderItem     OrderItem[]
+  Brand         Brand?         @relation(fields: [brandId], references: [id])
+  Category      Category       @relation(fields: [categoryId], references: [id])
+  Type          Type           @relation(fields: [typeId], references: [id])
+  SubCategory   SubCategory    @relation(fields: [subCategoryId], references: [id])
+  Concern       Concern?       @relation(fields: [concernId], references: [id])
+  Review        Review[]
+  WishlistItem  WishlistItem[]
 
   @@index([brandId])
   @@index([categoryId])
+  @@index([typeId])
+  @@index([subCategoryId])
   @@index([concernId])
   @@index([createdAt])
   @@index([featured])

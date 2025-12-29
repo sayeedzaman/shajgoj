@@ -6,6 +6,8 @@ export const getAllProducts = async (req: Request, res: Response) => {
   try {
     const {
       categoryId,
+      typeId,
+      subCategoryId,
       brandId,
       minPrice,
       maxPrice,
@@ -14,7 +16,7 @@ export const getAllProducts = async (req: Request, res: Response) => {
       sortBy = 'createdAt',
       order = 'desc',
       page = '1',
-      limit = '12', //ca
+      limit = '12',
     } = req.query;
 
     const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
@@ -25,6 +27,14 @@ export const getAllProducts = async (req: Request, res: Response) => {
 
     if (categoryId) {
       where.categoryId = categoryId as string;
+    }
+
+    if (typeId) {
+      where.typeId = typeId as string;
+    }
+
+    if (subCategoryId) {
+      where.subCategoryId = subCategoryId as string;
     }
 
     if (brandId) {
@@ -54,6 +64,20 @@ export const getAllProducts = async (req: Request, res: Response) => {
         where,
         include: {
           Category: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
+          Type: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
+          SubCategory: {
             select: {
               id: true,
               name: true,
@@ -118,6 +142,20 @@ export const getProductById = async (req: Request, res: Response) => {
             slug: true,
           },
         },
+        Type: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
+        SubCategory: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
         Brand: {
           select: {
             id: true,
@@ -147,6 +185,20 @@ export const getProductById = async (req: Request, res: Response) => {
         where: { slug: id },
         include: {
           Category: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
+          Type: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
+          SubCategory: {
             select: {
               id: true,
               name: true,
@@ -203,6 +255,8 @@ export const getProductById = async (req: Request, res: Response) => {
 };
 
 // Create new product (Admin only)
+// NOTE: This endpoint requires explicit categoryId, typeId, and subCategoryId
+// For easier product creation, use POST /api/admin/products which auto-populates from subCategory
 export const createProduct = async (req: Request, res: Response) => {
   try {
     const {
@@ -215,13 +269,16 @@ export const createProduct = async (req: Request, res: Response) => {
       images,
       featured,
       categoryId,
+      typeId,
+      subCategoryId,
       brandId,
     } = req.body;
 
     // Validate required fields
-    if (!name || !slug || !price || !categoryId) {
+    if (!name || !slug || !price || !categoryId || !typeId || !subCategoryId) {
       return res.status(400).json({
-        error: 'Missing required fields: name, slug, price, categoryId',
+        error: 'Missing required fields: name, slug, price, categoryId, typeId, subCategoryId. ' +
+               'For easier creation, use POST /api/admin/products and provide only subCategoryId.',
       });
     }
 
@@ -241,6 +298,24 @@ export const createProduct = async (req: Request, res: Response) => {
 
     if (!category) {
       return res.status(404).json({ error: 'Category not found' });
+    }
+
+    // Check if type exists
+    const type = await prisma.type.findUnique({
+      where: { id: typeId },
+    });
+
+    if (!type) {
+      return res.status(404).json({ error: 'Type not found' });
+    }
+
+    // Check if subcategory exists
+    const subCategory = await prisma.subCategory.findUnique({
+      where: { id: subCategoryId },
+    });
+
+    if (!subCategory) {
+      return res.status(404).json({ error: 'SubCategory not found' });
     }
 
     // Check if brand exists (if provided)
@@ -265,10 +340,14 @@ export const createProduct = async (req: Request, res: Response) => {
         images: images || [],
         featured: featured === true || featured === 'true',
         categoryId,
+        typeId,
+        subCategoryId,
         brandId: brandId || null,
       },
       include: {
         Category: true,
+        Type: true,
+        SubCategory: true,
         Brand: true,
       },
     });
