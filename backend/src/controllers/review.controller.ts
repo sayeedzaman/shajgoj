@@ -456,35 +456,21 @@ async function calculateProductReviewStats(productId: string) {
 
   const averageRating = totalReviews > 0 ? (ratingSum._sum.rating || 0) / totalReviews : 0;
 
-  const stats: any = {
-    totalReviews,
-    averageRating: parseFloat(averageRating.toFixed(2)),
-    fiveStars: 0,
-    fourStars: 0,
-    threeStars: 0,
-    twoStars: 0,
-    oneStars: 0,
+  const ratingDistribution: any = {
+    1: 0,
+    2: 0,
+    3: 0,
+    4: 0,
+    5: 0,
   };
 
   ratingCounts.forEach((item) => {
-    switch (item.rating) {
-      case 5:
-        stats.fiveStars = item._count.rating;
-        break;
-      case 4:
-        stats.fourStars = item._count.rating;
-        break;
-      case 3:
-        stats.threeStars = item._count.rating;
-        break;
-      case 2:
-        stats.twoStars = item._count.rating;
-        break;
-      case 1:
-        stats.oneStars = item._count.rating;
-        break;
-    }
+    ratingDistribution[item.rating] = item._count.rating;
   });
 
-  return stats;
+  return {
+    totalReviews,
+    averageRating: parseFloat(averageRating.toFixed(2)),
+    ratingDistribution,
+  };
 }
