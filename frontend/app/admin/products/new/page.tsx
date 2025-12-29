@@ -3,14 +3,14 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Upload, X, Loader2 } from 'lucide-react';
-import { adminProductsAPI, adminCategoriesAPI, adminBrandsAPI, adminConcernsAPI, uploadAPI } from '@/src/lib/adminApi';
-import type { Category, Brand, Concern } from '@/src/types/index';
+import { adminProductsAPI, adminBrandsAPI, adminConcernsAPI, uploadAPI, adminSubCategoriesAPI } from '@/src/lib/adminApi';
+import type { SubCategory, Brand, Concern } from '@/src/types/index';
 
 export default function NewProductPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [uploadingImages, setUploadingImages] = useState(false);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [concerns, setConcerns] = useState<Concern[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -22,7 +22,7 @@ export default function NewProductPage() {
     price: '',
     salePrice: '',
     stock: '',
-    categoryId: '',
+    subCategoryId: '',
     brandId: '',
     concernId: '',
     images: [] as string[],
@@ -32,17 +32,17 @@ export default function NewProductPage() {
   const [imageInput, setImageInput] = useState('');
 
   useEffect(() => {
-    fetchCategoriesAndBrands();
+    fetchData();
   }, []);
 
-  const fetchCategoriesAndBrands = async () => {
+  const fetchData = async () => {
     try {
-      const [categoriesData, brandsData, concernsData] = await Promise.all([
-        adminCategoriesAPI.getAll(),
+      const [subCategoriesData, brandsData, concernsData] = await Promise.all([
+        adminSubCategoriesAPI.getAll(),
         adminBrandsAPI.getAll(),
         adminConcernsAPI.getAll(),
       ]);
-      setCategories(categoriesData);
+      setSubCategories(subCategoriesData);
       setBrands(brandsData);
       setConcerns(concernsData);
     } catch (err) {
@@ -123,7 +123,7 @@ export default function NewProductPage() {
     setError(null);
 
     // Validation
-    if (!formData.name || !formData.slug || !formData.price || !formData.categoryId) {
+    if (!formData.name || !formData.slug || !formData.price || !formData.subCategoryId) {
       setError('Please fill in all required fields');
       return;
     }
@@ -138,7 +138,7 @@ export default function NewProductPage() {
         price: parseFloat(formData.price),
         salePrice: formData.salePrice ? parseFloat(formData.salePrice) : undefined,
         stock: formData.stock ? parseInt(formData.stock) : 0,
-        categoryId: formData.categoryId,
+        subCategoryId: formData.subCategoryId,
         brandId: formData.brandId || undefined,
         concernId: formData.concernId || undefined,
         images: formData.images,
@@ -292,19 +292,19 @@ export default function NewProductPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Category <span className="text-red-500">*</span>
+                Sub Category <span className="text-red-500">*</span>
               </label>
               <select
-                name="categoryId"
-                value={formData.categoryId}
+                name="subCategoryId"
+                value={formData.subCategoryId}
                 onChange={handleChange}
                 required
                 className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent"
               >
-                <option value="">Select Category</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name}
+                <option value="">Select Sub Category</option>
+                {subCategories.map((subCat) => (
+                  <option key={subCat.id} value={subCat.id}>
+                    {subCat.Type?.Category?.name} &gt; {subCat.Type?.name} &gt; {subCat.name}
                   </option>
                 ))}
               </select>

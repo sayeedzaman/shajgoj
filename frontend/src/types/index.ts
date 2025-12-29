@@ -39,6 +39,28 @@ export interface Concern {
   updatedAt?: string;
 }
 
+export interface SubCategory {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string | null;
+  image?: string | null;
+  typeId: string;
+  Type?: {
+    id: string;
+    name: string;
+    slug: string;
+    categoryId?: string;
+    Category?: {
+      id: string;
+      name: string;
+      slug: string;
+    };
+  };
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface Product {
   id: string;
   name: string;
