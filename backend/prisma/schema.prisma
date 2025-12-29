@@ -35,7 +35,7 @@ model Brand {
 model Cart {
   id        String     @id @default(uuid())
   createdAt DateTime   @default(now())
-  updatedAt DateTime
+  updatedAt DateTime   @updatedAt
   userId    String     @unique
   User      User       @relation(fields: [userId], references: [id])
   CartItem  CartItem[]
@@ -212,14 +212,14 @@ model Review {
   rating    Int
   comment   String?
   createdAt DateTime @default(now())
-  updatedAt DateTime
+  updatedAt DateTime @updatedAt
   userId    String
   productId String
   Product   Product  @relation(fields: [productId], references: [id])
   User      User     @relation(fields: [userId], references: [id])
 }
 
-model StoreSettings { 
+model StoreSettings {
   id                    String   @id @default(uuid())
   storeName             String   @default("Khali's Beauty Store")
   storeEmail            String   @default("admin@khalisbeauty.com")
@@ -242,7 +242,7 @@ model StoreSettings {
   nagadEnabled          Boolean  @default(false)
   cardPaymentEnabled    Boolean  @default(false)
   createdAt             DateTime @default(now())
-  updatedAt             DateTime
+  updatedAt             DateTime @updatedAt
 }
 
 model User {
@@ -254,7 +254,7 @@ model User {
   phone     String?
   role      Role      @default(USER)
   createdAt DateTime  @default(now())
-  updatedAt DateTime
+  updatedAt DateTime @updatedAt
   Address   Address[]
   Cart      Cart?
   Order     Order[]
@@ -265,7 +265,7 @@ model User {
 model Wishlist {
   id           String         @id @default(uuid())
   createdAt    DateTime       @default(now())
-  updatedAt    DateTime
+  updatedAt    DateTime       @updatedAt
   userId       String         @unique
   User         User           @relation(fields: [userId], references: [id])
   WishlistItem WishlistItem[]

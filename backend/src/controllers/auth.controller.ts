@@ -26,8 +26,9 @@ export const register = async (req: Request, res: Response) => {
         email,
         password: hashedPassword,
         phone,
-        role: Role.USER
-      } as any,
+        role: Role.USER,
+        updatedAt: new Date()
+      },
       select: {
         id: true,
         firstName: true,
