@@ -193,9 +193,11 @@ export interface CreateProductRequest {
   stock?: number;
   images?: string[];
   featured?: boolean;
-  categoryId?: string;
+  subCategoryId?: string; // Primary way to specify hierarchy - backend auto-populates categoryId and typeId
+  categoryId?: string; // Optional - for backward compatibility
   categoryName?: string;
   categorySlug?: string;
+  typeId?: string; // Optional - for backward compatibility
   brandId?: string;
   brandName?: string;
   brandSlug?: string;
@@ -253,6 +255,7 @@ export interface SubCategory {
     id: string;
     name: string;
     slug: string;
+    categoryId: string; // Added to match the database schema
     Category?: {
       id: string;
       name: string;

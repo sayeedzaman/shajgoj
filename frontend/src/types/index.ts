@@ -22,6 +22,18 @@ export interface Category {
   updatedAt?: string;
 }
 
+export interface Type {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string | null;
+  image?: string | null;
+  categoryId: string;
+  Category?: Category;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface Brand {
   id: string;
   name: string;
@@ -46,17 +58,7 @@ export interface SubCategory {
   description?: string | null;
   image?: string | null;
   typeId: string;
-  Type?: {
-    id: string;
-    name: string;
-    slug: string;
-    categoryId?: string;
-    Category?: {
-      id: string;
-      name: string;
-      slug: string;
-    };
-  };
+  Type?: Type;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -73,7 +75,19 @@ export interface Product {
   imageUrl: string | null;
   featured: boolean;
   categoryId: string;
+  typeId: string;
+  subCategoryId: string;
   Category: Category;
+  Type?: {
+    id: string;
+    name: string;
+    slug: string;
+  };
+  SubCategory?: {
+    id: string;
+    name: string;
+    slug: string;
+  };
   brandId: string | null;
   Brand: Brand | null;
   concernId?: string | null;
@@ -158,7 +172,9 @@ export interface CreateProductRequest {
   stock?: number;
   images?: string[];
   featured?: boolean;
-  categoryId: string;
+  subCategoryId: string; // Required - backend auto-populates categoryId and typeId from this
+  categoryId?: string; // Optional - for backward compatibility
+  typeId?: string; // Optional - for backward compatibility
   brandId?: string;
   concernId?: string;
 }

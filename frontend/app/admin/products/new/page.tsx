@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Upload, X, Loader2 } from 'lucide-react';
 import { adminProductsAPI, adminBrandsAPI, adminConcernsAPI, uploadAPI, adminSubCategoriesAPI } from '@/src/lib/adminApi';
-import type { SubCategory, Brand, Concern } from '@/src/types/index';
+import type { SubCategory } from '@/src/lib/adminApi';
+import type { Brand, Concern } from '@/src/types/index';
 
 export default function NewProductPage() {
   const router = useRouter();
@@ -131,6 +132,7 @@ export default function NewProductPage() {
     try {
       setLoading(true);
 
+      // The backend will auto-populate categoryId and typeId from subCategoryId
       const productData: any = {
         name: formData.name,
         slug: formData.slug,
