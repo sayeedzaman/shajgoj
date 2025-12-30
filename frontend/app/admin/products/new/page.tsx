@@ -3,18 +3,25 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Upload, X, Loader2 } from 'lucide-react';
-import { adminProductsAPI, adminBrandsAPI, adminConcernsAPI, uploadAPI, adminSubCategoriesAPI } from '@/src/lib/adminApi';
-import type { SubCategory } from '@/src/lib/adminApi';
-import type { Brand, Concern } from '@/src/types/index';
+import { adminProductsAPI, adminBrandsAPI, adminConcernsAPI, uploadAPI, adminCategoriesAPI, adminTypesAPI } from '@/src/lib/adminApi';
+import type { SubCategory, Type } from '@/src/lib/adminApi';
+import type { Brand, Concern, Category } from '@/src/types/index';
 
 export default function NewProductPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [uploadingImages, setUploadingImages] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [types, setTypes] = useState<Type[]>([]);
   const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [concerns, setConcerns] = useState<Concern[]>([]);
   const [error, setError] = useState<string | null>(null);
+
+  // State for selected category, type, and subcategory
+  const [selectedCategoryId, setSelectedCategoryId] = useState('');
+  const [selectedTypeId, setSelectedTypeId] = useState('');
+  const [selectedSubCategoryId, setSelectedSubCategoryId] = useState('');
 
   const [formData, setFormData] = useState({
     name: '',
@@ -23,7 +30,7 @@ export default function NewProductPage() {
     price: '',
     salePrice: '',
     stock: '',
-    subCategoryId: '',
+    categoryId: '',
     brandId: '',
     concernId: '',
     images: [] as string[],
@@ -38,17 +45,62 @@ export default function NewProductPage() {
 
   const fetchData = async () => {
     try {
-      const [subCategoriesData, brandsData, concernsData] = await Promise.all([
-        adminSubCategoriesAPI.getAll(),
+      const [categoriesData, brandsData, concernsData] = await Promise.all([
+        adminCategoriesAPI.getAll(),
         adminBrandsAPI.getAll(),
         adminConcernsAPI.getAll(),
       ]);
-      setSubCategories(subCategoriesData);
+      setCategories(categoriesData);
       setBrands(brandsData);
       setConcerns(concernsData);
     } catch (err) {
       console.error('Error fetching data:', err);
     }
+  };
+
+  // Handler for category selection - loads types for selected category
+  const handleCategoryChange = async (categoryId: string) => {
+    setSelectedCategoryId(categoryId);
+    setSelectedTypeId('');
+    setSelectedSubCategoryId('');
+    setSubCategories([]);
+    setFormData({ ...formData, categoryId });
+
+    if (categoryId) {
+      try {
+        const typesForCategory = await adminTypesAPI.getByCategoryId(categoryId);
+        setTypes(typesForCategory);
+      } catch (error) {
+        console.error('Failed to load types:', error);
+        setTypes([]);
+      }
+    } else {
+      setTypes([]);
+    }
+  };
+
+  // Handler for type selection - loads subcategories for selected type
+  const handleTypeChange = async (typeId: string) => {
+    setSelectedTypeId(typeId);
+    setSelectedSubCategoryId('');
+
+    if (typeId) {
+      try {
+        const { adminAPI } = await import('@/src/lib/adminApi');
+        const subCatsForType = await adminAPI.subCategories.getByTypeId(typeId);
+        setSubCategories(subCatsForType);
+      } catch (error) {
+        console.error('Failed to load subcategories:', error);
+        setSubCategories([]);
+      }
+    } else {
+      setSubCategories([]);
+    }
+  };
+
+  // Handler for subcategory selection
+  const handleSubCategoryChange = (subCategoryId: string) => {
+    setSelectedSubCategoryId(subCategoryId);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -124,15 +176,26 @@ export default function NewProductPage() {
     setError(null);
 
     // Validation
-    if (!formData.name || !formData.slug || !formData.price || !formData.subCategoryId) {
-      setError('Please fill in all required fields');
+    if (!formData.name || !formData.slug || !formData.price || !formData.categoryId) {
+      setError('Please fill in all required fields (name, slug, price, category)');
+      return;
+    }
+
+    // Validate type and subcategory if category has types
+    if (types.length > 0 && !selectedTypeId) {
+      setError('Please select a type for this category');
+      return;
+    }
+
+    if (subCategories.length > 0 && !selectedSubCategoryId) {
+      setError('Please select a sub-category for this type');
       return;
     }
 
     try {
       setLoading(true);
 
-      // The backend will auto-populate categoryId and typeId from subCategoryId
+      // Build product data
       const productData: any = {
         name: formData.name,
         slug: formData.slug,
@@ -140,12 +203,21 @@ export default function NewProductPage() {
         price: parseFloat(formData.price),
         salePrice: formData.salePrice ? parseFloat(formData.salePrice) : undefined,
         stock: formData.stock ? parseInt(formData.stock) : 0,
-        subCategoryId: formData.subCategoryId,
+        categoryId: formData.categoryId,
         brandId: formData.brandId || undefined,
         concernId: formData.concernId || undefined,
         images: formData.images,
         featured: formData.featured,
       };
+
+      // Add typeId and subCategoryId (required if category has types)
+      if (selectedTypeId) {
+        productData.typeId = selectedTypeId;
+      }
+
+      if (selectedSubCategoryId) {
+        productData.subCategoryId = selectedSubCategoryId;
+      }
 
       await adminProductsAPI.create(productData);
       router.push('/admin/products');
@@ -294,19 +366,65 @@ export default function NewProductPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Sub Category <span className="text-red-500">*</span>
+                Category <span className="text-red-500">*</span>
               </label>
               <select
-                name="subCategoryId"
-                value={formData.subCategoryId}
-                onChange={handleChange}
+                name="categoryId"
+                value={formData.categoryId}
+                onChange={(e) => handleCategoryChange(e.target.value)}
                 required
                 className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent"
               >
-                <option value="">Select Sub Category</option>
+                <option value="">Select Category</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Type Selection - Always visible but disabled until category is selected */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Type <span className="text-red-500">*</span>
+              </label>
+              <select
+                required={types.length > 0}
+                value={selectedTypeId}
+                onChange={(e) => handleTypeChange(e.target.value)}
+                disabled={!selectedCategoryId || types.length === 0}
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <option value="">
+                  {!selectedCategoryId ? 'Select a category first' : types.length === 0 ? 'No types available' : 'Select Type'}
+                </option>
+                {types.map((type) => (
+                  <option key={type.id} value={type.id}>
+                    {type.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Sub-Category Selection - Always visible but disabled until type is selected */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Sub-Category <span className="text-red-500">*</span>
+              </label>
+              <select
+                required={subCategories.length > 0}
+                value={selectedSubCategoryId}
+                onChange={(e) => handleSubCategoryChange(e.target.value)}
+                disabled={!selectedTypeId || subCategories.length === 0}
+                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <option value="">
+                  {!selectedTypeId ? 'Select a type first' : subCategories.length === 0 ? 'No sub-categories available' : 'Select Sub-Category'}
+                </option>
                 {subCategories.map((subCat) => (
                   <option key={subCat.id} value={subCat.id}>
-                    {subCat.Type?.Category?.name} &gt; {subCat.Type?.name} &gt; {subCat.name}
+                    {subCat.name}
                   </option>
                 ))}
               </select>

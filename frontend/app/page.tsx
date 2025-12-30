@@ -561,32 +561,34 @@ export default function Home() {
               ))}
             </div>
 
-            {/* Navigation Buttons */}
+            {/* Navigation Buttons - Hidden on mobile */}
             {heroOffers.length > 1 && (
               <>
                 <button
                   onClick={prevSlide}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow-lg transition-all z-10"
+                  className="hidden md:block absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow-lg transition-all z-10"
                   aria-label="Previous slide"
                 >
                   <ChevronLeft className="w-6 h-6 text-gray-800" />
                 </button>
                 <button
                   onClick={nextSlide}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow-lg transition-all z-10"
+                  className="hidden md:block absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-2 rounded-full shadow-lg transition-all z-10"
                   aria-label="Next slide"
                 >
                   <ChevronRight className="w-6 h-6 text-gray-800" />
                 </button>
 
-                {/* Slide Indicators */}
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+                {/* Slide Indicators - Smaller on mobile */}
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 md:gap-2 z-10">
                   {heroOffers.map((_, index) => (
                     <button
                       key={index}
                       onClick={() => setCurrentSlide(index)}
-                      className={`w-2 h-2 rounded-full transition-all ${
-                        index === currentSlide ? 'bg-red-500 w-6' : 'bg-white/60'
+                      className={`rounded-full transition-all ${
+                        index === currentSlide
+                          ? 'bg-red-500 w-4 h-1.5 md:w-6 md:h-2'
+                          : 'bg-white/60 w-1.5 h-1.5 md:w-2 md:h-2'
                       }`}
                       aria-label={`Go to slide ${index + 1}`}
                     />

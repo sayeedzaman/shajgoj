@@ -343,6 +343,36 @@ export const getBrandById = async (req: Request, res: Response): Promise<void> =
   }
 };
 
+// Get single brand by slug
+export const getBrandBySlug = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { slug } = req.params;
+    if (!slug) {
+      res.status(400).json({ error: 'Brand slug is required' });
+      return;
+    }
+
+    const brand = await prisma.brand.findUnique({
+      where: { slug },
+      include: {
+        _count: {
+          select: { Product: true },
+        },
+      },
+    });
+
+    if (!brand) {
+      res.status(404).json({ error: 'Brand not found' });
+      return;
+    }
+
+    res.json({ brand });
+  } catch (error) {
+    console.error('Get brand by slug error:', error);
+    res.status(500).json({ error: 'Failed to fetch brand' });
+  }
+};
+
 // Upload brand logo (Admin only)
 export const uploadBrandLogo = async (req: Request, res: Response): Promise<void> => {
   try {

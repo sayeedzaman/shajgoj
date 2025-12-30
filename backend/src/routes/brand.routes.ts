@@ -2,6 +2,7 @@ import express from 'express';
 import {
   getAllBrands,
   getBrandById,
+  getBrandBySlug,
   createBrand,
   updateBrand,
   deleteBrand,
@@ -14,6 +15,7 @@ const router = express.Router();
 
 // Public routes
 router.get('/', getAllBrands);
+router.get('/slug/:slug', getBrandBySlug);
 router.get('/:id', getBrandById);
 
 // Admin routes

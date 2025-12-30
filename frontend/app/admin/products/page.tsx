@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Package, Plus, Search, Edit, Trash2, Filter, ChevronDown, X, Upload, Image as ImageIcon } from 'lucide-react';
-import { adminAPI, type CreateProductRequest } from '@/src/lib/adminApi';
+import { adminAPI, type CreateProductRequest, Type, SubCategory } from '@/src/lib/adminApi';
 import { useAuth } from '@/src/lib/AuthContext';
 import type { Product, Category, Brand, Concern } from '@/src/types';
 
@@ -11,6 +11,8 @@ export default function ProductManagementPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [concerns, setConcerns] = useState<Concern[]>([]);
+  const [types, setTypes] = useState<Type[]>([]);
+  const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -22,6 +24,11 @@ export default function ProductManagementPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+
+  // State for selected category, type, and subcategory
+  const [selectedCategoryId, setSelectedCategoryId] = useState('');
+  const [selectedTypeId, setSelectedTypeId] = useState('');
+  const [selectedSubCategoryId, setSelectedSubCategoryId] = useState('');
 
   const [formData, setFormData] = useState<CreateProductRequest>({
     name: '',
@@ -161,7 +168,7 @@ export default function ProductManagementPage() {
       .replace(/^-+|-+$/g, '');
   };
 
-  const openModal = (product?: Product) => {
+  const openModal = async (product?: Product) => {
     if (product) {
       setEditingProduct(product);
       setFormData({
@@ -182,6 +189,32 @@ export default function ProductManagementPage() {
         product.images?.[1] || '',
         product.images?.[2] || '',
       ]);
+
+      // Load the existing product's subcategory data
+      if (product.subCategoryId) {
+        try {
+          const subCat = await adminAPI.subCategories.getById(product.subCategoryId);
+          if (subCat.Type?.categoryId) {
+            setSelectedCategoryId(subCat.Type.categoryId);
+            setSelectedTypeId(subCat.typeId);
+            setSelectedSubCategoryId(product.subCategoryId);
+
+            // Load types for the category
+            const typesForCategory = await adminAPI.types.getByCategoryId(subCat.Type.categoryId);
+            setTypes(typesForCategory);
+
+            // Load subcategories for the type
+            const subCatsForType = await adminAPI.subCategories.getByTypeId(subCat.typeId);
+            setSubCategories(subCatsForType);
+          }
+        } catch (error) {
+          console.error('Failed to load product hierarchy:', error);
+        }
+      } else {
+        setSelectedCategoryId('');
+        setSelectedTypeId('');
+        setSelectedSubCategoryId('');
+      }
     } else {
       setEditingProduct(null);
       setFormData({
@@ -198,8 +231,56 @@ export default function ProductManagementPage() {
         concernId: '',
       });
       setImagePreviews(['', '', '']);
+      setSelectedCategoryId('');
+      setSelectedTypeId('');
+      setSelectedSubCategoryId('');
+      setTypes([]);
+      setSubCategories([]);
     }
     setShowModal(true);
+  };
+
+  // Handler for category selection - loads types for selected category
+  const handleCategoryChange = async (categoryId: string) => {
+    setSelectedCategoryId(categoryId);
+    setSelectedTypeId('');
+    setSelectedSubCategoryId('');
+    setSubCategories([]);
+
+    if (categoryId) {
+      try {
+        const typesForCategory = await adminAPI.types.getByCategoryId(categoryId);
+        setTypes(typesForCategory);
+      } catch (error) {
+        console.error('Failed to load types:', error);
+        setTypes([]);
+      }
+    } else {
+      setTypes([]);
+    }
+  };
+
+  // Handler for type selection - loads subcategories for selected type
+  const handleTypeChange = async (typeId: string) => {
+    setSelectedTypeId(typeId);
+    setSelectedSubCategoryId('');
+
+    if (typeId) {
+      try {
+        const subCatsForType = await adminAPI.subCategories.getByTypeId(typeId);
+        setSubCategories(subCatsForType);
+      } catch (error) {
+        console.error('Failed to load subcategories:', error);
+        setSubCategories([]);
+      }
+    } else {
+      setSubCategories([]);
+    }
+  };
+
+  // Handler for subcategory selection
+  const handleSubCategoryChange = (subCategoryId: string) => {
+    setSelectedSubCategoryId(subCategoryId);
   };
 
   const closeModal = () => {
@@ -220,6 +301,11 @@ export default function ProductManagementPage() {
     });
     setImagePreviews(['', '', '']);
     setImageFiles([null, null, null]);
+    setSelectedCategoryId('');
+    setSelectedTypeId('');
+    setSelectedSubCategoryId('');
+    setTypes([]);
+    setSubCategories([]);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -234,6 +320,17 @@ export default function ProductManagementPage() {
         price: formData.price,
         categoryId: formData.categoryId
       });
+      return;
+    }
+
+    // Validate type and subcategory if category has types
+    if (types.length > 0 && !selectedTypeId) {
+      showError('Please select a type for this category');
+      return;
+    }
+
+    if (subCategories.length > 0 && !selectedSubCategoryId) {
+      showError('Please select a sub-category for this type');
       return;
     }
 
@@ -284,6 +381,15 @@ export default function ProductManagementPage() {
         featured: formData.featured || false,
         categoryId: formData.categoryId.trim(),
       };
+
+      // Add typeId and subCategoryId (required if category has types)
+      if (selectedTypeId) {
+        cleanedData.typeId = selectedTypeId;
+      }
+
+      if (selectedSubCategoryId) {
+        cleanedData.subCategoryId = selectedSubCategoryId;
+      }
 
       // Only add optional fields if they have values
       if (formData.salePrice && formData.salePrice > 0 && formData.salePrice < formData.price) {
@@ -773,13 +879,62 @@ export default function ProductManagementPage() {
                   <select
                     required
                     value={formData.categoryId}
-                    onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
+                    onChange={(e) => {
+                      setFormData({ ...formData, categoryId: e.target.value });
+                      handleCategoryChange(e.target.value);
+                    }}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
                   >
                     <option value="">Select Category</option>
                     {categories.map((cat) => (
                       <option key={cat.id} value={cat.id}>
                         {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Type Selection - Always visible but disabled until category is selected */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Type *
+                  </label>
+                  <select
+                    required={types.length > 0}
+                    value={selectedTypeId}
+                    onChange={(e) => handleTypeChange(e.target.value)}
+                    disabled={!selectedCategoryId || types.length === 0}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 disabled:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    <option value="">
+                      {!selectedCategoryId ? 'Select a category first' : types.length === 0 ? 'No types available' : 'Select Type'}
+                    </option>
+                    {types.map((type) => (
+                      <option key={type.id} value={type.id}>
+                        {type.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Sub-Category Selection - Always visible but disabled until type is selected */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Sub-Category *
+                  </label>
+                  <select
+                    required={subCategories.length > 0}
+                    value={selectedSubCategoryId}
+                    onChange={(e) => handleSubCategoryChange(e.target.value)}
+                    disabled={!selectedTypeId || subCategories.length === 0}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 disabled:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    <option value="">
+                      {!selectedTypeId ? 'Select a type first' : subCategories.length === 0 ? 'No sub-categories available' : 'Select Sub-Category'}
+                    </option>
+                    {subCategories.map((subCat) => (
+                      <option key={subCat.id} value={subCat.id}>
+                        {subCat.name}
                       </option>
                     ))}
                   </select>

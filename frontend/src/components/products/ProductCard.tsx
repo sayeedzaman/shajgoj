@@ -135,9 +135,9 @@ export default function ProductCard({
           )}
         </div>
 
-        {/* Quick Add to Cart Overlay */}
+        {/* Quick Add to Cart Overlay - Always visible on mobile, hover on desktop */}
         {showAddToCart && product.stock > 0 && (
-          <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-4 flex items-end justify-center">
+          <div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-black/60 to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 p-4 flex items-end justify-center">
             <button
               onClick={handleAddToCart}
               disabled={isAddingToCart}

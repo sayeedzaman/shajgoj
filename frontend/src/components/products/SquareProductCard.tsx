@@ -102,13 +102,13 @@ export default function SquareProductCard({
           )}
         </div>
 
-        {/* Hover Overlay with Add to Cart */}
+        {/* Hover Overlay with Add to Cart - Always visible on mobile, hover on desktop */}
         {showAddToCart && product.stock > 0 && (
-          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center p-6 z-10">
+          <div className="absolute inset-0 bg-black/60 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center p-6 z-10">
             <button
               onClick={handleAddToCart}
               disabled={isAddingToCart}
-              className="w-full bg-white text-red-600 py-3 px-6 rounded-lg hover:bg-red-600 hover:text-white transition-all font-semibold text-base disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-xl transform group-hover:scale-105"
+              className="w-full bg-white text-red-600 py-3 px-6 rounded-lg hover:bg-red-600 hover:text-white transition-all font-semibold text-base disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-xl transform md:group-hover:scale-105"
             >
               {isAddingToCart ? (
                 <>

@@ -479,17 +479,9 @@ export default function ProductDetailPage() {
         </div>
 
         {/* Reviews Section */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-900">Customer Reviews</h2>
-            {user && (
-              <button
-                onClick={() => setShowReviewModal(true)}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-              >
-                Write a Review
-              </button>
-            )}
+        <div className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
+          <div className="mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Customer Reviews</h2>
           </div>
 
           {reviewsLoading ? (
