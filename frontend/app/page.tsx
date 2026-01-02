@@ -469,14 +469,17 @@ export default function Home() {
     setCurrentSlide((prev) => (prev - 1 + heroOffers.length) % heroOffers.length);
   };
 
-  // Get the correct link for an offer (either custom URL or product page)
+  // Get the correct link for an offer (either custom URL, product page, or offers page with products)
   const getOfferLink = (offer: Offer): string => {
-    if (offer.linkType === 'product' && offer.productId) {
-      // Link to product page using product ID
-      return `/products/${offer.productId}`;
+    if (offer.linkType === 'url' && offer.link) {
+      // Use custom URL
+      return offer.link;
+    } else if (offer.linkType === 'product') {
+      // If products are linked, go to offers page with this offer's products
+      return `/offers?offerId=${offer.id}`;
     }
-    // Default to custom link or fallback to /offers
-    return offer.link || '/offers';
+    // Fallback to offers page
+    return '/offers';
   };
 
   // Categories

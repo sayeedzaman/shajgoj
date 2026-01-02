@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Tag, Search, Plus, Edit, Trash2, Clock, Filter, ChevronDown, X, Upload, Image as ImageIcon, Package, Sparkles } from 'lucide-react';
+import { Tag, Search, Plus, Edit, Trash2, Clock, Filter, ChevronDown, X, Upload, Image as ImageIcon, Package, Sparkles, Check } from 'lucide-react';
 import type { Product } from '@/src/types/index';
 
 interface Offer {
@@ -298,13 +298,16 @@ export default function OffersPage() {
   }, [productSearchQuery]);
 
   const handleProductSelect = (product: Product) => {
-    // Check if product is already selected
-    if (selectedProducts.find(p => p.id === product.id)) {
-      return;
+    // Toggle product selection
+    const isSelected = selectedProducts.find(p => p.id === product.id);
+    if (isSelected) {
+      // Remove from selection
+      setSelectedProducts(selectedProducts.filter(p => p.id !== product.id));
+    } else {
+      // Add to selection
+      setSelectedProducts([...selectedProducts, product]);
     }
-    setSelectedProducts([...selectedProducts, product]);
-    setShowProductSearch(false);
-    setProductSearchQuery('');
+    // Keep dropdown open for multiple selections
   };
 
   const handleRemoveProduct = (productId: string) => {
@@ -562,6 +565,7 @@ export default function OffersPage() {
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 appearance-none bg-white"
+              aria-label= "status"
             >
               <option value="ALL">All Status</option>
               <option value="ACTIVE">Active</option>
@@ -985,36 +989,52 @@ export default function OffersPage() {
                         {/* Search Results Dropdown */}
                         {!productSearchLoading && showProductSearch && products.length > 0 && (
                           <div className="mt-2 border border-gray-300 rounded-lg bg-white shadow-lg max-h-64 overflow-y-auto">
-                            {products.map((product) => (
-                              <button
-                                key={product.id}
-                                type="button"
-                                onClick={() => handleProductSelect(product)}
-                                className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0"
-                              >
-                                {((product as any).imageUrl || product.images?.[0]) && (
-                                  <div className="relative w-12 h-12 shrink-0">
-                                    <Image
-                                      src={(product as any).imageUrl || product.images?.[0] || ''}
-                                      alt={product.name}
-                                      fill
-                                      className="object-cover rounded border border-gray-200"
-                                    />
-                                  </div>
-                                )}
-                                <div className="flex-1 text-left">
-                                  <p className="font-medium text-gray-900">{product.name}</p>
-                                  <p className="text-sm text-gray-600">
-                                    ৳{product.salePrice || product.price}
-                                    {product.salePrice && (
-                                      <span className="line-through ml-2 text-gray-400">
-                                        ৳{product.price}
-                                      </span>
+                            {products.map((product) => {
+                              const isSelected = selectedProducts.find(p => p.id === product.id);
+                              return (
+                                <button
+                                  key={product.id}
+                                  type="button"
+                                  onClick={() => handleProductSelect(product)}
+                                  className={`w-full flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0 ${
+                                    isSelected ? 'bg-green-50' : ''
+                                  }`}
+                                >
+                                  {/* Checkbox */}
+                                  <div className={`w-5 h-5 border-2 rounded flex items-center justify-center shrink-0 ${
+                                    isSelected ? 'bg-green-500 border-green-500' : 'border-gray-300'
+                                  }`}>
+                                    {isSelected && (
+                                      <Check className="w-3 h-3 text-white" />
                                     )}
-                                  </p>
-                                </div>
-                              </button>
-                            ))}
+                                  </div>
+
+                                  {((product as any).imageUrl || product.images?.[0]) && (
+                                    <div className="relative w-12 h-12 shrink-0">
+                                      <Image
+                                        src={(product as any).imageUrl || product.images?.[0] || ''}
+                                        alt={product.name}
+                                        fill
+                                        className="object-cover rounded border border-gray-200"
+                                      />
+                                    </div>
+                                  )}
+                                  <div className="flex-1 text-left">
+                                    <p className={`font-medium ${isSelected ? 'text-green-900' : 'text-gray-900'}`}>
+                                      {product.name}
+                                    </p>
+                                    <p className="text-sm text-gray-600">
+                                      ৳{product.salePrice || product.price}
+                                      {product.salePrice && (
+                                        <span className="line-through ml-2 text-gray-400">
+                                          ৳{product.price}
+                                        </span>
+                                      )}
+                                    </p>
+                                  </div>
+                                </button>
+                              );
+                            })}
                           </div>
                         )}
 

@@ -1,8 +1,23 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Gift, Tag, Copy, Check, Search, Calendar, TrendingUp, Percent } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import Image from 'next/image';
+import { Gift, Tag, Copy, Check, Search, Calendar, TrendingUp, Percent, ShoppingBag, ArrowLeft } from 'lucide-react';
 
+
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  salePrice?: number;
+  imageUrl?: string;
+  images?: string[];
+  category?: {
+    name: string;
+  };
+}
 
 interface Offer {
   id: string;
@@ -20,22 +35,71 @@ interface Offer {
   usageCount: number;
   status: 'ACTIVE' | 'EXPIRED' | 'SCHEDULED';
   displayOnHomepage: boolean;
+  OfferProduct?: Array<{
+    id: string;
+    Product: Product;
+  }>;
 }
 
 export default function OffersPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const offerId = searchParams.get('offerId');
+
   const [offers, setOffers] = useState<Offer[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'PERCENTAGE' | 'FIXED'>('all');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'offers' | 'products'>('offers');
+  const [currentOffer, setCurrentOffer] = useState<Offer | null>(null);
 
   useEffect(() => {
-    fetchOffers();
-  }, []);
+    if (offerId) {
+      fetchOfferWithProducts(offerId);
+    } else {
+      fetchOffers();
+    }
+  }, [offerId]);
+
+  const fetchOfferWithProducts = async (id: string) => {
+    try {
+      setLoading(true);
+      setViewMode('products');
+
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${apiUrl}/api/offers/${id}`);
+
+      if (response.ok) {
+        const offer = await response.json();
+        setCurrentOffer(offer);
+
+        // Extract products from OfferProduct relationship
+        if (offer.OfferProduct && offer.OfferProduct.length > 0) {
+          const offerProducts = offer.OfferProduct.map((op: any) => op.Product);
+          setProducts(offerProducts);
+        } else {
+          setProducts([]);
+        }
+      } else {
+        console.error('Failed to fetch offer');
+        setViewMode('offers');
+        fetchOffers();
+      }
+    } catch (error) {
+      console.error('Error fetching offer:', error);
+      setViewMode('offers');
+      fetchOffers();
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchOffers = async () => {
     try {
       setLoading(true);
+      setViewMode('offers');
 
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
       const response = await fetch(`${apiUrl}/api/offers/active`);
@@ -82,85 +146,200 @@ export default function OffersPage() {
       <section className="bg-linear-to-r from-red-500 via-pink-500 to-purple-500 text-white py-16">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center">
-            <Gift className="w-16 h-16 mx-auto mb-4" />
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">
-              Exclusive Offers & Deals
-            </h1>
-            <p className="text-xl text-white/90 mb-8">
-              Save more with our amazing discount codes and promotional offers
-            </p>
-            <div className="flex justify-center gap-6">
-              <div className="bg-white/20 backdrop-blur-sm px-6 py-3 rounded-lg">
-                <div className="text-3xl font-bold">{offers.length}</div>
-                <div className="text-sm text-white/80">Active Offers</div>
-              </div>
-              <div className="bg-white/20 backdrop-blur-sm px-6 py-3 rounded-lg">
-                <div className="text-3xl font-bold">
-                  {Math.max(...offers.map(o => o.discountType === 'PERCENTAGE' ? o.discountValue : 0), 0)}%
+            {viewMode === 'products' && currentOffer ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => router.push('/offers')}
+                  className="mb-4 flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors mx-auto"
+                >
+                  <ArrowLeft className="w-5 h-5" />
+                  Back to All Offers
+                </button>
+                <ShoppingBag className="w-16 h-16 mx-auto mb-4" />
+                <h1 className="text-4xl md:text-5xl font-bold mb-4">
+                  {currentOffer.name}
+                </h1>
+                <p className="text-xl text-white/90 mb-4">
+                  {currentOffer.description || 'Browse products included in this special offer'}
+                </p>
+                <div className="flex justify-center gap-6">
+                  <div className="bg-white/20 backdrop-blur-sm px-6 py-3 rounded-lg">
+                    <div className="text-3xl font-bold">{products.length}</div>
+                    <div className="text-sm text-white/80">Products</div>
+                  </div>
+                  <div className="bg-white/20 backdrop-blur-sm px-6 py-3 rounded-lg">
+                    <div className="text-3xl font-bold">
+                      {currentOffer.discountType === 'PERCENTAGE'
+                        ? `${currentOffer.discountValue}%`
+                        : `৳${currentOffer.discountValue}`}
+                    </div>
+                    <div className="text-sm text-white/80">Discount</div>
+                  </div>
+                  <div className="bg-white/20 backdrop-blur-sm px-6 py-3 rounded-lg">
+                    <div className="text-lg font-mono font-bold">{currentOffer.code}</div>
+                    <div className="text-sm text-white/80">Promo Code</div>
+                  </div>
                 </div>
-                <div className="text-sm text-white/80">Max Discount</div>
-              </div>
-            </div>
+              </>
+            ) : (
+              <>
+                <Gift className="w-16 h-16 mx-auto mb-4" />
+                <h1 className="text-4xl md:text-5xl font-bold mb-4">
+                  Exclusive Offers & Deals
+                </h1>
+                <p className="text-xl text-white/90 mb-8">
+                  Save more with our amazing discount codes and promotional offers
+                </p>
+                <div className="flex justify-center gap-6">
+                  <div className="bg-white/20 backdrop-blur-sm px-6 py-3 rounded-lg">
+                    <div className="text-3xl font-bold">{offers.length}</div>
+                    <div className="text-sm text-white/80">Active Offers</div>
+                  </div>
+                  <div className="bg-white/20 backdrop-blur-sm px-6 py-3 rounded-lg">
+                    <div className="text-3xl font-bold">
+                      {Math.max(...offers.map(o => o.discountType === 'PERCENTAGE' ? o.discountValue : 0), 0)}%
+                    </div>
+                    <div className="text-sm text-white/80">Max Discount</div>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </section>
 
-      {/* Filters */}
+      {/* Content Section */}
       <section className="max-w-7xl mx-auto px-4 py-8">
-        <div className="bg-white rounded-lg shadow-md p-4 mb-8">
-          <div className="flex flex-col md:flex-row gap-4">
-            {/* Search */}
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search offers..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-              />
+        {viewMode === 'products' ? (
+          /* Products Grid for specific offer */
+          <>
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-20">
+                <div className="w-16 h-16 border-4 border-red-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                <p className="text-gray-600">Loading products...</p>
+              </div>
+            ) : products.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20">
+                <ShoppingBag className="w-20 h-20 text-gray-300 mb-4" />
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">No products in this offer</h3>
+                <p className="text-gray-600 mb-4">This offer doesn't have any specific products yet</p>
+                <Link
+                  href="/offers"
+                  className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  View All Offers
+                </Link>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {products.map((product) => (
+                  <Link
+                    key={product.id}
+                    href={`/products/${product.id}`}
+                    className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
+                  >
+                    <div className="relative h-64 bg-gray-100">
+                      {(product.imageUrl || product.images?.[0]) ? (
+                        <Image
+                          src={product.imageUrl || product.images?.[0] || ''}
+                          alt={product.name}
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <ShoppingBag className="w-16 h-16 text-gray-300" />
+                        </div>
+                      )}
+                      {product.salePrice && (
+                        <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                          {Math.round(((product.price - product.salePrice) / product.price) * 100)}% OFF
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-4">
+                      <h3 className="text-sm font-semibold text-gray-900 mb-2 line-clamp-2">
+                        {product.name}
+                      </h3>
+                      {product.category && (
+                        <p className="text-xs text-gray-500 mb-2">{product.category.name}</p>
+                      )}
+                      <div className="flex items-center gap-2">
+                        {product.salePrice ? (
+                          <>
+                            <span className="text-lg font-bold text-red-600">৳{product.salePrice}</span>
+                            <span className="text-sm text-gray-400 line-through">৳{product.price}</span>
+                          </>
+                        ) : (
+                          <span className="text-lg font-bold text-gray-900">৳{product.price}</span>
+                        )}
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </>
+        ) : (
+          /* Offers Grid */
+          <>
+            <div className="bg-white rounded-lg shadow-md p-4 mb-8">
+              <div className="flex flex-col md:flex-row gap-4">
+                {/* Search */}
+                <div className="flex-1 relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search offers..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  />
+                </div>
+
+                {/* Filter */}
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setFilterType('all')}
+                    className={`px-6 py-3 rounded-lg font-medium transition-colors ${
+                      filterType === 'all'
+                        ? 'bg-red-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    All
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFilterType('PERCENTAGE')}
+                    className={`px-6 py-3 rounded-lg font-medium transition-colors flex items-center gap-2 ${
+                      filterType === 'PERCENTAGE'
+                        ? 'bg-red-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    <Percent className="w-4 h-4" />
+                    Percentage
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFilterType('FIXED')}
+                    className={`px-6 py-3 rounded-lg font-medium transition-colors flex items-center gap-2 ${
+                      filterType === 'FIXED'
+                        ? 'bg-red-600 text-white'
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    <TrendingUp className="w-4 h-4" />
+                    Fixed Amount
+                  </button>
+                </div>
+              </div>
             </div>
 
-            {/* Filter */}
-            <div className="flex gap-2">
-              <button
-                onClick={() => setFilterType('all')}
-                className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-                  filterType === 'all'
-                    ? 'bg-red-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                All
-              </button>
-              <button
-                onClick={() => setFilterType('PERCENTAGE')}
-                className={`px-6 py-3 rounded-lg font-medium transition-colors flex items-center gap-2 ${
-                  filterType === 'PERCENTAGE'
-                    ? 'bg-red-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                <Percent className="w-4 h-4" />
-                Percentage
-              </button>
-              <button
-                onClick={() => setFilterType('FIXED')}
-                className={`px-6 py-3 rounded-lg font-medium transition-colors flex items-center gap-2 ${
-                  filterType === 'FIXED'
-                    ? 'bg-red-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-              >
-                <TrendingUp className="w-4 h-4" />
-                Fixed Amount
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Offers Grid */}
-        {loading ? (
+            {loading ? (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="w-16 h-16 border-4 border-red-500 border-t-transparent rounded-full animate-spin mb-4"></div>
             <p className="text-gray-600">Loading offers...</p>
@@ -304,9 +483,12 @@ export default function OffersPage() {
             })}
           </div>
         )}
+          </>
+        )}
       </section>
 
-      {/* How to Use Section */}
+      {/* How to Use Section - Only show for offers view */}
+      {viewMode === 'offers' && (
       <section className="max-w-7xl mx-auto px-4 py-12">
         <div className="bg-white rounded-xl shadow-lg p-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
@@ -343,6 +525,7 @@ export default function OffersPage() {
           </div>
         </div>
       </section>
+      )}
     </div>
   );
 }
