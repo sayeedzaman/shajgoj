@@ -45,7 +45,14 @@ export default function CheckoutPage() {
 
   const cartItems = cart?.items || [];
   const subtotal = cart?.subtotal || 0;
-  const shipping = subtotal > 500 ? 0 : 60;
+  const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+
+  // Calculate shipping based on selected address city and order amount/quantity
+  const selectedAddress = addresses.find(addr => addr.id === selectedAddressId);
+  const isDhaka = selectedAddress?.city.toLowerCase().includes('dhaka');
+  const baseShipping = isDhaka ? 60 : 120;
+  const isFreeShipping = subtotal >= 2000 || totalQuantity >= 20;
+  const shipping = isFreeShipping ? 0 : baseShipping;
   const total = subtotal + shipping;
 
   useEffect(() => {
@@ -487,10 +494,30 @@ export default function CheckoutPage() {
                     {shipping === 0 ? (
                       <span className="text-green-600">FREE</span>
                     ) : (
-                      `৳${shipping.toFixed(2)}`
+                      <>
+                        ৳{shipping.toFixed(2)}
+                        {selectedAddress && (
+                          <span className="text-xs text-gray-500 ml-2">
+                            ({isDhaka ? 'Dhaka' : 'Outside Dhaka'})
+                          </span>
+                        )}
+                      </>
                     )}
                   </span>
                 </div>
+                {!isFreeShipping && (
+                  <p className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
+                    {subtotal < 2000 && totalQuantity < 20 && (
+                      <>Add ৳{(2000 - subtotal).toFixed(0)} more or {20 - totalQuantity} more items for FREE shipping!</>
+                    )}
+                    {subtotal < 2000 && totalQuantity >= 20 && (
+                      <>Add ৳{(2000 - subtotal).toFixed(0)} more for FREE shipping!</>
+                    )}
+                    {subtotal >= 2000 && totalQuantity < 20 && (
+                      <>Add {20 - totalQuantity} more items for FREE shipping!</>
+                    )}
+                  </p>
+                )}
                 <div className="flex justify-between text-lg font-bold pt-3 border-t border-gray-200">
                   <span className="text-gray-900">Total</span>
                   <span className="text-red-600">৳{total.toFixed(2)}</span>

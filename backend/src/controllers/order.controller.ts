@@ -36,8 +36,9 @@ export const createOrder = async (req: AuthRequest, res: Response): Promise<any>
       return res.status(404).json({ error: 'Address not found' });
     }
 
-    // Validate all products and calculate total
-    let total = 0;
+    // Validate all products and calculate subtotal
+    let subtotal = 0;
+    let totalQuantity = 0;
     const orderItems: Array<{
       productId: string;
       quantity: number;
@@ -60,7 +61,8 @@ export const createOrder = async (req: AuthRequest, res: Response): Promise<any>
       }
 
       const price = product.salePrice || product.price;
-      total += price * item.quantity;
+      subtotal += price * item.quantity;
+      totalQuantity += item.quantity;
 
       orderItems.push({
         productId: product.id,
@@ -68,6 +70,13 @@ export const createOrder = async (req: AuthRequest, res: Response): Promise<any>
         price,
       });
     }
+
+    // Calculate shipping cost based on city and order criteria
+    const isDhaka = address.city.toLowerCase().includes('dhaka');
+    const baseShipping = isDhaka ? 60 : 120;
+    const isFreeShipping = subtotal >= 2000 || totalQuantity >= 20;
+    const shippingCost = isFreeShipping ? 0 : baseShipping;
+    const total = subtotal + shippingCost;
 
     // Create order with items
     const order = await prisma.order.create({

@@ -15,8 +15,11 @@ export default function CartPage() {
     const price = item.product.salePrice || item.product.price;
     return sum + price * item.quantity;
   }, 0);
+  const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
-  const shipping = subtotal > 500 ? 0 : 60; // Free shipping over ৳500
+  // Shipping estimate (actual cost determined at checkout based on city)
+  const isFreeShipping = subtotal >= 2000 || totalQuantity >= 20;
+  const shipping = isFreeShipping ? 0 : 60; // Base estimate
   const total = subtotal + shipping;
 
   if (cartItems.length === 0) {
@@ -218,9 +221,23 @@ export default function CartPage() {
                   </span>
                 </div>
 
-                {subtotal < 500 && (
+                {!isFreeShipping ? (
                   <p className="text-xs sm:text-sm text-gray-500 bg-gray-50 p-2.5 sm:p-3 rounded-lg">
-                    Add ৳{(500 - subtotal).toFixed(0)} more to get FREE shipping!
+                    {subtotal < 2000 && totalQuantity < 20 && (
+                      <>Add ৳{(2000 - subtotal).toFixed(0)} more or {20 - totalQuantity} more items for FREE shipping!</>
+                    )}
+                    {subtotal < 2000 && totalQuantity >= 20 && (
+                      <>Add ৳{(2000 - subtotal).toFixed(0)} more for FREE shipping!</>
+                    )}
+                    {subtotal >= 2000 && totalQuantity < 20 && (
+                      <>Add {20 - totalQuantity} more items for FREE shipping!</>
+                    )}
+                    <br />
+                    <span className="text-xs text-gray-400">Note: ৳60 (Dhaka), ৳120 (Outside Dhaka)</span>
+                  </p>
+                ) : (
+                  <p className="text-xs sm:text-sm text-green-600 bg-green-50 p-2.5 sm:p-3 rounded-lg">
+                    🎉 You qualify for FREE shipping!
                   </p>
                 )}
 
