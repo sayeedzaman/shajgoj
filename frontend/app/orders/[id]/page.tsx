@@ -327,7 +327,7 @@ export default function OrderDetailPage() {
             </div>
           </div>
 
-          {/* Sidebar */}
+                    {/* Sidebar */}
           <div className="lg:col-span-1 space-y-6">
             {/* Delivery Address */}
             <div className="bg-white rounded-lg shadow-sm p-6">
@@ -336,18 +336,23 @@ export default function OrderDetailPage() {
                 Delivery Address
               </h2>
               {order.Address && (
-                <div className="text-sm text-gray-600 flex flex-col gap-1">
-                  <p className="font-semibold text-gray-900">{order.Address.fullName}</p>
-                  <p>{order.Address.phone}</p>
-                  <p>{order.Address.address}</p>
-                  <p className="flex flex-col sm:flex-row sm:gap-1">
-                    <span>{order.Address.city},</span>
-                    <span>{order.Address.state} - {order.Address.zipCode}</span>
-                  </p>
+                <div className="text-sm text-gray-600 space-y-2">
+                  <div>
+                    <p className="font-semibold text-gray-900">{order.Address.fullName}</p>
+                  </div>
+                  <div>
+                    <p>{order.Address.phone}</p>
+                  </div>
+                  <div>
+                    <p>{order.Address.address}</p>
+                  </div>
+                  <div>
+                    <p>{order.Address.city}</p>
+                    <p>{order.Address.state} - {order.Address.zipCode}</p>
+                  </div>
                 </div>
               )}
             </div>
-
             {/* Order Summary */}
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h2 className="text-lg font-bold text-gray-900 mb-4">Order Summary</h2>
