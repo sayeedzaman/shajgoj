@@ -310,38 +310,35 @@ export default function OrderManagementPage() {
             </div>
 
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
-              {/* Order Info Grid */}
-              <div className="grid grid-cols-2 gap-6">
-                {/* Customer Information */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h3 className="text-sm font-semibold text-gray-700 mb-3">Customer Information</h3>
-                  <div className="space-y-2 text-sm">
-                    <div>
-                      <span className="text-gray-600">Name:</span>
-                      <span className="ml-2 font-medium text-gray-900">
-                        {selectedOrder.User.firstName} {selectedOrder.User.lastName}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-gray-600">Email:</span>
-                      <span className="ml-2 font-medium text-gray-900">{selectedOrder.User.email}</span>
-                    </div>
-                    <div>
-                      <span className="text-gray-600">Phone:</span>
-                      <span className="ml-2 font-medium text-gray-900">{selectedOrder.User.phone || 'N/A'}</span>
-                    </div>
+              {/* Customer Information */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h3 className="text-sm font-semibold text-gray-700 mb-3">Customer Information</h3>
+                <div className="space-y-2 text-sm">
+                  <div>
+                    <span className="text-gray-600">Name:</span>
+                    <span className="ml-2 font-medium text-gray-900">
+                      {selectedOrder.User.firstName} {selectedOrder.User.lastName}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Email:</span>
+                    <span className="ml-2 font-medium text-gray-900">{selectedOrder.User.email}</span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Phone:</span>
+                    <span className="ml-2 font-medium text-gray-900">{selectedOrder.User.phone || 'N/A'}</span>
                   </div>
                 </div>
+              </div>
 
-                {/* Shipping Address */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h3 className="text-sm font-semibold text-gray-700 mb-3">Shipping Address</h3>
-                  <div className="space-y-1 text-sm text-gray-900">
-                    <p className="font-medium">{selectedOrder.Address.fullName}</p>
-                    <p>{selectedOrder.Address.phone}</p>
-                    <p>{selectedOrder.Address.address}</p>
-                    <p>{selectedOrder.Address.city}, {selectedOrder.Address.state} {selectedOrder.Address.zipCode}</p>
-                  </div>
+              {/* Shipping Address */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h3 className="text-sm font-semibold text-gray-700 mb-3">Shipping Address</h3>
+                <div className="space-y-1 text-sm text-gray-900">
+                  <p className="font-medium">{selectedOrder.Address.fullName}</p>
+                  <p>{selectedOrder.Address.phone}</p>
+                  <p>{selectedOrder.Address.address}</p>
+                  <p>{selectedOrder.Address.city}, {selectedOrder.Address.state} {selectedOrder.Address.zipCode}</p>
                 </div>
               </div>
 
