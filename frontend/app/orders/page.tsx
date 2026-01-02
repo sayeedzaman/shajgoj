@@ -423,11 +423,14 @@ export default function OrdersPage() {
                 {/* Shipping Address */}
                 <div className="bg-gray-50 rounded-lg p-4">
                   <h3 className="text-sm font-semibold text-gray-700 mb-3">Shipping Address</h3>
-                  <div className="space-y-1 text-sm text-gray-900">
+                  <div className="flex flex-col gap-1 text-sm text-gray-900">
                     <p className="font-medium">{selectedOrder.Address.fullName}</p>
                     <p>{selectedOrder.Address.phone}</p>
                     <p>{selectedOrder.Address.address}</p>
-                    <p>{selectedOrder.Address.city}, {selectedOrder.Address.state} {selectedOrder.Address.zipCode}</p>
+                    <p className="flex flex-col sm:flex-row sm:gap-1">
+                      <span>{selectedOrder.Address.city},</span>
+                      <span>{selectedOrder.Address.state} {selectedOrder.Address.zipCode}</span>
+                    </p>
                   </div>
                 </div>
 
