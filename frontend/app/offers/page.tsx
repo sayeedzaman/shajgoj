@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -41,7 +41,7 @@ interface Offer {
   }>;
 }
 
-export default function OffersPage() {
+function OffersContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const offerId = searchParams.get('offerId');
@@ -527,5 +527,20 @@ export default function OffersPage() {
       </section>
       )}
     </div>
+  );
+}
+
+export default function OffersPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-linear-to-br from-red-50 via-pink-50 to-purple-50 flex items-center justify-center">
+        <div className="flex flex-col items-center">
+          <div className="w-16 h-16 border-4 border-red-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+          <p className="text-gray-600">Loading offers...</p>
+        </div>
+      </div>
+    }>
+      <OffersContent />
+    </Suspense>
   );
 }

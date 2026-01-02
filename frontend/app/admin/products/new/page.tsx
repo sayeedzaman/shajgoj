@@ -374,6 +374,7 @@ export default function NewProductPage() {
                 onChange={(e) => handleCategoryChange(e.target.value)}
                 required
                 className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                aria-label='category'
               >
                 <option value="">Select Category</option>
                 {categories.map((cat) => (
