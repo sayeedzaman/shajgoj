@@ -336,12 +336,13 @@ export default function OrderDetailPage() {
                 Delivery Address
               </h2>
               {order.Address && (
-                <div className="text-sm text-gray-600 space-y-1">
+                <div className="text-sm text-gray-600 flex flex-col gap-1">
                   <p className="font-semibold text-gray-900">{order.Address.fullName}</p>
                   <p>{order.Address.phone}</p>
                   <p>{order.Address.address}</p>
-                  <p>
-                    {order.Address.city}, {order.Address.state} - {order.Address.zipCode}
+                  <p className="flex flex-col sm:flex-row sm:gap-1">
+                    <span>{order.Address.city},</span>
+                    <span>{order.Address.state} - {order.Address.zipCode}</span>
                   </p>
                 </div>
               )}
