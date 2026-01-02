@@ -175,7 +175,7 @@ export default function OrderDetailPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-6 border-t border-gray-200">
+          <div className="grid grid-cols-1 gap-4 pt-6 border-t border-gray-200">
             <div>
               <p className="text-sm text-gray-600 mb-1">Order Number</p>
               <p className="font-semibold text-gray-900 font-mono">{order.orderNumber}</p>
@@ -203,8 +203,8 @@ export default function OrderDetailPage() {
 
               <div className="space-y-4">
                 {order.OrderItem.map((item) => (
-                  <div key={item.id} className="flex gap-4 pb-4 border-b border-gray-200 last:border-0">
-                    <div className="w-20 h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                  <div key={item.id} className="flex flex-col sm:flex-row gap-4 pb-4 border-b border-gray-200 last:border-0">
+                    <div className="w-full sm:w-20 h-32 sm:h-20 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
                       {item.Product.imageUrl || item.Product.images?.[0] ? (
                         <img
                           src={item.Product.imageUrl || item.Product.images[0]}
@@ -229,7 +229,7 @@ export default function OrderDetailPage() {
                           {item.Product.Brand.name}
                         </p>
                       )}
-                      <div className="flex items-center gap-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                         <span className="text-sm text-gray-600">
                           Qty: {item.quantity}
                         </span>
@@ -238,7 +238,7 @@ export default function OrderDetailPage() {
                         </span>
                       </div>
                     </div>
-                    <div className="text-right">
+                    <div className="text-left sm:text-right">
                       <p className="font-bold text-gray-900">
                         ৳{(item.price * item.quantity).toFixed(2)}
                       </p>
