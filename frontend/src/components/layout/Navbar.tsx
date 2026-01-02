@@ -133,9 +133,9 @@ export default function Navbar() {
                 <Image
                   src="/Logo.png"
                   alt="Khali's Beauty"
-                  width={250}
-                  height={100}
-                  className="h-10 w-auto"
+                  width={1000}
+                  height={250}
+                  className="h-16 w-auto md:h-14"
                   priority
                 />
               </Link>
