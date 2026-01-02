@@ -68,10 +68,14 @@ export default function Home() {
 
         // Hero Banners - Use API offers or fallback to dummy data
         const heroData = activeOffers.filter((o) => o.type === 'hero');
+        console.log('🎯 Hero offers from API:', heroData);
         if (heroData.length > 0) {
-          setHeroOffers(heroData.sort((a, b) => (b.priority || 0) - (a.priority || 0)));
+          const sortedHero = heroData.sort((a, b) => (b.priority || 0) - (a.priority || 0));
+          console.log('✅ Using API hero offers:', sortedHero);
+          setHeroOffers(sortedHero);
         } else {
           // Dummy hero banners (company/website advertisement)
+          console.log('⚠️ No API hero offers found, using dummy data');
           setHeroOffers(getDummyHeroOffers());
         }
 
@@ -471,14 +475,26 @@ export default function Home() {
 
   // Get the correct link for an offer (either custom URL, product page, or offers page with products)
   const getOfferLink = (offer: Offer): string => {
+    console.log('🔗 Getting link for offer:', {
+      id: offer.id,
+      name: offer.name,
+      linkType: offer.linkType,
+      link: offer.link,
+      productId: offer.productId
+    });
+
     if (offer.linkType === 'url' && offer.link) {
       // Use custom URL
+      console.log('✅ Using custom URL:', offer.link);
       return offer.link;
     } else if (offer.linkType === 'product') {
       // If products are linked, go to offers page with this offer's products
-      return `/offers?offerId=${offer.id}`;
+      const productsLink = `/offers?offerId=${offer.id}`;
+      console.log('✅ Using product link:', productsLink);
+      return productsLink;
     }
     // Fallback to offers page
+    console.log('⚠️ Using fallback link: /offers');
     return '/offers';
   };
 
