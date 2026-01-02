@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/src/lib/AuthContext';
 import { useCart } from '@/src/lib/CartContext';
@@ -129,7 +130,14 @@ export default function Navbar() {
             {/* Logo - Centered on mobile, left on desktop */}
             <div className="absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0 flex items-center justify-center md:justify-start">
               <Link href="/" className="flex items-center justify-center md:justify-start">
-                <span className="text-xl sm:text-2xl md:text-2xl font-extrabold tracking-[0.3em] font-[Oswald] text-center md:text-left">KHALI&apos;S BEAUTY</span>
+                <Image
+                  src="/Logo.png"
+                  alt="Khali's Beauty"
+                  width={250}
+                  height={100}
+                  className="h-10 w-auto"
+                  priority
+                />
               </Link>
             </div>
 
