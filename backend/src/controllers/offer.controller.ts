@@ -46,6 +46,13 @@ export const getActiveOffers = async (req: Request, res: Response): Promise<void
         startDate: { lte: now },
         endDate: { gte: now },
       },
+      include: {
+        OfferProduct: {
+          include: {
+            Product: true,
+          },
+        },
+      },
       orderBy: [
         { priority: 'desc' },
         { createdAt: 'desc' },
@@ -76,6 +83,13 @@ export const getAllOffers = async (req: Request, res: Response): Promise<void> =
 
     const offers = await prisma.offer.findMany({
       where,
+      include: {
+        OfferProduct: {
+          include: {
+            Product: true,
+          },
+        },
+      },
       orderBy: [
         { priority: 'desc' },
         { createdAt: 'desc' },
@@ -101,6 +115,13 @@ export const getOfferById = async (req: Request, res: Response): Promise<void> =
 
     const offer = await prisma.offer.findUnique({
       where: { id },
+      include: {
+        OfferProduct: {
+          include: {
+            Product: true,
+          },
+        },
+      },
     });
 
     if (!offer) {
@@ -119,17 +140,40 @@ export const getOfferById = async (req: Request, res: Response): Promise<void> =
 export const createOffer = async (req: Request, res: Response): Promise<void> => {
   try {
     const offerData = req.body;
+    const { productIds, ...restData } = offerData;
 
     // Convert date strings to Date objects
     const offer = await prisma.offer.create({
       data: {
-        ...offerData,
+        ...restData,
         startDate: new Date(offerData.startDate),
         endDate: new Date(offerData.endDate),
       },
     });
 
-    res.status(201).json(offer);
+    // Create OfferProduct relationships if productIds are provided
+    if (productIds && Array.isArray(productIds) && productIds.length > 0) {
+      await prisma.offerProduct.createMany({
+        data: productIds.map((productId: string) => ({
+          offerId: offer.id,
+          productId,
+        })),
+      });
+    }
+
+    // Fetch the created offer with products
+    const offerWithProducts = await prisma.offer.findUnique({
+      where: { id: offer.id },
+      include: {
+        OfferProduct: {
+          include: {
+            Product: true,
+          },
+        },
+      },
+    });
+
+    res.status(201).json(offerWithProducts);
   } catch (error: any) {
     console.error('Error creating offer:', error);
     if (error.code === 'P2002') {
@@ -151,8 +195,10 @@ export const updateOffer = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
+    const { productIds, ...restData } = offerData;
+
     // Convert date strings to Date objects if they exist
-    const updateData: any = { ...offerData };
+    const updateData: any = { ...restData };
     if (offerData.startDate) {
       updateData.startDate = new Date(offerData.startDate);
     }
@@ -160,12 +206,42 @@ export const updateOffer = async (req: Request, res: Response): Promise<void> =>
       updateData.endDate = new Date(offerData.endDate);
     }
 
-    const offer = await prisma.offer.update({
+    await prisma.offer.update({
       where: { id },
       data: updateData,
     });
 
-    res.json(offer);
+    // Update OfferProduct relationships if productIds are provided
+    if (productIds !== undefined) {
+      // Delete existing relationships
+      await prisma.offerProduct.deleteMany({
+        where: { offerId: id },
+      });
+
+      // Create new relationships
+      if (Array.isArray(productIds) && productIds.length > 0) {
+        await prisma.offerProduct.createMany({
+          data: productIds.map((productId: string) => ({
+            offerId: id,
+            productId,
+          })),
+        });
+      }
+    }
+
+    // Fetch the updated offer with products
+    const offerWithProducts = await prisma.offer.findUnique({
+      where: { id },
+      include: {
+        OfferProduct: {
+          include: {
+            Product: true,
+          },
+        },
+      },
+    });
+
+    res.json(offerWithProducts);
   } catch (error: any) {
     console.error('Error updating offer:', error);
     if (error.code === 'P2025') {

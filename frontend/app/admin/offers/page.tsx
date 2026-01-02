@@ -35,6 +35,10 @@ interface Offer {
   cardStyle?: 'gradient' | 'solid' | 'image' | null;
   createdAt?: string;
   updatedAt?: string;
+  OfferProduct?: Array<{
+    id: string;
+    Product: Product;
+  }>;
 }
 
 export default function OffersPage() {
@@ -52,7 +56,7 @@ export default function OffersPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [productSearchQuery, setProductSearchQuery] = useState('');
   const [showProductSearch, setShowProductSearch] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
   const [productSearchLoading, setProductSearchLoading] = useState(false);
 
   // Form state
@@ -129,7 +133,7 @@ export default function OffersPage() {
 
       if (response.ok) {
         const product = await response.json();
-        setSelectedProduct(product);
+        setSelectedProducts([product]);
         setFormData(prev => ({
           ...prev,
           productName: product.name,
@@ -172,10 +176,16 @@ export default function OffersPage() {
         cardStyle: offer.cardStyle || 'gradient',
       });
       setImagePreview(offer.imageUrl || '');
-      // If there's a productId, we'll need to fetch the product details
-      if (offer.productId) {
-        // Fetch product details if needed for display
+
+      // Load products from OfferProduct relationship
+      if (offer.OfferProduct && offer.OfferProduct.length > 0) {
+        const offerProducts = offer.OfferProduct.map(op => op.Product);
+        setSelectedProducts(offerProducts);
+      } else if (offer.productId) {
+        // Fallback: If there's a productId, fetch the product details
         fetchProductDetails(offer.productId);
+      } else {
+        setSelectedProducts([]);
       }
     } else {
       setEditingOffer(null);
@@ -207,7 +217,7 @@ export default function OffersPage() {
         cardStyle: 'gradient',
       });
       setImagePreview('');
-      setSelectedProduct(null);
+      setSelectedProducts([]);
     }
     setIsModalOpen(true);
   };
@@ -243,7 +253,7 @@ export default function OffersPage() {
       cardStyle: 'gradient',
     });
     setImagePreview('');
-    setSelectedProduct(null);
+    setSelectedProducts([]);
     setProductSearchQuery('');
     setShowProductSearch(false);
   };
@@ -288,25 +298,17 @@ export default function OffersPage() {
   }, [productSearchQuery]);
 
   const handleProductSelect = (product: Product) => {
-    setSelectedProduct(product);
-    setFormData({
-      ...formData,
-      productId: product.id,
-      productName: product.name,
-      productImage: (product as any).imageUrl || product.images?.[0] || '',
-    });
+    // Check if product is already selected
+    if (selectedProducts.find(p => p.id === product.id)) {
+      return;
+    }
+    setSelectedProducts([...selectedProducts, product]);
     setShowProductSearch(false);
     setProductSearchQuery('');
   };
 
-  const handleRemoveProduct = () => {
-    setSelectedProduct(null);
-    setFormData({
-      ...formData,
-      productId: '',
-      productName: '',
-      productImage: '',
-    });
+  const handleRemoveProduct = (productId: string) => {
+    setSelectedProducts(selectedProducts.filter(p => p.id !== productId));
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -368,6 +370,7 @@ export default function OffersPage() {
       linkType: formData.linkType,
       link: formData.link || null,
       productId: formData.productId || null,
+      productIds: selectedProducts.map(p => p.id), // Add multiple product IDs
       type: formData.type,
       discountType: formData.discountType,
       discountValue: Number(formData.discountValue),
@@ -875,7 +878,7 @@ export default function OffersPage() {
                     type="button"
                     onClick={() => {
                       setFormData({ ...formData, linkType: 'product', link: '' });
-                      setSelectedProduct(null);
+                      setSelectedProducts([]);
                     }}
                     className={`flex-1 py-3 px-4 rounded-lg border-2 transition-all ${
                       formData.linkType === 'product'
@@ -885,9 +888,9 @@ export default function OffersPage() {
                   >
                     <div className="flex items-center justify-center gap-2">
                       <Package className="w-5 h-5" />
-                      <span className="font-medium">Specific Product</span>
+                      <span className="font-medium">Specific Products</span>
                     </div>
-                    <p className="text-xs mt-1 opacity-75">Link to a product page</p>
+                    <p className="text-xs mt-1 opacity-75">Link to product pages</p>
                   </button>
                 </div>
 
@@ -910,36 +913,44 @@ export default function OffersPage() {
                 {/* Product Selection */}
                 {formData.linkType === 'product' && (
                   <div>
-                    {selectedProduct ? (
-                      /* Selected Product Display */
-                      <div className="border border-green-300 rounded-lg p-3 bg-green-50">
-                        <div className="flex items-center gap-3">
-                          {((selectedProduct as any).imageUrl || selectedProduct.images?.[0]) && (
-                            <div className="relative w-16 h-16">
-                              <Image
-                                src={(selectedProduct as any).imageUrl || selectedProduct.images?.[0] || ''}
-                                alt={selectedProduct.name}
-                                fill
-                                className="object-cover rounded border border-gray-300"
-                              />
+                    {/* Selected Products Display */}
+                    {selectedProducts.length > 0 && (
+                      <div className="mb-3 space-y-2">
+                        <label className="block text-sm font-medium text-gray-700">
+                          Selected Products ({selectedProducts.length})
+                        </label>
+                        {selectedProducts.map((product) => (
+                          <div key={product.id} className="border border-green-300 rounded-lg p-3 bg-green-50">
+                            <div className="flex items-center gap-3">
+                              {((product as any).imageUrl || product.images?.[0]) && (
+                                <div className="relative w-16 h-16">
+                                  <Image
+                                    src={(product as any).imageUrl || product.images?.[0] || ''}
+                                    alt={product.name}
+                                    fill
+                                    className="object-cover rounded border border-gray-300"
+                                  />
+                                </div>
+                              )}
+                              <div className="flex-1">
+                                <p className="font-semibold text-gray-900">{product.name}</p>
+                                <p className="text-sm text-gray-600">৳{product.salePrice || product.price}</p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveProduct(product.id)}
+                                className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+                              >
+                                <X className="w-5 h-5" />
+                              </button>
                             </div>
-                          )}
-                          <div className="flex-1">
-                            <p className="font-semibold text-gray-900">{selectedProduct.name}</p>
-                            <p className="text-sm text-gray-600">Product ID: {selectedProduct.id}</p>
                           </div>
-                          <button
-                            type="button"
-                            onClick={handleRemoveProduct}
-                            className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
-                          >
-                            <X className="w-5 h-5" />
-                          </button>
-                        </div>
+                        ))}
                       </div>
-                    ) : (
-                      /* Product Search */
-                      <div>
+                    )}
+
+                    {/* Product Search */}
+                    <div>
                         <div className="relative">
                           <input
                             type="text"
@@ -1015,7 +1026,6 @@ export default function OffersPage() {
                           <p className="text-xs text-gray-500 mt-1">Type at least 2 characters to search...</p>
                         )}
                       </div>
-                    )}
                   </div>
                 )}
               </div>

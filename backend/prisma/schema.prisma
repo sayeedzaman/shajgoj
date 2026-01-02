@@ -111,39 +111,53 @@ model Concern {
 }
 
 model Offer {
-  id                String   @id @default(uuid())
+  id                String         @id @default(uuid())
   name              String
-  code              String   @unique
+  code              String         @unique
   description       String?
   imageUrl          String?
-  linkType          String   @default("url")
+  linkType          String         @default("url")
   link              String?
   productId         String?
   type              String
   discountType      String
   discountValue     Float
-  minPurchase       Float    @default(0)
+  minPurchase       Float          @default(0)
   maxDiscount       Float?
   startDate         DateTime
   endDate           DateTime
-  usageLimit        Int      @default(0)
-  usageCount        Int      @default(0)
-  status            String   @default("ACTIVE")
-  displayOnHomepage Boolean  @default(true)
-  priority          Int      @default(0)
+  usageLimit        Int            @default(0)
+  usageCount        Int            @default(0)
+  status            String         @default("ACTIVE")
+  displayOnHomepage Boolean        @default(true)
+  priority          Int            @default(0)
   backgroundColor   String?
   textColor         String?
   badgeColor        String?
   borderStyle       String?
   cardStyle         String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  OfferProduct      OfferProduct[]
 
   @@index([displayOnHomepage])
   @@index([endDate])
   @@index([startDate])
   @@index([status])
   @@index([type])
+}
+
+model OfferProduct {
+  id        String   @id @default(uuid())
+  offerId   String
+  productId String
+  createdAt DateTime @default(now())
+  Offer     Offer    @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  Product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([offerId, productId])
+  @@index([offerId])
+  @@index([productId])
 }
 
 model Order {
@@ -196,6 +210,7 @@ model Product {
   Concern       Concern?       @relation(fields: [concernId], references: [id])
   Review        Review[]
   WishlistItem  WishlistItem[]
+  OfferProduct  OfferProduct[]
 
   @@index([brandId])
   @@index([categoryId])
