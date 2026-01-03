@@ -42,6 +42,8 @@ export default function Navbar() {
   const [hoveredCategoryId, setHoveredCategoryId] = useState<string | null>(null);
   const [expandedCategoryId, setExpandedCategoryId] = useState<string | null>(null);
   const [expandedTypeId, setExpandedTypeId] = useState<string | null>(null);
+  const [brands, setBrands] = useState<{ id: string; name: string; slug: string; }[]>([]);
+  const [isBrandsHovered, setIsBrandsHovered] = useState(false);
 
   const fetchCategories = async () => {
     try {
@@ -95,8 +97,29 @@ export default function Navbar() {
     }
   };
 
+  const fetchBrands = async () => {
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      const brandsResponse = await fetch(`${apiUrl}/api/brands`);
+      if (!brandsResponse.ok) return;
+
+      const brandsData = await brandsResponse.json();
+      const brandsList = brandsData.brands || [];
+
+      // Sort brands alphabetically by name
+      const sortedBrands = brandsList.sort((a: { name: string }, b: { name: string }) =>
+        a.name.localeCompare(b.name)
+      );
+
+      setBrands(sortedBrands);
+    } catch (error) {
+      console.error('Failed to fetch brands:', error);
+    }
+  };
+
   useEffect(() => {
     fetchCategories();
+    fetchBrands();
   }, []);
 
   return (
@@ -128,7 +151,7 @@ export default function Navbar() {
             </button>
 
             {/* Logo - Centered on mobile, left on desktop */}
-            <div className="absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0 flex items-center justify-center md:justify-start">
+            <div className="absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0 flex items-center justify-center md:justify-start gap-4">
               <Link href="/" className="flex items-center justify-center md:justify-start">
                 <Image
                   src="/Logo.png"
@@ -139,6 +162,37 @@ export default function Navbar() {
                   priority
                 />
               </Link>
+
+              {/* Brands Dropdown - Desktop only */}
+              <div
+                className="hidden md:block relative"
+                onMouseEnter={() => setIsBrandsHovered(true)}
+                onMouseLeave={() => setIsBrandsHovered(false)}
+              >
+                <Link
+                  href="/brands"
+                  className="text-sm font-medium text-gray-700 hover:text-red-500 transition-colors cursor-pointer px-2 py-1"
+                >
+                  Brands
+                </Link>
+
+                {/* Brands Dropdown Menu */}
+                {isBrandsHovered && brands.length > 0 && (
+                  <div className="absolute left-0 top-full mt-1 w-64 bg-white border border-gray-200 shadow-2xl rounded-lg z-[60] max-h-96 overflow-y-auto">
+                    <div className="py-2">
+                      {brands.map((brand) => (
+                        <Link
+                          key={brand.id}
+                          href={`/brands/${brand.slug}`}
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-500 transition-colors"
+                        >
+                          {brand.name}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Search Bar - Desktop - Centered */}
