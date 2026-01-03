@@ -15,7 +15,7 @@ interface Offer {
   linkType: 'url' | 'product'; // Type of link
   link?: string | null; // Custom URL (e.g., /sales, /category/makeup)
   productId?: string | null; // Specific product ID to link to
-  type: 'hero' | 'deal' | 'brand' | 'limited'; // Type of offer for homepage sections
+  type: 'hero' | 'deal' | 'brand' | 'limited' | 'deals-you-cannot-miss' | 'top-brands'; // Type of offer for homepage sections
   discountType: 'PERCENTAGE' | 'FIXED';
   discountValue: number;
   minPurchase: number;
@@ -33,6 +33,7 @@ interface Offer {
   badgeColor?: string | null; // Badge color classes like 'bg-yellow-400 text-purple-900'
   borderStyle?: 'wavy' | 'rounded' | 'sharp' | 'irregular' | null;
   cardStyle?: 'gradient' | 'solid' | 'image' | null;
+  showPlainImage?: boolean; // Show only the image without text overlays
   createdAt?: string;
   updatedAt?: string;
   OfferProduct?: Array<{
@@ -70,7 +71,7 @@ export default function OffersPage() {
     productId: '',
     productName: '',
     productImage: '',
-    type: 'deal' as 'hero' | 'deal' | 'brand' | 'limited',
+    type: 'deal' as 'hero' | 'deal' | 'brand' | 'limited' | 'deals-you-cannot-miss' | 'top-brands',
     discountType: 'PERCENTAGE' as 'PERCENTAGE' | 'FIXED',
     discountValue: 0,
     minPurchase: 0,
@@ -86,6 +87,7 @@ export default function OffersPage() {
     badgeColor: 'bg-yellow-400 text-red-900',
     borderStyle: 'wavy' as 'wavy' | 'rounded' | 'sharp' | 'irregular',
     cardStyle: 'gradient' as 'gradient' | 'solid' | 'image',
+    showPlainImage: false,
   });
 
   // Load offers from API on mount
@@ -174,6 +176,7 @@ export default function OffersPage() {
         badgeColor: offer.badgeColor || 'bg-yellow-400 text-red-900',
         borderStyle: offer.borderStyle || 'wavy',
         cardStyle: offer.cardStyle || 'gradient',
+        showPlainImage: offer.showPlainImage || false,
       });
       setImagePreview(offer.imageUrl || '');
 
@@ -215,6 +218,7 @@ export default function OffersPage() {
         badgeColor: 'bg-yellow-400 text-red-900',
         borderStyle: 'wavy',
         cardStyle: 'gradient',
+        showPlainImage: false,
       });
       setImagePreview('');
       setSelectedProducts([]);
@@ -251,6 +255,7 @@ export default function OffersPage() {
       badgeColor: 'bg-yellow-400 text-red-900',
       borderStyle: 'wavy',
       cardStyle: 'gradient',
+      showPlainImage: false,
     });
     setImagePreview('');
     setSelectedProducts([]);
@@ -390,6 +395,7 @@ export default function OffersPage() {
       badgeColor: formData.badgeColor || null,
       borderStyle: formData.borderStyle || null,
       cardStyle: formData.cardStyle || null,
+      showPlainImage: formData.showPlainImage,
     };
 
     console.log('📦 Offer Data Being Sent:', JSON.stringify(offerData, null, 2));
@@ -822,18 +828,20 @@ export default function OffersPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Offer Type*
-                    <span className="text-xs text-gray-500 ml-2">(Appearance on homepage)</span>
+                    <span className="text-xs text-gray-500 ml-2">(Appearance on offers page)</span>
                   </label>
                   <select
                     required
                     value={formData.type}
-                    onChange={(e) => setFormData({ ...formData, type: e.target.value as 'hero' | 'deal' | 'brand' | 'limited' })}
+                    onChange={(e) => setFormData({ ...formData, type: e.target.value as 'hero' | 'deal' | 'brand' | 'limited' | 'deals-you-cannot-miss' | 'top-brands' })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
                   >
                     <option value="hero">Hero Banner (Top Slider)</option>
                     <option value="deal">Deal Card (Deals Section)</option>
                     <option value="brand">Brand Ad (Brands Section)</option>
                     <option value="limited">Limited Offer (Limited Time Section)</option>
+                    <option value="deals-you-cannot-miss">Deals You Cannot Miss (Square Layout)</option>
+                    <option value="top-brands">Top Brands (Rectangle Layout)</option>
                   </select>
                 </div>
                 <div>
@@ -1297,17 +1305,35 @@ export default function OffersPage() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="displayOnHomepage"
-                  checked={formData.displayOnHomepage}
-                  onChange={(e) => setFormData({ ...formData, displayOnHomepage: e.target.checked })}
-                  className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
-                />
-                <label htmlFor="displayOnHomepage" className="text-sm font-medium text-gray-700">
-                  Display this offer on homepage
-                </label>
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="displayOnHomepage"
+                    checked={formData.displayOnHomepage}
+                    onChange={(e) => setFormData({ ...formData, displayOnHomepage: e.target.checked })}
+                    className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
+                  />
+                  <label htmlFor="displayOnHomepage" className="text-sm font-medium text-gray-700">
+                    Display this offer on homepage
+                  </label>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="showPlainImage"
+                    checked={formData.showPlainImage}
+                    onChange={(e) => setFormData({ ...formData, showPlainImage: e.target.checked })}
+                    className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
+                  />
+                  <label htmlFor="showPlainImage" className="text-sm font-medium text-gray-700">
+                    Show plain image only (no text overlays/badges)
+                  </label>
+                </div>
+                <p className="text-xs text-gray-500 ml-6">
+                  When enabled, only the offer image will be displayed without discount badges or promo code overlays. Perfect for custom-designed graphics.
+                </p>
               </div>
 
               <div className="flex gap-3 pt-4">

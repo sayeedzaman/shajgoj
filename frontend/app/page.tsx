@@ -32,7 +32,7 @@ interface Offer {
   productId?: string; // Product ID for direct product link
   productName?: string;
   productImage?: string;
-  type: 'hero' | 'deal' | 'brand' | 'limited';
+  type: 'hero' | 'deal' | 'brand' | 'limited' | 'deals-you-cannot-miss' | 'top-brands';
   discountType: 'PERCENTAGE' | 'FIXED';
   discountValue: number;
   minPurchase: number;
@@ -50,6 +50,7 @@ interface Offer {
   badgeColor?: string;
   borderStyle?: 'wavy' | 'rounded' | 'sharp' | 'irregular';
   cardStyle?: 'gradient' | 'solid' | 'image';
+  showPlainImage?: boolean;
   // Products relationship
   OfferProduct?: Array<{
     id: string;
@@ -61,7 +62,9 @@ export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [heroOffers, setHeroOffers] = useState<Offer[]>([]);
   const [dealOffers, setDealOffers] = useState<Offer[]>([]);
+  const [dealsYouCannotMiss, setDealsYouCannotMiss] = useState<Offer[]>([]);
   const [brandOffers, setBrandOffers] = useState<Offer[]>([]);
+  const [topBrandsOffers, setTopBrandsOffers] = useState<Offer[]>([]);
   const [limitedOffers, setLimitedOffers] = useState<Offer[]>([]);
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [topSellingProducts, setTopSellingProducts] = useState<Product[]>([]);
@@ -104,6 +107,12 @@ export default function Home() {
           setDealOffers(getDummyDealOffers());
         }
 
+        // Deals You Cannot Miss - New offer type with square layout
+        const dealsCannotMissData = activeOffers.filter((o) => o.type === 'deals-you-cannot-miss');
+        setDealsYouCannotMiss(
+          dealsCannotMissData.sort((a, b) => (b.priority || 0) - (a.priority || 0))
+        );
+
         // Brand Ads - Use API offers or fallback to dummy data
         const brandData = activeOffers.filter((o) => o.type === 'brand');
         if (brandData.length > 0) {
@@ -113,6 +122,12 @@ export default function Home() {
         } else {
           setBrandOffers(getDummyBrandOffers());
         }
+
+        // Top Brands - New offer type with rectangle layout
+        const topBrandsData = activeOffers.filter((o) => o.type === 'top-brands');
+        setTopBrandsOffers(
+          topBrandsData.sort((a, b) => (b.priority || 0) - (a.priority || 0))
+        );
 
         // Limited Time Offers - Use API offers or fallback to dummy data
         const limitedData = activeOffers.filter((o) => o.type === 'limited');
@@ -699,11 +714,74 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Deals You Cannot Miss - Striking Cards */}
-      {dealOffers.length > 0 && (
+      {/* Deals You Cannot Miss - Square Layout */}
+      {dealsYouCannotMiss.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 py-8">
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6 text-center">
             Deals You Cannot Miss
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {dealsYouCannotMiss.map((offer) => (
+              <Link
+                key={offer.id}
+                href={getOfferLink(offer)}
+                className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 block aspect-square"
+              >
+                {offer.showPlainImage && offer.imageUrl ? (
+                  <Image
+                    src={offer.imageUrl}
+                    alt={offer.name}
+                    width={300}
+                    height={300}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <>
+                    <div className="relative h-2/3 bg-gradient-to-br from-red-100 to-purple-100">
+                      {offer.imageUrl ? (
+                        <Image
+                          src={offer.imageUrl}
+                          alt={offer.name}
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <span className="text-4xl">🎁</span>
+                        </div>
+                      )}
+                      <div className="absolute top-2 left-2">
+                        <div className="bg-red-500 text-white rounded-lg shadow-xl px-2 py-1">
+                          <div className="text-lg font-bold">
+                            {offer.discountType === 'PERCENTAGE'
+                              ? `${offer.discountValue}%`
+                              : `৳${offer.discountValue}`}
+                          </div>
+                          <div className="text-xs">OFF</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="p-3 h-1/3 flex flex-col justify-center">
+                      <h3 className="text-sm font-bold text-gray-900 mb-1 line-clamp-2">
+                        {offer.name}
+                      </h3>
+                      <div className="text-xs font-mono font-bold text-red-600">
+                        {offer.code}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Old Deals Section (fallback for old 'deal' type offers) */}
+      {dealOffers.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 py-8">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6 text-center">
+            Special Deals
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {dealOffers.map((deal) => (
@@ -713,12 +791,75 @@ export default function Home() {
         </section>
       )}
 
+      {/* Top Brands - Rectangle Layout */}
+      {topBrandsOffers.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 py-8">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6 text-center">
+            Top Brands
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {topBrandsOffers.map((offer) => (
+              <Link
+                key={offer.id}
+                href={getOfferLink(offer)}
+                className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 block"
+              >
+                {offer.showPlainImage && offer.imageUrl ? (
+                  <div className="relative aspect-[3/2]">
+                    <Image
+                      src={offer.imageUrl}
+                      alt={offer.name}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                ) : (
+                  <>
+                    <div className="relative aspect-[3/2] bg-gradient-to-br from-red-100 to-purple-100">
+                      {offer.imageUrl ? (
+                        <Image
+                          src={offer.imageUrl}
+                          alt={offer.name}
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <span className="text-6xl">🎁</span>
+                        </div>
+                      )}
+                      <div className="absolute top-3 left-3">
+                        <div className="bg-red-500 text-white rounded-lg shadow-xl px-3 py-2">
+                          <div className="text-xl font-bold">
+                            {offer.discountType === 'PERCENTAGE'
+                              ? `${offer.discountValue}%`
+                              : `৳${offer.discountValue}`}
+                          </div>
+                          <div className="text-xs">OFF</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="p-4">
+                      <h3 className="text-base font-bold text-gray-900 mb-2">
+                        {offer.name}
+                      </h3>
+                      <div className="text-sm font-mono font-bold text-red-600">
+                        {offer.code}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
-      {/* Top Brands & Offers - Category Cards */}
+      {/* Old Top Brands & Offers - Category Cards (fallback for old 'brand' type) */}
       {brandOffers.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 py-8">
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6 text-center">
-            Top Brands & Offers
+            Brand Offers
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {brandOffers.map((brand) => (

@@ -25,6 +25,7 @@ interface Offer {
   code: string;
   description?: string;
   imageUrl?: string;
+  type: string;
   discountType: 'PERCENTAGE' | 'FIXED';
   discountValue: number;
   minPurchase: number;
@@ -35,6 +36,7 @@ interface Offer {
   usageCount: number;
   status: 'ACTIVE' | 'EXPIRED' | 'SCHEDULED';
   displayOnHomepage: boolean;
+  showPlainImage?: boolean;
   OfferProduct?: Array<{
     id: string;
     Product: Product;
@@ -131,6 +133,11 @@ function OffersContent() {
     const matchesType = filterType === 'all' || offer.discountType === filterType;
     return matchesSearch && matchesType;
   });
+
+  // Categorize offers by type
+  const dealsYouCannotMiss = filteredOffers.filter(offer => offer.type === 'deals-you-cannot-miss');
+  const topBrandsOffers = filteredOffers.filter(offer => offer.type === 'top-brands');
+  const otherOffers = filteredOffers.filter(offer => offer.type !== 'deals-you-cannot-miss' && offer.type !== 'top-brands');
 
   const getDaysRemaining = (endDate: string) => {
     const end = new Date(endDate);
@@ -351,145 +358,276 @@ function OffersContent() {
             <p className="text-gray-600">Try adjusting your search or filters</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredOffers.map((offer) => {
-              const daysLeft = getDaysRemaining(offer.endDate);
-              const isExpiringSoon = daysLeft <= 7 && daysLeft > 0;
-
-              return (
-                <Link
-                  key={offer.id}
-                  href={`/offers?offerId=${offer.id}`}
-                  className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 block"
-                >
-                  {/* Offer Image */}
-                  <div className="relative h-48 bg-linear-to-br from-red-100 to-purple-100">
-                    {offer.imageUrl ? (
-                      <img
-                        src={offer.imageUrl}
-                        alt={offer.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Gift className="w-16 h-16 text-gray-300" />
-                      </div>
-                    )}
-
-                    {/* Discount Badge */}
-                    <div className="absolute top-4 left-4">
-                      <div className="bg-red-500 text-white rounded-lg shadow-xl px-4 py-2">
-                        <div className="text-2xl font-bold">
-                          {offer.discountType === 'PERCENTAGE'
-                            ? `${offer.discountValue}%`
-                            : `৳${offer.discountValue}`
-                          }
-                        </div>
-                        <div className="text-xs">OFF</div>
-                      </div>
-                    </div>
-
-                    {/* Days Left Badge */}
-                    {isExpiringSoon && (
-                      <div className="absolute top-4 right-4 bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full">
-                        {daysLeft} days left
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Offer Details */}
-                  <div className="p-6">
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">
-                      {offer.name}
-                    </h3>
-
-                    {offer.description && (
-                      <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                        {offer.description}
-                      </p>
-                    )}
-
-                    {/* Offer Code */}
-                    <div className="bg-linear-to-r from-red-50 to-pink-50 rounded-lg p-4 mb-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="text-xs text-gray-600 mb-1">Promo Code</div>
-                          <div className="text-lg font-mono font-bold text-red-600">
-                            {offer.code}
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            copyCode(offer.code);
-                          }}
-                          className={`p-3 rounded-lg transition-all ${
-                            copiedCode === offer.code
-                              ? 'bg-green-500 text-white'
-                              : 'bg-white text-gray-700 hover:bg-gray-100'
-                          }`}
-                        >
-                          {copiedCode === offer.code ? (
-                            <Check className="w-5 h-5" />
-                          ) : (
-                            <Copy className="w-5 h-5" />
-                          )}
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Offer Details */}
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-600">Min Purchase:</span>
-                        <span className="font-semibold text-gray-900">৳{offer.minPurchase}</span>
-                      </div>
-
-                      {offer.maxDiscount && (
-                        <div className="flex items-center justify-between">
-                          <span className="text-gray-600">Max Discount:</span>
-                          <span className="font-semibold text-gray-900">৳{offer.maxDiscount}</span>
-                        </div>
-                      )}
-
-                      <div className="flex items-center gap-2 text-gray-600 pt-2">
-                        <Calendar className="w-4 h-4" />
-                        <span className="text-xs">
-                          Valid till {new Date(offer.endDate).toLocaleDateString()}
-                        </span>
-                      </div>
-
-                      {/* Usage Bar */}
-                      <div className="pt-2">
-                        <div className="flex justify-between text-xs text-gray-600 mb-1">
-                          <span>Used</span>
-                          <span>{offer.usageCount} / {offer.usageLimit}</span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div
-                            className="bg-linear-to-r from-red-500 to-pink-500 h-2 rounded-full transition-all"
-                            style={{ width: `${(offer.usageCount / offer.usageLimit) * 100}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Action Button */}
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        copyCode(offer.code);
-                      }}
-                      className="w-full mt-4 bg-linear-to-r from-red-600 to-pink-600 text-white py-3 rounded-lg font-semibold hover:from-red-700 hover:to-pink-700 transition-all transform hover:scale-105"
+          <div className="space-y-12">
+            {/* Deals You Cannot Miss - Square Layout */}
+            {dealsYouCannotMiss.length > 0 && (
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">Deals You Cannot Miss</h2>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {dealsYouCannotMiss.map((offer) => (
+                    <Link
+                      key={offer.id}
+                      href={`/offers?offerId=${offer.id}`}
+                      className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 block aspect-square"
                     >
-                      {copiedCode === offer.code ? 'Code Copied!' : 'Copy Code & Shop'}
-                    </button>
-                  </div>
-                </Link>
-              );
-            })}
+                      {offer.showPlainImage && offer.imageUrl ? (
+                        <img
+                          src={offer.imageUrl}
+                          alt={offer.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <>
+                          <div className="relative h-2/3 bg-linear-to-br from-red-100 to-purple-100">
+                            {offer.imageUrl ? (
+                              <img
+                                src={offer.imageUrl}
+                                alt={offer.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <Gift className="w-12 h-12 text-gray-300" />
+                              </div>
+                            )}
+                            <div className="absolute top-2 left-2">
+                              <div className="bg-red-500 text-white rounded-lg shadow-xl px-2 py-1">
+                                <div className="text-lg font-bold">
+                                  {offer.discountType === 'PERCENTAGE'
+                                    ? `${offer.discountValue}%`
+                                    : `৳${offer.discountValue}`}
+                                </div>
+                                <div className="text-xs">OFF</div>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="p-3 h-1/3 flex flex-col justify-center">
+                            <h3 className="text-sm font-bold text-gray-900 mb-1 line-clamp-2">
+                              {offer.name}
+                            </h3>
+                            <div className="text-xs font-mono font-bold text-red-600">
+                              {offer.code}
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Top Brands - Rectangle Layout */}
+            {topBrandsOffers.length > 0 && (
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">Top Brands</h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {topBrandsOffers.map((offer) => (
+                    <Link
+                      key={offer.id}
+                      href={`/offers?offerId=${offer.id}`}
+                      className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 block"
+                    >
+                      {offer.showPlainImage && offer.imageUrl ? (
+                        <div className="relative aspect-[3/2]">
+                          <img
+                            src={offer.imageUrl}
+                            alt={offer.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <>
+                          <div className="relative aspect-[3/2] bg-linear-to-br from-red-100 to-purple-100">
+                            {offer.imageUrl ? (
+                              <img
+                                src={offer.imageUrl}
+                                alt={offer.name}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <Gift className="w-16 h-16 text-gray-300" />
+                              </div>
+                            )}
+                            <div className="absolute top-3 left-3">
+                              <div className="bg-red-500 text-white rounded-lg shadow-xl px-3 py-2">
+                                <div className="text-xl font-bold">
+                                  {offer.discountType === 'PERCENTAGE'
+                                    ? `${offer.discountValue}%`
+                                    : `৳${offer.discountValue}`}
+                                </div>
+                                <div className="text-xs">OFF</div>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="p-4">
+                            <h3 className="text-base font-bold text-gray-900 mb-2">
+                              {offer.name}
+                            </h3>
+                            <div className="text-sm font-mono font-bold text-red-600">
+                              {offer.code}
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Other Offers - Standard Grid */}
+            {otherOffers.length > 0 && (
+              <div>
+                {(dealsYouCannotMiss.length > 0 || topBrandsOffers.length > 0) && (
+                  <h2 className="text-2xl font-bold text-gray-900 mb-6">More Offers</h2>
+                )}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {otherOffers.map((offer) => {
+                    const daysLeft = getDaysRemaining(offer.endDate);
+                    const isExpiringSoon = daysLeft <= 7 && daysLeft > 0;
+
+                    return (
+                      <Link
+                        key={offer.id}
+                        href={`/offers?offerId=${offer.id}`}
+                        className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 block"
+                      >
+                        {offer.showPlainImage && offer.imageUrl ? (
+                          <div className="relative h-64">
+                            <img
+                              src={offer.imageUrl}
+                              alt={offer.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <>
+                            <div className="relative h-48 bg-linear-to-br from-red-100 to-purple-100">
+                              {offer.imageUrl ? (
+                                <img
+                                  src={offer.imageUrl}
+                                  alt={offer.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center">
+                                  <Gift className="w-16 h-16 text-gray-300" />
+                                </div>
+                              )}
+
+                              <div className="absolute top-4 left-4">
+                                <div className="bg-red-500 text-white rounded-lg shadow-xl px-4 py-2">
+                                  <div className="text-2xl font-bold">
+                                    {offer.discountType === 'PERCENTAGE'
+                                      ? `${offer.discountValue}%`
+                                      : `৳${offer.discountValue}`}
+                                  </div>
+                                  <div className="text-xs">OFF</div>
+                                </div>
+                              </div>
+
+                              {isExpiringSoon && (
+                                <div className="absolute top-4 right-4 bg-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full">
+                                  {daysLeft} days left
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="p-6">
+                              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                                {offer.name}
+                              </h3>
+
+                              {offer.description && (
+                                <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+                                  {offer.description}
+                                </p>
+                              )}
+
+                              <div className="bg-linear-to-r from-red-50 to-pink-50 rounded-lg p-4 mb-4">
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <div className="text-xs text-gray-600 mb-1">Promo Code</div>
+                                    <div className="text-lg font-mono font-bold text-red-600">
+                                      {offer.code}
+                                    </div>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      copyCode(offer.code);
+                                    }}
+                                    className={`p-3 rounded-lg transition-all ${
+                                      copiedCode === offer.code
+                                        ? 'bg-green-500 text-white'
+                                        : 'bg-white text-gray-700 hover:bg-gray-100'
+                                    }`}
+                                  >
+                                    {copiedCode === offer.code ? (
+                                      <Check className="w-5 h-5" />
+                                    ) : (
+                                      <Copy className="w-5 h-5" />
+                                    )}
+                                  </button>
+                                </div>
+                              </div>
+
+                              <div className="space-y-2 text-sm">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-gray-600">Min Purchase:</span>
+                                  <span className="font-semibold text-gray-900">৳{offer.minPurchase}</span>
+                                </div>
+
+                                {offer.maxDiscount && (
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-gray-600">Max Discount:</span>
+                                    <span className="font-semibold text-gray-900">৳{offer.maxDiscount}</span>
+                                  </div>
+                                )}
+
+                                <div className="flex items-center gap-2 text-gray-600 pt-2">
+                                  <Calendar className="w-4 h-4" />
+                                  <span className="text-xs">
+                                    Valid till {new Date(offer.endDate).toLocaleDateString()}
+                                  </span>
+                                </div>
+
+                                <div className="pt-2">
+                                  <div className="flex justify-between text-xs text-gray-600 mb-1">
+                                    <span>Used</span>
+                                    <span>{offer.usageCount} / {offer.usageLimit}</span>
+                                  </div>
+                                  <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                                    <div
+                                      className="bg-linear-to-r from-red-500 to-pink-500 h-2 rounded-full transition-all"
+                                      style={{ width: `${Math.min((offer.usageCount / offer.usageLimit) * 100, 100)}%` }}
+                                    ></div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  copyCode(offer.code);
+                                }}
+                                className="w-full mt-4 bg-linear-to-r from-red-600 to-pink-600 text-white py-3 rounded-lg font-semibold hover:from-red-700 hover:to-pink-700 transition-all transform hover:scale-105"
+                              >
+                                {copiedCode === offer.code ? 'Code Copied!' : 'Copy Code & Shop'}
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         )}
           </>
