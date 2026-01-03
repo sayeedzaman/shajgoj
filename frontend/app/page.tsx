@@ -10,6 +10,16 @@ import ProductCard from '@/src/components/products/ProductCard';
 import ProductCardSkeleton from '@/src/components/products/ProductCardSkeleton';
 import { Product } from '@/src/types/index';
 
+interface OfferProductItem {
+  id: string;
+  name: string;
+  slug: string;
+  price: number;
+  salePrice?: number;
+  imageUrl?: string;
+  images?: string[];
+}
+
 interface Offer {
   id: string;
   name: string;
@@ -40,6 +50,11 @@ interface Offer {
   badgeColor?: string;
   borderStyle?: 'wavy' | 'rounded' | 'sharp' | 'irregular';
   cardStyle?: 'gradient' | 'solid' | 'image';
+  // Products relationship
+  OfferProduct?: Array<{
+    id: string;
+    Product: OfferProductItem;
+  }>;
 }
 
 export default function Home() {
@@ -473,14 +488,18 @@ export default function Home() {
     setCurrentSlide((prev) => (prev - 1 + heroOffers.length) % heroOffers.length);
   };
 
-  // Get the correct link for an offer (either custom URL, product page, or offers page with products)
+  // Get the correct link for an offer (either custom URL, single product page, or offers page with multiple products)
   const getOfferLink = (offer: Offer): string => {
+    const hasOfferProducts = offer.OfferProduct && offer.OfferProduct.length > 0;
+
     console.log('🔗 Getting link for offer:', {
       id: offer.id,
       name: offer.name,
       linkType: offer.linkType,
       link: offer.link,
-      productId: offer.productId
+      productId: offer.productId,
+      hasOfferProducts,
+      offerProductCount: offer.OfferProduct?.length || 0
     });
 
     if (offer.linkType === 'url' && offer.link) {
@@ -488,10 +507,17 @@ export default function Home() {
       console.log('✅ Using custom URL:', offer.link);
       return offer.link;
     } else if (offer.linkType === 'product') {
-      // If products are linked, go to offers page with this offer's products
-      const productsLink = `/offers?offerId=${offer.id}`;
-      console.log('✅ Using product link:', productsLink);
-      return productsLink;
+      if (offer.productId) {
+        // Single product link - go directly to the product page
+        const productLink = `/products/${offer.productId}`;
+        console.log('✅ Using single product link:', productLink);
+        return productLink;
+      } else if (hasOfferProducts) {
+        // Multiple products - go to offers page with this offer's products
+        const productsLink = `/offers?offerId=${offer.id}`;
+        console.log('✅ Using multiple products link:', productsLink);
+        return productsLink;
+      }
     }
     // Fallback to offers page
     console.log('⚠️ Using fallback link: /offers');
