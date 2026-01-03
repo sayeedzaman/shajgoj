@@ -7,7 +7,7 @@ import { useAuth } from '@/src/lib/AuthContext';
 import { useCart } from '@/src/lib/CartContext';
 import { useWishlist } from '@/src/lib/WishlistContext';
 import { ShoppingCart, User, Search, Menu, Heart, LogOut, Plus, Minus, X } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { Category, Product } from '@/src/types';
 import WishlistSidebar from '@/src/components/wishlist/WishlistSidebar';
 
@@ -44,6 +44,8 @@ export default function Navbar() {
   const [expandedTypeId, setExpandedTypeId] = useState<string | null>(null);
   const [brands, setBrands] = useState<{ id: string; name: string; slug: string; }[]>([]);
   const [isBrandsHovered, setIsBrandsHovered] = useState(false);
+  const brandsButtonRef = useRef<HTMLDivElement>(null);
+  const [brandsDropdownPosition, setBrandsDropdownPosition] = useState({ top: 0, left: 0 });
 
   const fetchCategories = async () => {
     try {
@@ -165,8 +167,18 @@ export default function Navbar() {
 
               {/* Brands Dropdown - Desktop only */}
               <div
-                className="hidden md:block relative z-[100]"
-                onMouseEnter={() => setIsBrandsHovered(true)}
+                ref={brandsButtonRef}
+                className="hidden md:block relative"
+                onMouseEnter={() => {
+                  setIsBrandsHovered(true);
+                  if (brandsButtonRef.current) {
+                    const rect = brandsButtonRef.current.getBoundingClientRect();
+                    setBrandsDropdownPosition({
+                      top: rect.bottom,
+                      left: rect.left
+                    });
+                  }
+                }}
                 onMouseLeave={() => setIsBrandsHovered(false)}
               >
                 <Link
@@ -175,23 +187,6 @@ export default function Navbar() {
                 >
                   BRANDS
                 </Link>
-
-                {/* Brands Dropdown Menu */}
-                {isBrandsHovered && brands.length > 0 && (
-                  <div className="absolute left-0 top-full mt-1 w-64 bg-white border border-gray-200 shadow-2xl rounded-lg z-[100] max-h-96 overflow-y-auto">
-                    <div className="py-2">
-                      {brands.map((brand) => (
-                        <Link
-                          key={brand.id}
-                          href={`/brands/${brand.slug}`}
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-500 transition-colors"
-                        >
-                          {brand.name}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
 
@@ -646,6 +641,31 @@ export default function Navbar() {
           />
         )}
       </nav>
+
+      {/* Brands Dropdown Menu - Rendered outside nav for proper z-index */}
+      {isBrandsHovered && brands.length > 0 && (
+        <div
+          className="fixed w-64 bg-white border border-gray-200 shadow-2xl rounded-lg z-[999] max-h-96 overflow-y-auto"
+          style={{
+            top: `${brandsDropdownPosition.top}px`,
+            left: `${brandsDropdownPosition.left}px`
+          }}
+          onMouseEnter={() => setIsBrandsHovered(true)}
+          onMouseLeave={() => setIsBrandsHovered(false)}
+        >
+          <div className="py-2">
+            {brands.map((brand) => (
+              <Link
+                key={brand.id}
+                href={`/brands/${brand.slug}`}
+                className="block px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-500 transition-colors"
+              >
+                {brand.name}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Wishlist Sidebar */}
       <WishlistSidebar
