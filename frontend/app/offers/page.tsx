@@ -371,20 +371,28 @@ function OffersContent() {
                       className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 block aspect-square"
                     >
                       {offer.showPlainImage && offer.imageUrl ? (
-                        <img
-                          src={offer.imageUrl}
-                          alt={offer.name}
-                          className="w-full h-full object-cover"
-                        />
+                        <div className="relative w-full h-full">
+                          <Image
+                            src={offer.imageUrl}
+                            alt={offer.name}
+                            fill
+                            sizes="(max-width: 768px) 50vw, 25vw"
+                            className="object-cover"
+                          />
+                        </div>
                       ) : (
                         <>
                           <div className="relative h-2/3 bg-linear-to-br from-red-100 to-purple-100">
                             {offer.imageUrl ? (
-                              <img
-                                src={offer.imageUrl}
-                                alt={offer.name}
-                                className="w-full h-full object-cover"
-                              />
+                              <div className="relative w-full h-full">
+                                <Image
+                                  src={offer.imageUrl}
+                                  alt={offer.name}
+                                  fill
+                                  sizes="(max-width: 768px) 50vw, 25vw"
+                                  className="object-cover"
+                                />
+                              </div>
                             ) : (
                               <div className="w-full h-full flex items-center justify-center">
                                 <Gift className="w-12 h-12 text-gray-300" />
@@ -430,21 +438,27 @@ function OffersContent() {
                     >
                       {offer.showPlainImage && offer.imageUrl ? (
                         <div className="relative aspect-[3/2]">
-                          <img
+                          <Image
                             src={offer.imageUrl}
                             alt={offer.name}
-                            className="w-full h-full object-cover"
+                            fill
+                            sizes="(max-width: 768px) 100vw, 33vw"
+                            className="object-cover"
                           />
                         </div>
                       ) : (
                         <>
                           <div className="relative aspect-[3/2] bg-linear-to-br from-red-100 to-purple-100">
                             {offer.imageUrl ? (
-                              <img
-                                src={offer.imageUrl}
-                                alt={offer.name}
-                                className="w-full h-full object-cover"
-                              />
+                              <div className="relative w-full h-full">
+                                <Image
+                                  src={offer.imageUrl}
+                                  alt={offer.name}
+                                  fill
+                                  sizes="(max-width: 768px) 100vw, 33vw"
+                                  className="object-cover"
+                                />
+                              </div>
                             ) : (
                               <div className="w-full h-full flex items-center justify-center">
                                 <Gift className="w-16 h-16 text-gray-300" />
@@ -496,21 +510,27 @@ function OffersContent() {
                       >
                         {offer.showPlainImage && offer.imageUrl ? (
                           <div className="relative h-64">
-                            <img
+                            <Image
                               src={offer.imageUrl}
                               alt={offer.name}
-                              className="w-full h-full object-cover"
+                              fill
+                              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                              className="object-cover"
                             />
                           </div>
                         ) : (
                           <>
                             <div className="relative h-48 bg-linear-to-br from-red-100 to-purple-100">
                               {offer.imageUrl ? (
-                                <img
-                                  src={offer.imageUrl}
-                                  alt={offer.name}
-                                  className="w-full h-full object-cover"
-                                />
+                                <div className="relative w-full h-full">
+                                  <Image
+                                    src={offer.imageUrl}
+                                    alt={offer.name}
+                                    fill
+                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                    className="object-cover"
+                                  />
+                                </div>
                               ) : (
                                 <div className="w-full h-full flex items-center justify-center">
                                   <Gift className="w-16 h-16 text-gray-300" />

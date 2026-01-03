@@ -728,13 +728,15 @@ export default function Home() {
                 className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 block aspect-square"
               >
                 {offer.showPlainImage && offer.imageUrl ? (
-                  <Image
-                    src={offer.imageUrl}
-                    alt={offer.name}
-                    width={300}
-                    height={300}
-                    className="w-full h-full object-cover"
-                  />
+                  <div className="relative w-full h-full">
+                    <Image
+                      src={offer.imageUrl}
+                      alt={offer.name}
+                      fill
+                      sizes="(max-width: 768px) 50vw, 25vw"
+                      className="object-cover"
+                    />
+                  </div>
                 ) : (
                   <>
                     <div className="relative h-2/3 bg-gradient-to-br from-red-100 to-purple-100">
@@ -743,6 +745,7 @@ export default function Home() {
                           src={offer.imageUrl}
                           alt={offer.name}
                           fill
+                          sizes="(max-width: 768px) 50vw, 25vw"
                           className="object-cover"
                         />
                       ) : (
@@ -810,6 +813,7 @@ export default function Home() {
                       src={offer.imageUrl}
                       alt={offer.name}
                       fill
+                      sizes="(max-width: 768px) 100vw, 33vw"
                       className="object-cover"
                     />
                   </div>
@@ -821,6 +825,7 @@ export default function Home() {
                           src={offer.imageUrl}
                           alt={offer.name}
                           fill
+                          sizes="(max-width: 768px) 100vw, 33vw"
                           className="object-cover"
                         />
                       ) : (
