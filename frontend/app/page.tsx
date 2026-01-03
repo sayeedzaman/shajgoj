@@ -571,7 +571,7 @@ export default function Home() {
                   key={offer.id}
                   href={getOfferLink(offer)}
                   className={`absolute inset-0 transition-opacity duration-500 ${
-                    index === currentSlide ? 'opacity-100' : 'opacity-0'
+                    index === currentSlide ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
                   }`}
                 >
                   {offer.imageUrl ? (
