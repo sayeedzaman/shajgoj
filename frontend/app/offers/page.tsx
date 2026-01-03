@@ -150,7 +150,7 @@ function OffersContent() {
   return (
     <div className="min-h-screen bg-linear-to-br from-red-50 via-pink-50 to-purple-50">
       {/* Hero Section */}
-      <section className="bg-linear-to-r from-red-500 via-pink-500 to-purple-500 text-white py-16">
+      <section className="bg-linear-to-r from-red-500 via-pink-500 to-purple-500 text-white py-8">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center">
             {viewMode === 'products' && currentOffer ? (

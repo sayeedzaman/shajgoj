@@ -159,15 +159,15 @@ export default function Home() {
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
-        // Fetch featured products
-        const featuredRes = await fetch(`${apiUrl}/api/products?featured=true&limit=8`);
+        // Fetch featured products from dedicated endpoint
+        const featuredRes = await fetch(`${apiUrl}/api/products/featured?limit=8`);
         if (featuredRes.ok) {
           const featuredData = await featuredRes.json();
-          setFeaturedProducts(featuredData.products || []);
+          setFeaturedProducts(Array.isArray(featuredData) ? featuredData : []);
         }
 
-        // Fetch top selling products (for now, just get recent products with sale prices)
-        const topSellingRes = await fetch(`${apiUrl}/api/products?limit=12&sortBy=createdAt&order=desc`);
+        // Fetch top selling products from dedicated endpoint
+        const topSellingRes = await fetch(`${apiUrl}/api/products/top-selling?limit=12`);
         if (topSellingRes.ok) {
           const topSellingData = await topSellingRes.json();
           setTopSellingProducts(topSellingData.products || []);
@@ -638,81 +638,30 @@ export default function Home() {
                 >
                   <ChevronRight className="w-6 h-6 text-gray-800" />
                 </button>
-
-                {/* Slide Indicators - Smaller on mobile */}
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 md:gap-2 z-10">
-                  {heroOffers.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setCurrentSlide(index)}
-                      className={`rounded-full transition-all ${
-                        index === currentSlide
-                          ? 'bg-red-500 w-4 h-1.5 md:w-6 md:h-2'
-                          : 'bg-white/60 w-1.5 h-1.5 md:w-2 md:h-2'
-                      }`}
-                      aria-label={`Go to slide ${index + 1}`}
-                    />
-                  ))}
-                </div>
               </>
             )}
           </div>
+
+          {/* Slide Indicators - Outside and below the image */}
+          {heroOffers.length > 1 && (
+            <div className="flex justify-center gap-1.5 md:gap-2 mt-3">
+              {heroOffers.map((_, index) => (
+                <button
+                  type="button"
+                  key={index}
+                  onClick={() => setCurrentSlide(index)}
+                  className={`rounded-full transition-all ${
+                    index === currentSlide
+                      ? 'bg-red-500 w-4 h-1.5 md:w-6 md:h-2'
+                      : 'bg-gray-400 w-1.5 h-1.5 md:w-2 md:h-2'
+                  }`}
+                  aria-label={`Go to slide ${index + 1}`}
+                />
+              ))}
+            </div>
+          )}
         </section>
       )}
-
-      {/* Featured Products */}
-      <section className="max-w-7xl mx-auto px-4 py-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl md:text-2xl font-bold text-gray-900">Featured Products</h2>
-          <Link href="/products?featured=true" className="text-red-600 hover:text-red-700 font-semibold flex items-center gap-1 text-sm">
-            View All <ChevronRight className="w-4 h-4" />
-          </Link>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-3 md:gap-4">
-          {productsLoading ? (
-            <>
-              {[...Array(4)].map((_, i) => (
-                <ProductCardSkeleton key={i} />
-              ))}
-            </>
-          ) : featuredProducts.length > 0 ? (
-            featuredProducts.slice(0, 4).map((product) => (
-              <ProductCard key={product.id} product={product} showAddToCart={true} />
-            ))
-          ) : (
-            <div className="col-span-full text-center py-8 text-gray-500">
-              No featured products available
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Top Selling Products */}
-      <section className="max-w-7xl mx-auto px-4 py-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl md:text-2xl font-bold text-gray-900">Top Selling Products</h2>
-          <Link href="/top-selling" className="text-red-600 hover:text-red-700 font-semibold flex items-center gap-1 text-sm">
-            View More <ChevronRight className="w-4 h-4" />
-          </Link>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-3 md:gap-4">
-          {productsLoading ? (
-            <>
-              {[...Array(4)].map((_, i) => (
-                <ProductCardSkeleton key={i} />
-              ))}
-            </>
-          ) : topSellingProducts.length > 0 ? (
-            topSellingProducts.slice(0, 4).map((product) => (
-              <ProductCard key={product.id} product={product} showAddToCart={true} />
-            ))
-          ) : (
-            <div className="col-span-full text-center py-8 text-gray-500">
-              No top selling products available
-            </div>
-          )}
-        </div>
-      </section>
 
       {/* Deals You Cannot Miss - Square Layout */}
       {dealsYouCannotMiss.length > 0 && (
@@ -887,6 +836,60 @@ export default function Home() {
           </div>
         </section>
       )}
+
+      {/* Featured Products */}
+      <section className="max-w-7xl mx-auto px-4 py-8">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Featured Products</h2>
+          <Link href="/products?featured=true" className="text-red-600 hover:text-red-700 font-semibold flex items-center gap-1 text-sm">
+            View All <ChevronRight className="w-4 h-4" />
+          </Link>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-3 md:gap-4">
+          {productsLoading ? (
+            <>
+              {[...Array(4)].map((_, i) => (
+                <ProductCardSkeleton key={i} />
+              ))}
+            </>
+          ) : featuredProducts.length > 0 ? (
+            featuredProducts.slice(0, 4).map((product) => (
+              <ProductCard key={product.id} product={product} showAddToCart={true} />
+            ))
+          ) : (
+            <div className="col-span-full text-center py-8 text-gray-500">
+              No featured products available
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Top Selling Products */}
+      <section className="max-w-7xl mx-auto px-4 py-8">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Top Selling Products</h2>
+          <Link href="/top-selling" className="text-red-600 hover:text-red-700 font-semibold flex items-center gap-1 text-sm">
+            View More <ChevronRight className="w-4 h-4" />
+          </Link>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-3 md:gap-4">
+          {productsLoading ? (
+            <>
+              {[...Array(4)].map((_, i) => (
+                <ProductCardSkeleton key={i} />
+              ))}
+            </>
+          ) : topSellingProducts.length > 0 ? (
+            topSellingProducts.slice(0, 4).map((product) => (
+              <ProductCard key={product.id} product={product} showAddToCart={true} />
+            ))
+          ) : (
+            <div className="col-span-full text-center py-8 text-gray-500">
+              No top selling products available
+            </div>
+          )}
+        </div>
+      </section>
 
       {/* Shop Beauty Products by Category */}
       <section className="max-w-7xl mx-auto px-4 py-8">
