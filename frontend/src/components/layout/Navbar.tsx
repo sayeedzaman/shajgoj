@@ -165,7 +165,7 @@ export default function Navbar() {
 
               {/* Brands Dropdown - Desktop only */}
               <div
-                className="hidden md:block relative"
+                className="hidden md:block relative z-[100]"
                 onMouseEnter={() => setIsBrandsHovered(true)}
                 onMouseLeave={() => setIsBrandsHovered(false)}
               >
@@ -173,12 +173,12 @@ export default function Navbar() {
                   href="/brands"
                   className="text-sm font-medium text-gray-700 hover:text-red-500 transition-colors cursor-pointer px-2 py-1"
                 >
-                  Brands
+                  BRANDS
                 </Link>
 
                 {/* Brands Dropdown Menu */}
                 {isBrandsHovered && brands.length > 0 && (
-                  <div className="absolute left-0 top-full mt-1 w-64 bg-white border border-gray-200 shadow-2xl rounded-lg z-[60] max-h-96 overflow-y-auto">
+                  <div className="absolute left-0 top-full mt-1 w-64 bg-white border border-gray-200 shadow-2xl rounded-lg z-[100] max-h-96 overflow-y-auto">
                     <div className="py-2">
                       {brands.map((brand) => (
                         <Link
