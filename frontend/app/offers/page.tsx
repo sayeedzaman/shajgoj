@@ -357,9 +357,10 @@ function OffersContent() {
               const isExpiringSoon = daysLeft <= 7 && daysLeft > 0;
 
               return (
-                <div
+                <Link
                   key={offer.id}
-                  className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1"
+                  href={`/offers?offerId=${offer.id}`}
+                  className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 block"
                 >
                   {/* Offer Image */}
                   <div className="relative h-48 bg-linear-to-br from-red-100 to-purple-100">
@@ -418,7 +419,11 @@ function OffersContent() {
                           </div>
                         </div>
                         <button
-                          onClick={() => copyCode(offer.code)}
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            copyCode(offer.code);
+                          }}
                           className={`p-3 rounded-lg transition-all ${
                             copiedCode === offer.code
                               ? 'bg-green-500 text-white'
@@ -472,13 +477,17 @@ function OffersContent() {
 
                     {/* Action Button */}
                     <button
-                      onClick={() => copyCode(offer.code)}
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        copyCode(offer.code);
+                      }}
                       className="w-full mt-4 bg-linear-to-r from-red-600 to-pink-600 text-white py-3 rounded-lg font-semibold hover:from-red-700 hover:to-pink-700 transition-all transform hover:scale-105"
                     >
                       {copiedCode === offer.code ? 'Code Copied!' : 'Copy Code & Shop'}
                     </button>
                   </div>
-                </div>
+                </Link>
               );
             })}
           </div>
