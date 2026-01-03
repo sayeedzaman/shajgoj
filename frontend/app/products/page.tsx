@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { productsAPI, categoriesAPI, brandsAPI } from '@/src/lib/api';
-import { Product, Category, Brand } from '@/src/types/index';
+import { productsAPI, categoriesAPI, brandsAPI, typesAPI, subCategoriesAPI } from '@/src/lib/api';
+import { Product, Category, Brand, Type, SubCategory } from '@/src/types/index';
 import ProductCard from '@/src/components/products/ProductCard';
 import EmptyState from '@/src/components/common/EmptyState';
 import { Filter, SlidersHorizontal } from 'lucide-react';
@@ -12,6 +12,8 @@ function ProductsContent() {
   const searchParams = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [types, setTypes] = useState<Type[]>([]);
+  const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -22,6 +24,8 @@ function ProductsContent() {
 
   // Filter states
   const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [selectedType, setSelectedType] = useState<string>('');
+  const [selectedSubCategory, setSelectedSubCategory] = useState<string>('');
   const [selectedBrand, setSelectedBrand] = useState<string>('');
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000000]);
   const [sortBy, setSortBy] = useState<'createdAt' | 'price' | 'name'>('createdAt');
@@ -36,6 +40,8 @@ function ProductsContent() {
       setError(null);
       const response = await productsAPI.getAll({
         categoryId: selectedCategory || undefined,
+        typeId: selectedType || undefined,
+        subCategoryId: selectedSubCategory || undefined,
         brandId: selectedBrand || undefined,
         minPrice: priceRange[0],
         maxPrice: priceRange[1],
@@ -54,7 +60,7 @@ function ProductsContent() {
     } finally {
       setLoading(false);
     }
-  }, [selectedCategory, selectedBrand, sortBy, sortOrder, currentPage, priceRange, itemsPerPage, isFeaturedFilter]);
+  }, [selectedCategory, selectedType, selectedSubCategory, selectedBrand, sortBy, sortOrder, currentPage, priceRange, itemsPerPage, isFeaturedFilter]);
 
   useEffect(() => {
     fetchCategories();
@@ -65,12 +71,54 @@ function ProductsContent() {
     fetchProducts();
   }, [fetchProducts]);
 
+  // Fetch types when category changes
+  useEffect(() => {
+    if (selectedCategory) {
+      fetchTypesByCategory(selectedCategory);
+    } else {
+      setTypes([]);
+      setSubCategories([]);
+      setSelectedType('');
+      setSelectedSubCategory('');
+    }
+  }, [selectedCategory]);
+
+  // Fetch subcategories when type changes
+  useEffect(() => {
+    if (selectedType) {
+      fetchSubCategoriesByType(selectedType);
+    } else {
+      setSubCategories([]);
+      setSelectedSubCategory('');
+    }
+  }, [selectedType]);
+
   const fetchCategories = async () => {
     try {
       const data = await categoriesAPI.getAll();
       setCategories(data);
     } catch (error) {
       console.error('Error fetching categories:', error);
+    }
+  };
+
+  const fetchTypesByCategory = async (categoryId: string) => {
+    try {
+      const data = await typesAPI.getByCategoryId(categoryId);
+      setTypes(data);
+    } catch (error) {
+      console.error('Error fetching types:', error);
+      setTypes([]);
+    }
+  };
+
+  const fetchSubCategoriesByType = async (typeId: string) => {
+    try {
+      const data = await subCategoriesAPI.getByTypeId(typeId);
+      setSubCategories(data);
+    } catch (error) {
+      console.error('Error fetching subcategories:', error);
+      setSubCategories([]);
     }
   };
 
@@ -85,6 +133,8 @@ function ProductsContent() {
 
   const clearFilters = () => {
     setSelectedCategory('');
+    setSelectedType('');
+    setSelectedSubCategory('');
     setSelectedBrand('');
     setPriceRange([0, 1000000]);
     setSortBy('createdAt');
@@ -131,7 +181,7 @@ function ProductsContent() {
                   <Filter className="w-5 h-5" />
                   Filters
                 </h2>
-                {(selectedCategory || selectedBrand || priceRange[0] > 0 || priceRange[1] < 1000000) && (
+                {(selectedCategory || selectedType || selectedSubCategory || selectedBrand || priceRange[0] > 0 || priceRange[1] < 1000000) && (
                   <button
                     onClick={clearFilters}
                     className="text-sm text-red-600 hover:text-red-700 font-medium"
@@ -151,7 +201,11 @@ function ProductsContent() {
                         type="radio"
                         name="category"
                         checked={selectedCategory === ''}
-                        onChange={() => setSelectedCategory('')}
+                        onChange={() => {
+                          setSelectedCategory('');
+                          setSelectedType('');
+                          setSelectedSubCategory('');
+                        }}
                         className="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500"
                       />
                       <span className="ml-2 text-sm text-gray-700">All Categories</span>
@@ -162,7 +216,11 @@ function ProductsContent() {
                           type="radio"
                           name="category"
                           checked={selectedCategory === category.id}
-                          onChange={() => setSelectedCategory(category.id)}
+                          onChange={() => {
+                            setSelectedCategory(category.id);
+                            setSelectedType('');
+                            setSelectedSubCategory('');
+                          }}
                           className="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500"
                         />
                         <span className="ml-2 text-sm text-gray-700">{category.name}</span>
@@ -170,6 +228,74 @@ function ProductsContent() {
                     ))}
                   </div>
                 </div>
+
+                {/* Type Filter */}
+                {types.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-3">Type</h3>
+                    <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
+                      <label className="flex items-center cursor-pointer">
+                        <input
+                          type="radio"
+                          name="type"
+                          checked={selectedType === ''}
+                          onChange={() => {
+                            setSelectedType('');
+                            setSelectedSubCategory('');
+                          }}
+                          className="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500"
+                        />
+                        <span className="ml-2 text-sm text-gray-700">All Types</span>
+                      </label>
+                      {types.map((type) => (
+                        <label key={type.id} className="flex items-center cursor-pointer">
+                          <input
+                            type="radio"
+                            name="type"
+                            checked={selectedType === type.id}
+                            onChange={() => {
+                              setSelectedType(type.id);
+                              setSelectedSubCategory('');
+                            }}
+                            className="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500"
+                          />
+                          <span className="ml-2 text-sm text-gray-700">{type.name}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* SubCategory Filter */}
+                {subCategories.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-3">SubCategory</h3>
+                    <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
+                      <label className="flex items-center cursor-pointer">
+                        <input
+                          type="radio"
+                          name="subcategory"
+                          checked={selectedSubCategory === ''}
+                          onChange={() => setSelectedSubCategory('')}
+                          className="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500"
+                        />
+                        <span className="ml-2 text-sm text-gray-700">All SubCategories</span>
+                      </label>
+                      {subCategories.map((subCategory) => (
+                        <label key={subCategory.id} className="flex items-center cursor-pointer">
+                          <input
+                            type="radio"
+                            name="subcategory"
+                            checked={selectedSubCategory === subCategory.id}
+                            onChange={() => setSelectedSubCategory(subCategory.id)}
+                            className="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500"
+                          />
+                          <span className="ml-2 text-sm text-gray-700">{subCategory.name}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Brand Filter */}
                 <div>

@@ -93,6 +93,8 @@ export interface Product {
   Brand: Brand | null;
   concernId?: string | null;
   Concern?: Concern | null;
+  totalSold?: number;
+  orderCount?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -193,6 +195,8 @@ export interface UpdateCartItemRequest {
 
 export interface ProductFilters {
   categoryId?: string;
+  typeId?: string;
+  subCategoryId?: string;
   brandId?: string;
   concernId?: string;
   minPrice?: number;

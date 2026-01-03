@@ -16,6 +16,8 @@ import type {
   CreateOrderRequest,
   Address,
   CreateAddressRequest,
+  Type,
+  SubCategory,
 } from '@/src/types/index';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
@@ -260,6 +262,64 @@ export const concernsAPI = {
   },
 };
 
+// Types API
+export const typesAPI = {
+  getAll: async (): Promise<Type[]> => {
+    const response = await fetch(`${API_URL}/api/types`, {
+      method: 'GET',
+      headers: createHeaders(),
+    });
+    const data = await handleResponse<{ types: Type[] }>(response);
+    return data.types || [];
+  },
+
+  getById: async (id: string): Promise<Type> => {
+    const response = await fetch(`${API_URL}/api/types/${id}`, {
+      method: 'GET',
+      headers: createHeaders(),
+    });
+    return handleResponse<Type>(response);
+  },
+
+  getByCategoryId: async (categoryId: string): Promise<Type[]> => {
+    const response = await fetch(`${API_URL}/api/types/category/${categoryId}`, {
+      method: 'GET',
+      headers: createHeaders(),
+    });
+    const data = await handleResponse<{ types: Type[] }>(response);
+    return data.types || [];
+  },
+};
+
+// SubCategories API
+export const subCategoriesAPI = {
+  getAll: async (): Promise<SubCategory[]> => {
+    const response = await fetch(`${API_URL}/api/subcategories`, {
+      method: 'GET',
+      headers: createHeaders(),
+    });
+    const data = await handleResponse<{ subcategories: SubCategory[] }>(response);
+    return data.subcategories || [];
+  },
+
+  getById: async (id: string): Promise<SubCategory> => {
+    const response = await fetch(`${API_URL}/api/subcategories/${id}`, {
+      method: 'GET',
+      headers: createHeaders(),
+    });
+    return handleResponse<SubCategory>(response);
+  },
+
+  getByTypeId: async (typeId: string): Promise<SubCategory[]> => {
+    const response = await fetch(`${API_URL}/api/subcategories/type/${typeId}`, {
+      method: 'GET',
+      headers: createHeaders(),
+    });
+    const data = await handleResponse<{ subcategories: SubCategory[] }>(response);
+    return data.subcategories || [];
+  },
+};
+
 // Orders API
 export const ordersAPI = {
   create: async (data: CreateOrderRequest): Promise<Order> => {
@@ -493,6 +553,8 @@ export const api = {
   categories: categoriesAPI,
   brands: brandsAPI,
   concerns: concernsAPI,
+  types: typesAPI,
+  subCategories: subCategoriesAPI,
   orders: ordersAPI,
   addresses: addressesAPI,
   reviews: reviewsAPI,

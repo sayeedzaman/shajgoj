@@ -1,26 +1,37 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useState, useEffect, Suspense, useRef } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { productsAPI, categoriesAPI, brandsAPI } from '@/src/lib/api';
-import { Product, Category, Brand } from '@/src/types/index';
+import Image from 'next/image';
+import { productsAPI, categoriesAPI, brandsAPI, typesAPI, subCategoriesAPI } from '@/src/lib/api';
+import { Product, Category, Brand, Type, SubCategory } from '@/src/types/index';
 import ProductCard from '@/src/components/products/ProductCard';
 import { Search as SearchIcon, X, SlidersHorizontal, Filter } from 'lucide-react';
 
 function SearchContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const queryParam = searchParams?.get('q') || '';
 
   const [searchQuery, setSearchQuery] = useState(queryParam);
   const [products, setProducts] = useState<Product[]>([]);
+  const [instantResults, setInstantResults] = useState<Product[]>([]);
+  const [showInstantResults, setShowInstantResults] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [types, setTypes] = useState<Type[]>([]);
+  const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState(false);
+  const [instantLoading, setInstantLoading] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Filter states
   const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [selectedType, setSelectedType] = useState<string>('');
+  const [selectedSubCategory, setSelectedSubCategory] = useState<string>('');
   const [selectedBrand, setSelectedBrand] = useState<string>('');
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000000]);
   const [sortBy, setSortBy] = useState<'createdAt' | 'price' | 'name'>('createdAt');
@@ -45,7 +56,91 @@ function SearchContent() {
     if (searchQuery) {
       performSearch(searchQuery);
     }
-  }, [selectedCategory, selectedBrand, sortBy, sortOrder, currentPage, priceRange]);
+  }, [selectedCategory, selectedType, selectedSubCategory, selectedBrand, sortBy, sortOrder, currentPage, priceRange]);
+
+  // Instant search with debouncing
+  useEffect(() => {
+    // Clear previous timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    // Only search if query has at least 1 character
+    if (searchQuery.trim().length >= 1) {
+      setInstantLoading(true);
+      debounceTimerRef.current = setTimeout(() => {
+        fetchInstantResults(searchQuery);
+      }, 300); // 300ms debounce
+    } else {
+      setInstantResults([]);
+      setShowInstantResults(false);
+    }
+
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [searchQuery]);
+
+  // Click outside to close instant results
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target as Node)) {
+        setShowInstantResults(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const fetchInstantResults = async (query: string) => {
+    if (!query.trim()) {
+      setInstantResults([]);
+      setInstantLoading(false);
+      return;
+    }
+
+    try {
+      const response = await productsAPI.getAll({
+        search: query,
+        limit: 8, // Show top 8 instant results
+        sortBy: 'createdAt', // Backend sorts by totalSold by default for top-selling endpoint
+      });
+      setInstantResults(response.products);
+      setShowInstantResults(true);
+    } catch (error) {
+      console.error('Error fetching instant results:', error);
+      setInstantResults([]);
+    } finally {
+      setInstantLoading(false);
+    }
+  };
+
+  // Fetch types when category changes
+  useEffect(() => {
+    if (selectedCategory) {
+      fetchTypesByCategory(selectedCategory);
+    } else {
+      setTypes([]);
+      setSubCategories([]);
+      setSelectedType('');
+      setSelectedSubCategory('');
+    }
+  }, [selectedCategory]);
+
+  // Fetch subcategories when type changes
+  useEffect(() => {
+    if (selectedType) {
+      fetchSubCategoriesByType(selectedType);
+    } else {
+      setSubCategories([]);
+      setSelectedSubCategory('');
+    }
+  }, [selectedType]);
 
   const performSearch = async (query: string) => {
     if (!query.trim()) {
@@ -58,6 +153,8 @@ function SearchContent() {
       const response = await productsAPI.getAll({
         search: query,
         categoryId: selectedCategory || undefined,
+        typeId: selectedType || undefined,
+        subCategoryId: selectedSubCategory || undefined,
         brandId: selectedBrand || undefined,
         minPrice: priceRange[0],
         maxPrice: priceRange[1],
@@ -85,6 +182,26 @@ function SearchContent() {
     }
   };
 
+  const fetchTypesByCategory = async (categoryId: string) => {
+    try {
+      const data = await typesAPI.getByCategoryId(categoryId);
+      setTypes(data);
+    } catch (error) {
+      console.error('Error fetching types:', error);
+      setTypes([]);
+    }
+  };
+
+  const fetchSubCategoriesByType = async (typeId: string) => {
+    try {
+      const data = await subCategoriesAPI.getByTypeId(typeId);
+      setSubCategories(data);
+    } catch (error) {
+      console.error('Error fetching subcategories:', error);
+      setSubCategories([]);
+    }
+  };
+
   const fetchBrands = async () => {
     try {
       const data = await brandsAPI.getAll();
@@ -102,6 +219,8 @@ function SearchContent() {
 
   const clearFilters = () => {
     setSelectedCategory('');
+    setSelectedType('');
+    setSelectedSubCategory('');
     setSelectedBrand('');
     setPriceRange([0, 1000000]);
     setSortBy('createdAt');
@@ -112,8 +231,20 @@ function SearchContent() {
   const clearSearch = () => {
     setSearchQuery('');
     setProducts([]);
+    setInstantResults([]);
+    setShowInstantResults(false);
     setTotalResults(0);
     clearFilters();
+  };
+
+  const handleInstantResultClick = (product: Product) => {
+    setShowInstantResults(false);
+    router.push(`/products/${product.slug}`);
+  };
+
+  const formatPrice = (price: number, salePrice: number | null) => {
+    const displayPrice = salePrice || price;
+    return `৳${displayPrice.toLocaleString()}`;
   };
 
   return (
@@ -124,26 +255,125 @@ function SearchContent() {
           <h1 className="text-3xl font-bold text-gray-900 mb-4">Search Products</h1>
 
           {/* Search Bar */}
-          <form onSubmit={handleSearch} className="relative max-w-2xl">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search for products, brands, categories..."
-              className="w-full px-6 py-4 pl-12 pr-12 border-2 border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-lg"
-            />
-            <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-400" />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={clearSearch}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                aria-label="Clear search"
-              >
-                <X className="w-6 h-6" />
-              </button>
+          <div ref={searchContainerRef} className="relative max-w-2xl">
+            <form onSubmit={handleSearch} className="relative">
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => {
+                  if (instantResults.length > 0) {
+                    setShowInstantResults(true);
+                  }
+                }}
+                placeholder="Search for products, brands, categories..."
+                className="w-full px-6 py-4 pl-12 pr-12 border-2 border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-lg"
+                autoComplete="off"
+              />
+              <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-400" />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={clearSearch}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  aria-label="Clear search"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              )}
+            </form>
+
+            {/* Instant Search Results Dropdown */}
+            {showInstantResults && searchQuery && (
+              <div className="absolute top-full mt-2 w-full bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-[500px] overflow-y-auto">
+                {instantLoading ? (
+                  <div className="p-4 text-center text-gray-500">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto"></div>
+                  </div>
+                ) : instantResults.length > 0 ? (
+                  <>
+                    <div className="p-3 border-b border-gray-100 bg-gray-50">
+                      <p className="text-sm text-gray-600 font-medium">
+                        Top {instantResults.length} Results {instantResults[0]?.totalSold !== undefined && '(Sorted by Sales)'}
+                      </p>
+                    </div>
+                    <div className="py-2">
+                      {instantResults.map((product) => (
+                        <button
+                          key={product.id}
+                          type="button"
+                          onClick={() => handleInstantResultClick(product)}
+                          className="w-full px-4 py-3 hover:bg-gray-50 flex items-center gap-4 transition-colors text-left"
+                        >
+                          {/* Product Image */}
+                          <div className="relative w-16 h-16 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
+                            {product.imageUrl ? (
+                              <Image
+                                src={product.imageUrl}
+                                alt={product.name}
+                                fill
+                                className="object-cover"
+                                sizes="64px"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-gray-400">
+                                <SearchIcon className="w-8 h-8" />
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Product Info */}
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-sm font-medium text-gray-900 truncate">
+                              {product.name}
+                            </h3>
+                            <div className="flex items-center gap-2 mt-1">
+                              <p className="text-sm font-semibold text-red-600">
+                                {formatPrice(product.price, product.salePrice)}
+                              </p>
+                              {product.salePrice && (
+                                <p className="text-xs text-gray-500 line-through">
+                                  ৳{product.price.toLocaleString()}
+                                </p>
+                              )}
+                            </div>
+                            {product.Brand && (
+                              <p className="text-xs text-gray-500 mt-0.5">{product.Brand.name}</p>
+                            )}
+                          </div>
+
+                          {/* Sales Badge */}
+                          {product.totalSold !== undefined && product.totalSold > 0 && (
+                            <div className="flex-shrink-0">
+                              <div className="bg-green-100 text-green-700 text-xs font-medium px-2 py-1 rounded">
+                                {product.totalSold} sold
+                              </div>
+                            </div>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="p-3 border-t border-gray-100 bg-gray-50">
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setShowInstantResults(false);
+                          handleSearch(e as any);
+                        }}
+                        className="w-full text-center text-sm text-red-600 hover:text-red-700 font-medium"
+                      >
+                        View all results for &quot;{searchQuery}&quot;
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="p-4 text-center text-gray-500">
+                    No products found for &quot;{searchQuery}&quot;
+                  </div>
+                )}
+              </div>
             )}
-          </form>
+          </div>
 
           {/* Search Results Info */}
           {searchQuery && !loading && (
@@ -189,7 +419,7 @@ function SearchContent() {
                       <Filter className="w-5 h-5" />
                       Filters
                     </h2>
-                    {(selectedCategory || selectedBrand || priceRange[0] > 0 || priceRange[1] < 1000000) && (
+                    {(selectedCategory || selectedType || selectedSubCategory || selectedBrand || priceRange[0] > 0 || priceRange[1] < 1000000) && (
                       <button
                         onClick={clearFilters}
                         className="text-sm text-red-600 hover:text-red-700 font-medium"
@@ -210,7 +440,11 @@ function SearchContent() {
                             type="radio"
                             name="category"
                             checked={selectedCategory === ''}
-                            onChange={() => setSelectedCategory('')}
+                            onChange={() => {
+                              setSelectedCategory('');
+                              setSelectedType('');
+                              setSelectedSubCategory('');
+                            }}
                             className="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500"
                           />
                           <span className="ml-2 text-sm text-gray-700">All Categories</span>
@@ -221,7 +455,11 @@ function SearchContent() {
                               type="radio"
                               name="category"
                               checked={selectedCategory === category.id}
-                              onChange={() => setSelectedCategory(category.id)}
+                              onChange={() => {
+                                setSelectedCategory(category.id);
+                                setSelectedType('');
+                                setSelectedSubCategory('');
+                              }}
                               className="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500"
                             />
                             <span className="ml-2 text-sm text-gray-700">{category.name}</span>
@@ -229,6 +467,74 @@ function SearchContent() {
                         ))}
                       </div>
                     </div>
+
+                    {/* Type Filter */}
+                    {types.length > 0 && (
+                      <div>
+                        <h3 className="font-semibold text-gray-900 mb-3">Type</h3>
+                        <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
+                          <label className="flex items-center cursor-pointer">
+                            <input
+                              type="radio"
+                              name="type"
+                              checked={selectedType === ''}
+                              onChange={() => {
+                                setSelectedType('');
+                                setSelectedSubCategory('');
+                              }}
+                              className="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500"
+                            />
+                            <span className="ml-2 text-sm text-gray-700">All Types</span>
+                          </label>
+                          {types.map((type) => (
+                            <label key={type.id} className="flex items-center cursor-pointer">
+                              <input
+                                type="radio"
+                                name="type"
+                                checked={selectedType === type.id}
+                                onChange={() => {
+                                  setSelectedType(type.id);
+                                  setSelectedSubCategory('');
+                                }}
+                                className="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500"
+                              />
+                              <span className="ml-2 text-sm text-gray-700">{type.name}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* SubCategory Filter */}
+                    {subCategories.length > 0 && (
+                      <div>
+                        <h3 className="font-semibold text-gray-900 mb-3">SubCategory</h3>
+                        <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
+                          <label className="flex items-center cursor-pointer">
+                            <input
+                              type="radio"
+                              name="subcategory"
+                              checked={selectedSubCategory === ''}
+                              onChange={() => setSelectedSubCategory('')}
+                              className="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500"
+                            />
+                            <span className="ml-2 text-sm text-gray-700">All SubCategories</span>
+                          </label>
+                          {subCategories.map((subCategory) => (
+                            <label key={subCategory.id} className="flex items-center cursor-pointer">
+                              <input
+                                type="radio"
+                                name="subcategory"
+                                checked={selectedSubCategory === subCategory.id}
+                                onChange={() => setSelectedSubCategory(subCategory.id)}
+                                className="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500"
+                              />
+                              <span className="ml-2 text-sm text-gray-700">{subCategory.name}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
                     {/* Brand Filter */}
                     <div>
