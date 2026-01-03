@@ -105,6 +105,8 @@ Available routes:
 📝 Authentication
   POST   /api/auth/register
   POST   /api/auth/login
+  GET    /api/auth/profile (Protected)
+  PUT    /api/auth/profile (Protected)
 
 📦 Public Routes
   GET    /api/products
@@ -131,12 +133,12 @@ Available routes:
     POST   /api/categories
     PUT    /api/categories/:id
     DELETE /api/categories/:id
-  
+
   Brands:
     POST   /api/brands
     PUT    /api/brands/:id
     DELETE /api/brands/:id
-  
+
   Products:
     GET    /api/admin/products
     GET    /api/admin/products/stats

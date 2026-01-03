@@ -36,6 +36,7 @@ export const authenticate = (
 
     next();
   } catch (error) {
+    console.error('Authentication middleware error:', error);
     res.status(401).json({ message: 'Invalid or expired token' });
   }
 };

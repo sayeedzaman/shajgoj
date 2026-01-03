@@ -137,6 +137,7 @@ export const getProfile = async (req: Request, res: Response): Promise<void> => 
 
     res.json(user);
   } catch (error) {
+    console.error('Error in getProfile controller:', error);
     res.status(500).json({ message: 'Error fetching profile', error });
   }
 };

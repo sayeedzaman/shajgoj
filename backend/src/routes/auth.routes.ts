@@ -9,7 +9,13 @@ router.post('/register', register);
 router.post('/login', login);
 
 // Protected routes
-router.get('/profile', authenticate, getProfile);
+router.get('/profile', (req, res, next) => {
+  console.log('📞 Profile endpoint hit!', {
+    hasAuth: !!req.headers.authorization,
+    authHeader: req.headers.authorization?.substring(0, 20) + '...'
+  });
+  next();
+}, authenticate, getProfile);
 router.put('/profile', authenticate, updateProfile);
 
 // Admin routes

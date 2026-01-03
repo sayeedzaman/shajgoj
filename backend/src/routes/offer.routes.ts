@@ -17,6 +17,7 @@ const router = express.Router();
 
 // Public routes
 router.get('/active', getActiveOffers);
+router.get('/:id', getOfferById); // Public route for viewing offer details
 router.post('/apply', applyOfferCode);
 
 // Admin routes
@@ -28,7 +29,6 @@ router.post(
   uploadOfferImage
 );
 router.get('/', authenticate, authorize('ADMIN'), getAllOffers);
-router.get('/:id', authenticate, authorize('ADMIN'), getOfferById);
 router.post('/', authenticate, authorize('ADMIN'), createOffer);
 router.put('/:id', authenticate, authorize('ADMIN'), updateOffer);
 router.delete('/:id', authenticate, authorize('ADMIN'), deleteOffer);
