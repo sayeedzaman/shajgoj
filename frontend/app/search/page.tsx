@@ -396,6 +396,91 @@ function SearchContent() {
               )}
             </p>
           )}
+
+          {/* Active Filters Display */}
+          {searchQuery && (selectedCategory || selectedType || selectedSubCategory || selectedBrand || priceRange[0] > 0 || priceRange[1] < 1000000) && (
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <span className="text-sm text-gray-600 font-medium">Active Filters:</span>
+              {selectedCategory && (
+                <span className="inline-flex items-center gap-1 bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium">
+                  {categories.find(c => c.id === selectedCategory)?.name}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedCategory('');
+                      setSelectedType('');
+                      setSelectedSubCategory('');
+                    }}
+                    className="hover:bg-red-200 rounded-full p-0.5"
+                    aria-label="Remove category filter"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+              {selectedType && (
+                <span className="inline-flex items-center gap-1 bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium">
+                  {Object.values(categoryTypes).flat().find(t => t.id === selectedType)?.name}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedType('');
+                      setSelectedSubCategory('');
+                    }}
+                    className="hover:bg-red-200 rounded-full p-0.5"
+                    aria-label="Remove type filter"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+              {selectedSubCategory && (
+                <span className="inline-flex items-center gap-1 bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium">
+                  {Object.values(typeSubCategories).flat().find(sc => sc.id === selectedSubCategory)?.name}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedSubCategory('')}
+                    className="hover:bg-red-200 rounded-full p-0.5"
+                    aria-label="Remove sub-category filter"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+              {selectedBrand && (
+                <span className="inline-flex items-center gap-1 bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium">
+                  {brands.find(b => b.id === selectedBrand)?.name}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedBrand('')}
+                    className="hover:bg-red-200 rounded-full p-0.5"
+                    aria-label="Remove brand filter"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+              {(priceRange[0] > 0 || priceRange[1] < 1000000) && (
+                <span className="inline-flex items-center gap-1 bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium">
+                  ৳{priceRange[0].toLocaleString()} - ৳{priceRange[1].toLocaleString()}
+                  <button
+                    type="button"
+                    onClick={() => setPriceRange([0, 1000000])}
+                    className="hover:bg-red-200 rounded-full p-0.5"
+                    aria-label="Remove price range filter"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              )}
+              <button
+                onClick={clearFilters}
+                className="text-sm text-red-600 hover:text-red-700 font-medium underline"
+              >
+                Clear All
+              </button>
+            </div>
+          )}
         </div>
 
         {searchQuery && (
