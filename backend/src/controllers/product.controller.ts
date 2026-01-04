@@ -462,25 +462,15 @@ export const deleteProduct = async (req: Request, res: Response) => {
   }
 };
 
-// Get featured products based on latest uploads
+// Get featured products (products marked as featured in database)
 export const getFeaturedProducts = async (req: Request, res: Response) => {
   try {
     const { limit = '8' } = req.query;
 
-    // Calculate date 7 days ago
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-    // Calculate today's start (midnight)
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
-
-    // Step 1: Try to get products uploaded TODAY
-    let products = await prisma.product.findMany({
+    // Get products where featured = true
+    const products = await prisma.product.findMany({
       where: {
-        createdAt: {
-          gte: todayStart, // Greater than or equal to today's start
-        },
+        featured: true,
       },
       include: {
         Category: {
@@ -499,76 +489,14 @@ export const getFeaturedProducts = async (req: Request, res: Response) => {
         },
       },
       orderBy: {
-        createdAt: 'desc', // Latest first
+        createdAt: 'desc', // Show newest featured products first
       },
       take: parseInt(limit as string),
     });
 
-    let featuredReason = 'Uploaded today';
-
-    // Step 2: If no products today, get products from last 7 days
-    if (products.length === 0) {
-      products = await prisma.product.findMany({
-        where: {
-          createdAt: {
-            gte: sevenDaysAgo, // Within last 7 days
-          },
-        },
-        include: {
-          Category: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-            },
-          },
-          Brand: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-            },
-          },
-        },
-        orderBy: {
-          createdAt: 'desc',
-        },
-        take: parseInt(limit as string),
-      });
-      featuredReason = 'Recent upload (last 7 days)';
-    }
-
-    // Step 3: If still no products, get the absolute latest products (no date filter)
-    if (products.length === 0) {
-      products = await prisma.product.findMany({
-        include: {
-          Category: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-            },
-          },
-          Brand: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-            },
-          },
-        },
-        orderBy: {
-          createdAt: 'desc',
-        },
-        take: parseInt(limit as string),
-      });
-      featuredReason = 'Latest available';
-    }
-
     const transformedProducts = products.map((product) => ({
       ...product,
       imageUrl: product.images.length > 0 ? product.images[0] : null,
-      featuredReason,
     }));
 
     res.json(transformedProducts);
