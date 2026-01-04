@@ -6,14 +6,12 @@ import { productsAPI, categoriesAPI, brandsAPI, typesAPI, subCategoriesAPI } fro
 import { Product, Category, Brand, Type, SubCategory } from '@/src/types/index';
 import ProductCard from '@/src/components/products/ProductCard';
 import EmptyState from '@/src/components/common/EmptyState';
-import { Filter, SlidersHorizontal } from 'lucide-react';
+import { Filter, SlidersHorizontal, ChevronDown, ChevronRight } from 'lucide-react';
 
 function ProductsContent() {
   const searchParams = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [types, setTypes] = useState<Type[]>([]);
-  const [subCategories, setSubCategories] = useState<SubCategory[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -33,6 +31,12 @@ function ProductsContent() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(24);
+
+  // Expanded states for hierarchical filters
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [expandedTypes, setExpandedTypes] = useState<Set<string>>(new Set());
+  const [categoryTypes, setCategoryTypes] = useState<Record<string, Type[]>>({});
+  const [typeSubCategories, setTypeSubCategories] = useState<Record<string, SubCategory[]>>({});
 
   const fetchProducts = useCallback(async () => {
     try {
@@ -71,54 +75,12 @@ function ProductsContent() {
     fetchProducts();
   }, [fetchProducts]);
 
-  // Fetch types when category changes
-  useEffect(() => {
-    if (selectedCategory) {
-      fetchTypesByCategory(selectedCategory);
-    } else {
-      setTypes([]);
-      setSubCategories([]);
-      setSelectedType('');
-      setSelectedSubCategory('');
-    }
-  }, [selectedCategory]);
-
-  // Fetch subcategories when type changes
-  useEffect(() => {
-    if (selectedType) {
-      fetchSubCategoriesByType(selectedType);
-    } else {
-      setSubCategories([]);
-      setSelectedSubCategory('');
-    }
-  }, [selectedType]);
-
   const fetchCategories = async () => {
     try {
       const data = await categoriesAPI.getAll();
       setCategories(data);
     } catch (error) {
       console.error('Error fetching categories:', error);
-    }
-  };
-
-  const fetchTypesByCategory = async (categoryId: string) => {
-    try {
-      const data = await typesAPI.getByCategoryId(categoryId);
-      setTypes(data);
-    } catch (error) {
-      console.error('Error fetching types:', error);
-      setTypes([]);
-    }
-  };
-
-  const fetchSubCategoriesByType = async (typeId: string) => {
-    try {
-      const data = await subCategoriesAPI.getByTypeId(typeId);
-      setSubCategories(data);
-    } catch (error) {
-      console.error('Error fetching subcategories:', error);
-      setSubCategories([]);
     }
   };
 
@@ -129,6 +91,50 @@ function ProductsContent() {
     } catch (error) {
       console.error('Error fetching brands:', error);
     }
+  };
+
+  // Handle category expansion and fetch types
+  const handleCategoryClick = async (categoryId: string) => {
+    const newExpanded = new Set(expandedCategories);
+
+    if (newExpanded.has(categoryId)) {
+      newExpanded.delete(categoryId);
+    } else {
+      newExpanded.add(categoryId);
+      // Fetch types for this category if not already fetched
+      if (!categoryTypes[categoryId]) {
+        try {
+          const data = await typesAPI.getByCategoryId(categoryId);
+          setCategoryTypes(prev => ({ ...prev, [categoryId]: data }));
+        } catch (error) {
+          console.error('Error fetching types:', error);
+        }
+      }
+    }
+
+    setExpandedCategories(newExpanded);
+  };
+
+  // Handle type expansion and fetch subcategories
+  const handleTypeClick = async (typeId: string) => {
+    const newExpanded = new Set(expandedTypes);
+
+    if (newExpanded.has(typeId)) {
+      newExpanded.delete(typeId);
+    } else {
+      newExpanded.add(typeId);
+      // Fetch subcategories for this type if not already fetched
+      if (!typeSubCategories[typeId]) {
+        try {
+          const data = await subCategoriesAPI.getByTypeId(typeId);
+          setTypeSubCategories(prev => ({ ...prev, [typeId]: data }));
+        } catch (error) {
+          console.error('Error fetching subcategories:', error);
+        }
+      }
+    }
+
+    setExpandedTypes(newExpanded);
   };
 
   const clearFilters = () => {
@@ -192,136 +198,137 @@ function ProductsContent() {
               </div>
 
               <div className="overflow-y-auto p-6 pt-4 space-y-6">
-                {/* Category Filter */}
+                {/* Hierarchical Category Filter */}
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-3">Category</h3>
-                  <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
-                    <label className="flex items-center cursor-pointer">
-                      <input
-                        type="radio"
-                        name="category"
-                        checked={selectedCategory === ''}
-                        onChange={() => {
-                          setSelectedCategory('');
-                          setSelectedType('');
-                          setSelectedSubCategory('');
-                        }}
-                        className="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500"
-                      />
-                      <span className="ml-2 text-sm text-gray-700">All Categories</span>
-                    </label>
+                  <h3 className="font-semibold text-gray-900 mb-3">Categories</h3>
+                  <div className="space-y-1">
+                    {/* All Categories option */}
+                    <div
+                      onClick={() => {
+                        setSelectedCategory('');
+                        setSelectedType('');
+                        setSelectedSubCategory('');
+                      }}
+                      className={`flex items-center cursor-pointer py-2 px-3 rounded-lg transition-colors ${
+                        selectedCategory === '' ? 'bg-red-50 text-red-600 font-medium' : 'text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      <span className="text-sm">All Categories</span>
+                    </div>
+
+                    {/* Category list */}
                     {categories.map((category) => (
-                      <label key={category.id} className="flex items-center cursor-pointer">
-                        <input
-                          type="radio"
-                          name="category"
-                          checked={selectedCategory === category.id}
-                          onChange={() => {
-                            setSelectedCategory(category.id);
-                            setSelectedType('');
-                            setSelectedSubCategory('');
-                          }}
-                          className="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500"
-                        />
-                        <span className="ml-2 text-sm text-gray-700">{category.name}</span>
-                      </label>
+                      <div key={category.id}>
+                        {/* Category item */}
+                        <div className="flex items-center">
+                          <button
+                            type="button"
+                            onClick={() => handleCategoryClick(category.id)}
+                            className="p-1 hover:bg-gray-100 rounded"
+                          >
+                            {expandedCategories.has(category.id) ? (
+                              <ChevronDown className="w-4 h-4 text-gray-500" />
+                            ) : (
+                              <ChevronRight className="w-4 h-4 text-gray-500" />
+                            )}
+                          </button>
+                          <div
+                            onClick={() => {
+                              setSelectedCategory(category.id);
+                              setSelectedType('');
+                              setSelectedSubCategory('');
+                            }}
+                            className={`flex-1 cursor-pointer py-2 px-2 rounded-lg transition-colors ${
+                              selectedCategory === category.id ? 'bg-red-50 text-red-600 font-medium' : 'text-gray-700 hover:bg-gray-50'
+                            }`}
+                          >
+                            <span className="text-sm">{category.name}</span>
+                          </div>
+                        </div>
+
+                        {/* Types (children of category) */}
+                        {expandedCategories.has(category.id) && categoryTypes[category.id] && (
+                          <div className="ml-6 mt-1 space-y-1 border-l-2 border-gray-200 pl-2">
+                            {categoryTypes[category.id].map((type) => (
+                              <div key={type.id}>
+                                {/* Type item */}
+                                <div className="flex items-center">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleTypeClick(type.id)}
+                                    className="p-1 hover:bg-gray-100 rounded"
+                                  >
+                                    {expandedTypes.has(type.id) ? (
+                                      <ChevronDown className="w-4 h-4 text-gray-500" />
+                                    ) : (
+                                      <ChevronRight className="w-4 h-4 text-gray-500" />
+                                    )}
+                                  </button>
+                                  <div
+                                    onClick={() => {
+                                      setSelectedCategory(category.id);
+                                      setSelectedType(type.id);
+                                      setSelectedSubCategory('');
+                                    }}
+                                    className={`flex-1 cursor-pointer py-1.5 px-2 rounded-lg transition-colors ${
+                                      selectedType === type.id ? 'bg-red-50 text-red-600 font-medium' : 'text-gray-700 hover:bg-gray-50'
+                                    }`}
+                                  >
+                                    <span className="text-sm">{type.name}</span>
+                                  </div>
+                                </div>
+
+                                {/* SubCategories (children of type) */}
+                                {expandedTypes.has(type.id) && typeSubCategories[type.id] && (
+                                  <div className="ml-6 mt-1 space-y-1 border-l-2 border-gray-200 pl-2">
+                                    {typeSubCategories[type.id].map((subCategory) => (
+                                      <div
+                                        key={subCategory.id}
+                                        onClick={() => {
+                                          setSelectedCategory(category.id);
+                                          setSelectedType(type.id);
+                                          setSelectedSubCategory(subCategory.id);
+                                        }}
+                                        className={`cursor-pointer py-1.5 px-2 rounded-lg transition-colors ${
+                                          selectedSubCategory === subCategory.id ? 'bg-red-50 text-red-600 font-medium' : 'text-gray-700 hover:bg-gray-50'
+                                        }`}
+                                      >
+                                        <span className="text-sm">{subCategory.name}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     ))}
                   </div>
                 </div>
 
-                {/* Type Filter */}
-                {types.length > 0 && (
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-3">Type</h3>
-                    <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
-                      <label className="flex items-center cursor-pointer">
-                        <input
-                          type="radio"
-                          name="type"
-                          checked={selectedType === ''}
-                          onChange={() => {
-                            setSelectedType('');
-                            setSelectedSubCategory('');
-                          }}
-                          className="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500"
-                        />
-                        <span className="ml-2 text-sm text-gray-700">All Types</span>
-                      </label>
-                      {types.map((type) => (
-                        <label key={type.id} className="flex items-center cursor-pointer">
-                          <input
-                            type="radio"
-                            name="type"
-                            checked={selectedType === type.id}
-                            onChange={() => {
-                              setSelectedType(type.id);
-                              setSelectedSubCategory('');
-                            }}
-                            className="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500"
-                          />
-                          <span className="ml-2 text-sm text-gray-700">{type.name}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* SubCategory Filter */}
-                {subCategories.length > 0 && (
-                  <div>
-                    <h3 className="font-semibold text-gray-900 mb-3">SubCategory</h3>
-                    <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
-                      <label className="flex items-center cursor-pointer">
-                        <input
-                          type="radio"
-                          name="subcategory"
-                          checked={selectedSubCategory === ''}
-                          onChange={() => setSelectedSubCategory('')}
-                          className="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500"
-                        />
-                        <span className="ml-2 text-sm text-gray-700">All SubCategories</span>
-                      </label>
-                      {subCategories.map((subCategory) => (
-                        <label key={subCategory.id} className="flex items-center cursor-pointer">
-                          <input
-                            type="radio"
-                            name="subcategory"
-                            checked={selectedSubCategory === subCategory.id}
-                            onChange={() => setSelectedSubCategory(subCategory.id)}
-                            className="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500"
-                          />
-                          <span className="ml-2 text-sm text-gray-700">{subCategory.name}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
                 {/* Brand Filter */}
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-3">Brand</h3>
-                  <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
-                    <label className="flex items-center cursor-pointer">
-                      <input
-                        type="radio"
-                        name="brand"
-                        checked={selectedBrand === ''}
-                        onChange={() => setSelectedBrand('')}
-                        className="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500"
-                      />
-                      <span className="ml-2 text-sm text-gray-700">All Brands</span>
-                    </label>
+                  <div className="space-y-1 max-h-60 overflow-y-auto pr-2">
+                    <div
+                      onClick={() => setSelectedBrand('')}
+                      className={`cursor-pointer py-2 px-3 rounded-lg transition-colors ${
+                        selectedBrand === '' ? 'bg-red-50 text-red-600 font-medium' : 'text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      <span className="text-sm">All Brands</span>
+                    </div>
                     {brands.map((brand) => (
-                      <label key={brand.id} className="flex items-center cursor-pointer">
-                        <input
-                          type="radio"
-                          name="brand"
-                          checked={selectedBrand === brand.id}
-                          onChange={() => setSelectedBrand(brand.id)}
-                          className="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500"
-                        />
-                        <span className="ml-2 text-sm text-gray-700">{brand.name}</span>
-                      </label>
+                      <div
+                        key={brand.id}
+                        onClick={() => setSelectedBrand(brand.id)}
+                        className={`cursor-pointer py-2 px-3 rounded-lg transition-colors ${
+                          selectedBrand === brand.id ? 'bg-red-50 text-red-600 font-medium' : 'text-gray-700 hover:bg-gray-50'
+                        }`}
+                      >
+                        <span className="text-sm">{brand.name}</span>
+                      </div>
                     ))}
                   </div>
                 </div>
