@@ -229,8 +229,9 @@ export default function Navbar() {
         </div> */}
 
         {/* Main Navbar */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16 bg-red-600">
+        <div className="bg-red-600">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-16">
             {/* Mobile Menu Button - Left side on mobile */}
             <button
               aria-label='mobile menu'
@@ -270,7 +271,7 @@ export default function Navbar() {
                 onMouseLeave={() => setIsBrandsHovered(false)}
               >
                 <Link
-                  href="/brands"
+                  href="/products"
                   className="text-sm text-white hover:text-gray-200 transition-colors cursor-pointer px-2 py-1"
                 >
                   BRANDS
@@ -663,6 +664,7 @@ export default function Navbar() {
               </div>
             )}
           </div>
+          </div>
         </div>
 
         {/* Mobile Menu Sidebar */}
@@ -966,6 +968,7 @@ export default function Navbar() {
           <div
             className="fixed left-0 right-0 bottom-0 bg-black/20 backdrop-blur-sm z-40 transition-opacity duration-200"
             style={{ top: '113px' }}
+            onMouseEnter={() => setHoveredCategoryId(null)}
           />
         )}
       </nav>
@@ -985,7 +988,7 @@ export default function Navbar() {
             {brands.map((brand) => (
               <Link
                 key={brand.id}
-                href={`/brands/${brand.slug}`}
+                href={`/products?brandId=${brand.id}&brandName=${encodeURIComponent(brand.name)}`}
                 className="block px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-500 transition-colors"
               >
                 {brand.name}

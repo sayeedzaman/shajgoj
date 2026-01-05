@@ -20,6 +20,10 @@ function ProductsContent() {
   // Check if we should filter by featured products from URL
   const isFeaturedFilter = searchParams.get('featured') === 'true';
 
+  // Check if we should filter by brand from URL
+  const urlBrandId = searchParams.get('brandId');
+  const urlBrandName = searchParams.get('brandName');
+
   // Filter states
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [selectedType, setSelectedType] = useState<string>('');
@@ -66,10 +70,17 @@ function ProductsContent() {
     }
   }, [selectedCategory, selectedType, selectedSubCategory, selectedBrand, sortBy, sortOrder, currentPage, priceRange, itemsPerPage, isFeaturedFilter]);
 
+  // Set brand from URL on mount
+  useEffect(() => {
+    if (urlBrandId) {
+      setSelectedBrand(urlBrandId);
+    }
+  }, [urlBrandId]);
+
   useEffect(() => {
     fetchCategories();
     fetchBrands();
-  }, []);
+  }, [urlBrandId]);
 
   useEffect(() => {
     fetchProducts();
@@ -78,7 +89,32 @@ function ProductsContent() {
   const fetchCategories = async () => {
     try {
       const data = await categoriesAPI.getAll();
-      setCategories(data);
+
+      // If brand is selected from URL, filter categories to only show those with products from this brand
+      if (urlBrandId) {
+        // Fetch products for the brand to determine which categories have products
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+        const response = await fetch(`${apiUrl}/api/products?brandId=${urlBrandId}`);
+        if (response.ok) {
+          const productsData = await response.json();
+          const brandProducts = productsData.products || [];
+
+          // Get unique category IDs from products
+          const categoriesWithProducts = new Set(
+            brandProducts
+              .map((p: Product) => p.Category?.id)
+              .filter((id: string | undefined) => id !== undefined)
+          );
+
+          // Filter categories to only include those with products
+          const filteredCategories = data.filter(cat => categoriesWithProducts.has(cat.id));
+          setCategories(filteredCategories);
+        } else {
+          setCategories(data);
+        }
+      } else {
+        setCategories(data);
+      }
     } catch (error) {
       console.error('Error fetching categories:', error);
     }
@@ -105,7 +141,31 @@ function ProductsContent() {
       if (!categoryTypes[categoryId]) {
         try {
           const data = await typesAPI.getByCategoryId(categoryId);
-          setCategoryTypes(prev => ({ ...prev, [categoryId]: data }));
+
+          // If brand is selected, filter types to only show those with products from this brand
+          if (urlBrandId) {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+            const response = await fetch(`${apiUrl}/api/products?brandId=${urlBrandId}&categoryId=${categoryId}`);
+            if (response.ok) {
+              const productsData = await response.json();
+              const brandProducts = productsData.products || [];
+
+              // Get unique type IDs from products
+              const typesWithProducts = new Set(
+                brandProducts
+                  .map((p: Product) => p.Type?.id)
+                  .filter((id: string | undefined) => id !== undefined)
+              );
+
+              // Filter types to only include those with products
+              const filteredTypes = data.filter(type => typesWithProducts.has(type.id));
+              setCategoryTypes(prev => ({ ...prev, [categoryId]: filteredTypes }));
+            } else {
+              setCategoryTypes(prev => ({ ...prev, [categoryId]: data }));
+            }
+          } else {
+            setCategoryTypes(prev => ({ ...prev, [categoryId]: data }));
+          }
         } catch (error) {
           console.error('Error fetching types:', error);
         }
@@ -127,7 +187,31 @@ function ProductsContent() {
       if (!typeSubCategories[typeId]) {
         try {
           const data = await subCategoriesAPI.getByTypeId(typeId);
-          setTypeSubCategories(prev => ({ ...prev, [typeId]: data }));
+
+          // If brand is selected, filter subcategories to only show those with products from this brand
+          if (urlBrandId) {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+            const response = await fetch(`${apiUrl}/api/products?brandId=${urlBrandId}&typeId=${typeId}`);
+            if (response.ok) {
+              const productsData = await response.json();
+              const brandProducts = productsData.products || [];
+
+              // Get unique subcategory IDs from products
+              const subCategoriesWithProducts = new Set(
+                brandProducts
+                  .map((p: Product) => p.SubCategory?.id)
+                  .filter((id: string | undefined) => id !== undefined)
+              );
+
+              // Filter subcategories to only include those with products
+              const filteredSubCategories = data.filter(subCat => subCategoriesWithProducts.has(subCat.id));
+              setTypeSubCategories(prev => ({ ...prev, [typeId]: filteredSubCategories }));
+            } else {
+              setTypeSubCategories(prev => ({ ...prev, [typeId]: data }));
+            }
+          } else {
+            setTypeSubCategories(prev => ({ ...prev, [typeId]: data }));
+          }
         } catch (error) {
           console.error('Error fetching subcategories:', error);
         }
@@ -154,12 +238,18 @@ function ProductsContent() {
         {/* Page Header */}
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            {isFeaturedFilter ? 'Featured Products' : 'All Products'}
+            {urlBrandName
+              ? `${decodeURIComponent(urlBrandName)} Products`
+              : isFeaturedFilter
+                ? 'Featured Products'
+                : 'All Products'}
           </h1>
           <p className="text-gray-600">
-            {isFeaturedFilter
-              ? 'Discover our handpicked selection of featured beauty products'
-              : 'Discover our complete collection of beauty products'}
+            {urlBrandName
+              ? `Explore all products from ${decodeURIComponent(urlBrandName)}`
+              : isFeaturedFilter
+                ? 'Discover our handpicked selection of featured beauty products'
+                : 'Discover our complete collection of beauty products'}
           </p>
 
           {/* Active Filters Display */}
