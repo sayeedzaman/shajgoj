@@ -413,6 +413,7 @@ function ProductsContent() {
                               setSelectedCategory(category.id);
                               setSelectedType('');
                               setSelectedSubCategory('');
+                              handleCategoryClick(category.id);
                             }}
                             className={`flex-1 cursor-pointer py-2 px-2 rounded-lg transition-colors ${
                               selectedCategory === category.id ? 'bg-red-50 text-red-600 font-medium' : 'text-gray-700 hover:bg-gray-50'
@@ -445,6 +446,7 @@ function ProductsContent() {
                                       setSelectedCategory(category.id);
                                       setSelectedType(type.id);
                                       setSelectedSubCategory('');
+                                      handleTypeClick(type.id);
                                     }}
                                     className={`flex-1 cursor-pointer py-1.5 px-2 rounded-lg transition-colors ${
                                       selectedType === type.id ? 'bg-red-50 text-red-600 font-medium' : 'text-gray-700 hover:bg-gray-50'

@@ -79,11 +79,11 @@ export default function Navbar() {
             const typesWithSubCategories = await Promise.all(
               typesList.map(async (type: Type) => {
                 try {
-                  const subCategoriesResponse = await fetch(`${apiUrl}/api/subcategories?typeId=${type.id}`);
+                  const subCategoriesResponse = await fetch(`${apiUrl}/api/subcategories/type/${type.id}`);
                   if (!subCategoriesResponse.ok) return { ...type, SubCategory: [] };
 
                   const subCategoriesData = await subCategoriesResponse.json();
-                  return { ...type, SubCategory: subCategoriesData.subCategories || [] };
+                  return { ...type, SubCategory: subCategoriesData.subcategories || [] };
                 } catch (error) {
                   console.error(`Failed to fetch subcategories for type ${type.id}:`, error);
                   return { ...type, SubCategory: [] };
