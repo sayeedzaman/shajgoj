@@ -320,7 +320,7 @@ export const getAllSubCategories = async (req: Request, res: Response): Promise<
       orderBy: { name: 'asc' },
     });
 
-    res.json({ subCategories });
+    res.json({ subcategories: subCategories });
   } catch (error) {
     console.error('Get all subcategories error:', error);
     res.status(500).json({ error: 'Failed to fetch subcategories' });
@@ -386,7 +386,7 @@ export const getSubCategoriesByTypeId = async (req: Request, res: Response): Pro
       orderBy: { name: 'asc' },
     });
 
-    res.json({ subCategories });
+    res.json({ subcategories: subCategories });
   } catch (error) {
     console.error('Get subcategories by type ID error:', error);
     res.status(500).json({ error: 'Failed to fetch subcategories' });
