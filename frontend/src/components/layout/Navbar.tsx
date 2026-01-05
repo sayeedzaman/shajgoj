@@ -230,12 +230,12 @@ export default function Navbar() {
 
         {/* Main Navbar */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+          <div className="flex items-center justify-between h-16 bg-red-600">
             {/* Mobile Menu Button - Left side on mobile */}
             <button
               aria-label='mobile menu'
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden text-gray-700 hover:text-red-500"
+              className="md:hidden text-white hover:text-gray-200"
             >
               <Menu className="h-6 w-6" />
             </button>
@@ -271,7 +271,7 @@ export default function Navbar() {
               >
                 <Link
                   href="/brands"
-                  className="text-sm font-medium text-gray-700 hover:text-red-500 transition-colors cursor-pointer px-2 py-1"
+                  className="text-sm text-white hover:text-gray-200 transition-colors cursor-pointer px-2 py-1"
                 >
                   BRANDS
                 </Link>
@@ -335,7 +335,7 @@ export default function Navbar() {
                     ) : instantResults.length > 0 ? (
                       <>
                         <div className="p-3 border-b border-gray-100 bg-gray-50">
-                          <p className="text-sm text-gray-600 font-medium">
+                          <p className="text-sm text-gray-600">
                             Top {instantResults.length} Results
                           </p>
                         </div>
@@ -366,11 +366,11 @@ export default function Navbar() {
 
                               {/* Product Info */}
                               <div className="flex-1 min-w-0">
-                                <h3 className="text-sm font-medium text-gray-900 truncate">
+                                <h3 className="text-sm text-gray-900 truncate">
                                   {product.name}
                                 </h3>
                                 <div className="flex items-center gap-2 mt-1">
-                                  <p className="text-sm font-semibold text-red-600">
+                                  <p className="text-sm text-red-600">
                                     {formatPrice(product.price, product.salePrice)}
                                   </p>
                                   {product.salePrice && (
@@ -387,7 +387,7 @@ export default function Navbar() {
                               {/* Sales Badge */}
                               {product.totalSold !== undefined && product.totalSold > 0 && (
                                 <div className="flex-shrink-0">
-                                  <div className="bg-green-100 text-green-700 text-xs font-medium px-2 py-1 rounded">
+                                  <div className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded">
                                     {product.totalSold} sold
                                   </div>
                                 </div>
@@ -403,7 +403,7 @@ export default function Navbar() {
                               setIsSearchFocused(false);
                               router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
                             }}
-                            className="w-full text-center text-sm text-red-600 hover:text-red-700 font-medium"
+                            className="w-full text-center text-sm text-red-600 hover:text-red-700"
                           >
                             View all results for &quot;{searchQuery}&quot;
                           </button>
@@ -424,12 +424,12 @@ export default function Navbar() {
               {/* Wishlist Icon - Desktop only */}
               <button
                 onClick={() => setIsWishlistOpen(true)}
-                className="hidden md:flex relative text-gray-700 hover:text-red-500 transition-colors"
+                className="hidden md:flex relative text-white hover:text-gray-200 transition-colors"
                 aria-label="Wishlist"
               >
                 <Heart className="h-6 w-6" />
                 {wishlistCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  <span className="absolute -top-2 -right-2 bg-white text-red-600 text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
                     {wishlistCount > 9 ? '9+' : wishlistCount}
                   </span>
                 )}
@@ -438,12 +438,12 @@ export default function Navbar() {
               {/* Cart Icon - Desktop only */}
               <button
                 onClick={openCart}
-                className="hidden md:flex relative text-gray-700 hover:text-red-500 transition-colors"
+                className="hidden md:flex relative text-white hover:text-gray-200 transition-colors"
                 aria-label="Cart"
               >
                 <ShoppingCart className="h-6 w-6" />
                 {cartCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  <span className="absolute -top-2 -right-2 bg-white text-red-600 text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
                     {cartCount}
                   </span>
                 )}
@@ -455,7 +455,7 @@ export default function Navbar() {
                   <>
                     <button
                       onClick={() => setIsProfileOpen(!isProfileOpen)}
-                      className="flex items-center space-x-1 text-gray-700 hover:text-red-500 transition-colors"
+                      className="flex items-center space-x-1 text-white hover:text-gray-200 transition-colors"
                     >
                       <User className="h-6 w-6" />
                       <span className="text-sm hidden lg:inline">
@@ -507,14 +507,14 @@ export default function Navbar() {
                   <div className="flex items-center space-x-3">
                     <Link
                       href="/login"
-                      className="flex items-center space-x-1 text-gray-700 hover:text-red-500 transition-colors"
+                      className="flex items-center space-x-1 text-white hover:text-gray-200 transition-colors"
                     >
                       <User className="h-6 w-6" />
                       <span className="text-sm hidden lg:inline">Login</span>
                     </Link>
                     <Link
                       href="/signup"
-                      className="hidden lg:inline text-sm text-gray-700 hover:text-red-500 transition-colors"
+                      className="hidden lg:inline text-sm text-white hover:text-gray-200 transition-colors"
                     >
                       Sign up
                     </Link>
@@ -580,7 +580,7 @@ export default function Navbar() {
                 ) : instantResults.length > 0 ? (
                   <>
                     <div className="p-3 border-b border-gray-100 bg-gray-50">
-                      <p className="text-sm text-gray-600 font-medium">
+                      <p className="text-sm text-gray-600">
                         Top {instantResults.length} Results
                       </p>
                     </div>
@@ -611,11 +611,11 @@ export default function Navbar() {
 
                           {/* Product Info */}
                           <div className="flex-1 min-w-0">
-                            <h3 className="text-sm font-medium text-gray-900 truncate">
+                            <h3 className="text-sm text-gray-900 truncate">
                               {product.name}
                             </h3>
                             <div className="flex items-center gap-2 mt-1">
-                              <p className="text-sm font-semibold text-red-600">
+                              <p className="text-sm text-red-600">
                                 {formatPrice(product.price, product.salePrice)}
                               </p>
                               {product.salePrice && (
@@ -632,7 +632,7 @@ export default function Navbar() {
                           {/* Sales Badge */}
                           {product.totalSold !== undefined && product.totalSold > 0 && (
                             <div className="flex-shrink-0">
-                              <div className="bg-green-100 text-green-700 text-xs font-medium px-2 py-1 rounded">
+                              <div className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded">
                                 {product.totalSold} sold
                               </div>
                             </div>
@@ -649,7 +649,7 @@ export default function Navbar() {
                           setIsSearchFocused(false);
                           router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
                         }}
-                        className="w-full text-center text-sm text-red-600 hover:text-red-700 font-medium"
+                        className="w-full text-center text-sm text-red-600 hover:text-red-700"
                       >
                         View all results for &quot;{searchQuery}&quot;
                       </button>
@@ -684,7 +684,7 @@ export default function Navbar() {
             <div className="flex flex-col h-full">
               {/* Header */}
               <div className="flex items-center justify-between p-4 border-b border-gray-200">
-                <h2 className="text-lg font-bold text-gray-900">Menu</h2>
+                <h2 className="text-lg text-gray-900">Menu</h2>
                 <button
                   onClick={() => setIsMenuOpen(false)}
                   className="p-2 hover:bg-gray-100 rounded-full transition-colors"
@@ -701,11 +701,11 @@ export default function Navbar() {
                 <div className="mb-4 pb-4 border-b-2 border-gray-300">
                   <div className="bg-gradient-to-r from-red-50 to-purple-50 rounded-lg p-4 mb-3">
                     <div className="flex items-center space-x-3 mb-3">
-                      <div className="bg-red-500 text-white rounded-full h-12 w-12 flex items-center justify-center font-bold text-lg">
+                      <div className="bg-red-500 text-white rounded-full h-12 w-12 flex items-center justify-center text-lg">
                         {user.firstName?.charAt(0).toUpperCase() || 'U'}
                       </div>
                       <div>
-                        <p className="font-semibold text-gray-900">
+                        <p className="text-gray-900">
                           {user.firstName} {user.lastName}
                         </p>
                         <p className="text-xs text-gray-600">{user.email}</p>
@@ -720,7 +720,7 @@ export default function Navbar() {
                       onClick={() => setIsMenuOpen(false)}
                     >
                       <User className="h-5 w-5" />
-                      <span className="font-medium">My Profile</span>
+                      <span>My Profile</span>
                     </Link>
                     <Link
                       href="/orders"
@@ -728,7 +728,7 @@ export default function Navbar() {
                       onClick={() => setIsMenuOpen(false)}
                     >
                       <ShoppingCart className="h-5 w-5" />
-                      <span className="font-medium">My Orders</span>
+                      <span>My Orders</span>
                     </Link>
                     {user.role === 'ADMIN' && (
                       <Link
@@ -737,7 +737,7 @@ export default function Navbar() {
                         onClick={() => setIsMenuOpen(false)}
                       >
                         <User className="h-5 w-5" />
-                        <span className="font-medium">Admin Dashboard</span>
+                        <span>Admin Dashboard</span>
                       </Link>
                     )}
                     <button
@@ -748,7 +748,7 @@ export default function Navbar() {
                       className="w-full flex items-center space-x-3 px-3 py-2.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                     >
                       <LogOut className="h-5 w-5" />
-                      <span className="font-medium">Logout</span>
+                      <span>Logout</span>
                     </button>
                   </div>
                 </div>
@@ -835,7 +835,7 @@ export default function Navbar() {
               {/* Brands Link */}
               <Link
                 href="/brands"
-                className="block text-gray-700 hover:text-red-500 py-2 font-medium"
+                className="block text-gray-700 hover:text-red-500 py-2"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Brands
@@ -844,7 +844,7 @@ export default function Navbar() {
               {/* All Products Link */}
               <Link
                 href="/products"
-                className="block text-gray-700 hover:text-red-500 py-2 font-medium"
+                className="block text-gray-700 hover:text-red-500 py-2"
                 onClick={() => setIsMenuOpen(false)}
               >
                 All Products
@@ -878,24 +878,28 @@ export default function Navbar() {
         <div className="hidden md:block border-t border-gray-200 bg-white relative">
           {/* Category Links Bar */}
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-center space-x-8 h-12 relative z-50">
+            <div className="flex items-center justify-center flex-wrap gap-x-8 gap-y-2 min-h-12 py-2 relative z-50">
               {categories.slice(0, 7).map((category) => (
                 <div
                   key={category.id}
-                  className="h-full relative"
+                  className="relative group"
                   onMouseEnter={() => setHoveredCategoryId(category.id)}
                 >
                   <Link
                     href={`/category/${category.slug}`}
-                    className="text-sm font-medium text-gray-700 hover:text-red-500 transition-colors whitespace-nowrap h-full flex items-center px-2"
+                    className="text-sm text-gray-700 hover:text-red-500 transition-all duration-200 whitespace-nowrap flex items-center px-3 py-2 rounded-md hover:bg-red-50 relative"
                   >
                     {category.name}
+                    {/* Active indicator */}
+                    <span className={`absolute bottom-0 left-0 right-0 h-0.5 bg-red-500 transform origin-left transition-transform duration-200 ${
+                      hoveredCategoryId === category.id ? 'scale-x-100' : 'scale-x-0'
+                    }`} />
                   </Link>
                 </div>
               ))}
               <Link
                 href="/products"
-                className="text-sm font-medium text-gray-700 hover:text-red-500 transition-colors whitespace-nowrap h-full flex items-center px-2"
+                className="text-sm text-gray-700 hover:text-red-500 transition-all duration-200 whitespace-nowrap flex items-center px-3 py-2 rounded-md hover:bg-red-50"
               >
                 All Products
               </Link>
@@ -905,36 +909,45 @@ export default function Navbar() {
           {/* Mega Menu Dropdown - Single instance rendered outside */}
           {hoveredCategoryId && categories.find(cat => cat.id === hoveredCategoryId)?.Type && categories.find(cat => cat.id === hoveredCategoryId)!.Type!.length > 0 && (
             <div
-              className="absolute left-0 right-0 top-full z-50 flex justify-center"
+              className="absolute left-0 right-0 top-full z-50 flex justify-center animate-fadeIn"
               onMouseEnter={() => setHoveredCategoryId(hoveredCategoryId)}
               onMouseLeave={() => setHoveredCategoryId(null)}
             >
-              <div className="bg-white border border-gray-200 shadow-2xl rounded-b-lg mx-16 w-full max-w-6xl">
+              <div className="bg-white border border-gray-200 shadow-2xl rounded-b-lg mx-4 sm:mx-8 md:mx-16 w-full max-w-6xl overflow-hidden">
                 <div className="px-6 py-6">
                   {/* Category Title */}
-                  <h3 className="text-base font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200">
-                    {categories.find(cat => cat.id === hoveredCategoryId)?.name}
-                  </h3>
+                  <div className="flex items-center justify-between mb-4 pb-3 border-b-2 border-red-100">
+                    <h3 className="text-lg text-gray-900">
+                      {categories.find(cat => cat.id === hoveredCategoryId)?.name}
+                    </h3>
+                    <Link
+                      href={`/category/${categories.find(cat => cat.id === hoveredCategoryId)?.slug}`}
+                      className="text-xs text-red-500 hover:text-red-600 hover:underline transition-colors"
+                    >
+                      View All →
+                    </Link>
+                  </div>
 
                   {/* Types and SubCategories Grid */}
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-8 gap-y-6">
                     {categories.find(cat => cat.id === hoveredCategoryId)?.Type?.map((type) => (
-                      <div key={type.id} className="space-y-2">
+                      <div key={type.id} className="space-y-3 group/type">
                         <Link
                           href={`/type/${type.slug}`}
-                          className="text-xs font-semibold text-gray-900 hover:text-red-500 block uppercase tracking-wide transition-colors"
+                          className="text-sm text-gray-900 hover:text-red-500 block uppercase tracking-wide transition-colors relative inline-block"
                         >
                           {type.name}
+                          <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-red-500 group-hover/type:w-full transition-all duration-200" />
                         </Link>
                         {type.SubCategory && type.SubCategory.length > 0 && (
-                          <div className="space-y-1.5">
+                          <div className="space-y-2 pl-2 border-l-2 border-gray-100">
                             {type.SubCategory.map((subCat) => (
                               <Link
                                 key={subCat.id}
                                 href={`/subcategory/${subCat.slug}`}
-                                className="text-xs text-gray-600 hover:text-red-500 hover:underline block transition-colors"
+                                className="text-xs text-gray-600 hover:text-red-500 hover:translate-x-1 block transition-all duration-150 py-0.5"
                               >
-                                {subCat.name}
+                                • {subCat.name}
                               </Link>
                             ))}
                           </div>
@@ -951,7 +964,7 @@ export default function Navbar() {
         {/* Backdrop overlay for dropdown */}
         {hoveredCategoryId && (
           <div
-            className="fixed left-0 right-0 bottom-0 bg-black/20 z-40"
+            className="fixed left-0 right-0 bottom-0 bg-black/20 backdrop-blur-sm z-40 transition-opacity duration-200"
             style={{ top: '113px' }}
           />
         )}
