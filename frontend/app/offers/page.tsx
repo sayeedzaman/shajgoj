@@ -150,17 +150,23 @@ function OffersContent() {
   return (
     <div className="min-h-screen bg-linear-to-br from-red-50 via-orange-50 to-amber-50">
       {/* Hero Section */}
-      <section className="relative bg-linear-to-r from-red-600 via-orange-500 to-amber-500 text-white py-8 overflow-hidden">
-        {/* Background Image */}
-        <div className="absolute inset-0 z-0">
-          <Image
-            src="/image.png"
-            alt="Offers background"
-            fill
-            className="object-cover opacity-20"
-            priority
-          />
-        </div>
+      <section className={`relative text-white py-8 overflow-hidden ${
+        viewMode === 'products'
+          ? 'bg-linear-to-r from-red-600 via-orange-500 to-amber-500'
+          : 'bg-linear-to-r from-red-600 via-orange-500 to-amber-500'
+      }`}>
+        {/* Background Image - Only for offers view */}
+        {viewMode === 'offers' && (
+          <div className="absolute inset-0 z-0">
+            <Image
+              src="/image.png"
+              alt="Offers background"
+              fill
+              className="object-cover opacity-20"
+              priority
+            />
+          </div>
+        )}
 
         <div className="max-w-7xl mx-auto px-4 relative z-10">
           <div className="text-center">
