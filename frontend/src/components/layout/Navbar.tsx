@@ -929,7 +929,7 @@ export default function Navbar() {
                 <div
                   key={category.id}
                   className="relative group"
-                  onMouseEnter={() => setHoveredCategoryId(category.id)}
+                  onMouseEnter={() => !isSearchFocused && setHoveredCategoryId(category.id)}
                 >
                   <Link
                     href={`/category/${category.slug}`}
@@ -980,7 +980,7 @@ export default function Navbar() {
           </div>
 
           {/* Mega Menu Dropdown - Single instance rendered outside */}
-          {hoveredCategoryId && categories.find(cat => cat.id === hoveredCategoryId)?.Type && categories.find(cat => cat.id === hoveredCategoryId)!.Type!.length > 0 && (
+          {!isSearchFocused && hoveredCategoryId && categories.find(cat => cat.id === hoveredCategoryId)?.Type && categories.find(cat => cat.id === hoveredCategoryId)!.Type!.length > 0 && (
             <div
               className="absolute left-0 right-0 top-full z-50 flex justify-center animate-fadeIn"
               onMouseEnter={() => setHoveredCategoryId(hoveredCategoryId)}
@@ -1035,7 +1035,7 @@ export default function Navbar() {
         </div>
 
         {/* Backdrop overlay for dropdown */}
-        {hoveredCategoryId && (
+        {!isSearchFocused && hoveredCategoryId && (
           <div
             className="fixed left-0 right-0 bottom-0 bg-black/20 backdrop-blur-sm z-40 transition-opacity duration-200"
             style={{ top: '113px' }}
