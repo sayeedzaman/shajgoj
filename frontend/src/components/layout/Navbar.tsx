@@ -953,7 +953,7 @@ export default function Navbar() {
                   href={`/category/${categories.find(cat => cat.name.toLowerCase() === 'jewellery' || cat.name.toLowerCase() === 'jewelry')?.slug}`}
                   className="text-sm text-white bg-yellow-600 hover:bg-yellow-700 transition-all duration-200 whitespace-nowrap flex items-center px-4 py-2 rounded-full shadow-md font-medium"
                 >
-                  JEWELLERY
+                  JEWELERY
                 </Link>
               )}
 
