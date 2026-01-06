@@ -8,7 +8,7 @@ import { useCart } from '@/src/lib/CartContext';
 import { useWishlist } from '@/src/lib/WishlistContext';
 import { ShoppingCart, User, Search, Menu, Heart, LogOut, Plus, Minus, X } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
-import type { Category, Product } from '@/src/types';
+import type { Category } from '@/src/types';
 import WishlistSidebar from '@/src/components/wishlist/WishlistSidebar';
 
 interface Type {
@@ -38,9 +38,6 @@ export default function Navbar() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const [instantResults, setInstantResults] = useState<Product[]>([]);
-  const [showInstantResults, setShowInstantResults] = useState(false);
-  const [instantLoading, setInstantLoading] = useState(false);
   const [categories, setCategories] = useState<CategoryWithHierarchy[]>([]);
   const [hoveredCategoryId, setHoveredCategoryId] = useState<string | null>(null);
   const [expandedCategoryId, setExpandedCategoryId] = useState<string | null>(null);
@@ -51,7 +48,6 @@ export default function Navbar() {
   const [brandsDropdownPosition, setBrandsDropdownPosition] = useState({ top: 0, left: 0 });
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const mobileSearchContainerRef = useRef<HTMLDivElement>(null);
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const fetchCategories = async () => {
     try {
@@ -130,88 +126,6 @@ export default function Navbar() {
     fetchBrands();
   }, []);
 
-  // Instant search with debouncing
-  useEffect(() => {
-    // Clear previous timer
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-    }
-
-    // Only search if query has at least 1 character
-    if (searchQuery.trim().length >= 1) {
-      setInstantLoading(true);
-      debounceTimerRef.current = setTimeout(() => {
-        fetchInstantResults(searchQuery);
-      }, 300); // 300ms debounce
-    } else {
-      setInstantResults([]);
-      setShowInstantResults(false);
-    }
-
-    return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-    };
-  }, [searchQuery]);
-
-  // Click outside to close instant results
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        searchContainerRef.current &&
-        !searchContainerRef.current.contains(event.target as Node) &&
-        mobileSearchContainerRef.current &&
-        !mobileSearchContainerRef.current.contains(event.target as Node)
-      ) {
-        setShowInstantResults(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
-  const fetchInstantResults = async (query: string) => {
-    if (!query.trim()) {
-      setInstantResults([]);
-      setInstantLoading(false);
-      return;
-    }
-
-    try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-      const response = await fetch(
-        `${apiUrl}/api/products?search=${encodeURIComponent(query)}&limit=8&sortBy=createdAt`
-      );
-      if (!response.ok) {
-        setInstantResults([]);
-        return;
-      }
-      const data = await response.json();
-      setInstantResults(data.products || []);
-      setShowInstantResults(true);
-    } catch (error) {
-      console.error('Error fetching instant results:', error);
-      setInstantResults([]);
-    } finally {
-      setInstantLoading(false);
-    }
-  };
-
-  const handleInstantResultClick = (product: Product) => {
-    setShowInstantResults(false);
-    setSearchQuery('');
-    router.push(`/products/${product.slug}`);
-  };
-
-  const formatPrice = (price: number, salePrice: number | null) => {
-    const displayPrice = salePrice || price;
-    return `৳${displayPrice.toLocaleString()}`;
-  };
-
   return (
     <>
       {/* Search Focus Overlay - Lower z-index than navbar */}
@@ -288,7 +202,6 @@ export default function Navbar() {
                     if (searchQuery.trim()) {
                       router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
                       setIsSearchFocused(false);
-                      setShowInstantResults(false);
                     }
                   }}
                   className="relative w-full"
@@ -297,12 +210,7 @@ export default function Navbar() {
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    onFocus={() => {
-                      setIsSearchFocused(true);
-                      if (instantResults.length > 0) {
-                        setShowInstantResults(true);
-                      }
-                    }}
+                    onFocus={() => setIsSearchFocused(true)}
                     placeholder="Search for products..."
                     className="w-full px-4 py-2 pl-10 border-2 border-red-500 rounded-full focus:outline-none focus:border-green-500 relative bg-white transition-all"
                     autoComplete="off"
@@ -313,11 +221,7 @@ export default function Navbar() {
                   {searchQuery && (
                     <button
                       type="button"
-                      onClick={() => {
-                        setSearchQuery('');
-                        setInstantResults([]);
-                        setShowInstantResults(false);
-                      }}
+                      onClick={() => setSearchQuery('')}
                       className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
                       aria-label="Clear search"
                     >
@@ -325,98 +229,6 @@ export default function Navbar() {
                     </button>
                   )}
                 </form>
-
-                {/* Instant Search Results Dropdown */}
-                {showInstantResults && searchQuery && (
-                  <div className="absolute top-full mt-2 w-full bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-[500px] overflow-y-auto">
-                    {instantLoading ? (
-                      <div className="p-4 text-center text-gray-500">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto"></div>
-                      </div>
-                    ) : instantResults.length > 0 ? (
-                      <>
-                        <div className="p-3 border-b border-gray-100 bg-gray-50">
-                          <p className="text-sm text-gray-600">
-                            Top {instantResults.length} Results
-                          </p>
-                        </div>
-                        <div className="py-2">
-                          {instantResults.map((product) => (
-                            <button
-                              key={product.id}
-                              type="button"
-                              onClick={() => handleInstantResultClick(product)}
-                              className="w-full px-4 py-3 hover:bg-gray-50 flex items-center gap-4 transition-colors text-left"
-                            >
-                              {/* Product Image */}
-                              <div className="relative w-16 h-16 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
-                                {product.imageUrl ? (
-                                  <Image
-                                    src={product.imageUrl}
-                                    alt={product.name}
-                                    fill
-                                    className="object-cover"
-                                    sizes="64px"
-                                  />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center text-gray-400">
-                                    <Search className="w-8 h-8" />
-                                  </div>
-                                )}
-                              </div>
-
-                              {/* Product Info */}
-                              <div className="flex-1 min-w-0">
-                                <h3 className="text-sm text-gray-900 truncate">
-                                  {product.name}
-                                </h3>
-                                <div className="flex items-center gap-2 mt-1">
-                                  <p className="text-sm text-red-600">
-                                    {formatPrice(product.price, product.salePrice)}
-                                  </p>
-                                  {product.salePrice && (
-                                    <p className="text-xs text-gray-500 line-through">
-                                      ৳{product.price.toLocaleString()}
-                                    </p>
-                                  )}
-                                </div>
-                                {product.Brand && (
-                                  <p className="text-xs text-gray-500 mt-0.5">{product.Brand.name}</p>
-                                )}
-                              </div>
-
-                              {/* Sales Badge */}
-                              {product.totalSold !== undefined && product.totalSold > 0 && (
-                                <div className="flex-shrink-0">
-                                  <div className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded">
-                                    {product.totalSold} sold
-                                  </div>
-                                </div>
-                              )}
-                            </button>
-                          ))}
-                        </div>
-                        <div className="p-3 border-t border-gray-100 bg-gray-50">
-                          <button
-                            onClick={(e) => {
-                              e.preventDefault();
-                              setShowInstantResults(false);
-                              setIsSearchFocused(false);
-                              router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
-                            }}
-                            className="w-full text-center text-sm text-red-600 hover:text-red-700"
-                          >
-                            View all results for &quot;{searchQuery}&quot;
-                          </button>
-                        </div>
-                      </>
-                    ) : (
-                      <div className="p-4 text-center text-gray-500">
-                        No products found for &quot;{searchQuery}&quot;
-                      </div>
-                    )}
-                  </div>
-                )}
               </div>
             </div>
 
@@ -533,7 +345,6 @@ export default function Navbar() {
                 if (searchQuery.trim()) {
                   router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
                   setIsSearchFocused(false);
-                  setShowInstantResults(false);
                 }
               }}
               className="relative"
@@ -542,12 +353,7 @@ export default function Navbar() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                onFocus={() => {
-                  setIsSearchFocused(true);
-                  if (instantResults.length > 0) {
-                    setShowInstantResults(true);
-                  }
-                }}
+                onFocus={() => setIsSearchFocused(true)}
                 placeholder="Search for products..."
                 className="w-full px-4 py-2 pl-10 pr-10 border-2 border-red-500 rounded-full focus:outline-none focus:border-green-500 relative bg-white transition-all"
                 autoComplete="off"
@@ -558,11 +364,7 @@ export default function Navbar() {
               {searchQuery && (
                 <button
                   type="button"
-                  onClick={() => {
-                    setSearchQuery('');
-                    setInstantResults([]);
-                    setShowInstantResults(false);
-                  }}
+                  onClick={() => setSearchQuery('')}
                   className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
                   aria-label="Clear search"
                 >
@@ -570,99 +372,6 @@ export default function Navbar() {
                 </button>
               )}
             </form>
-
-            {/* Instant Search Results Dropdown - Mobile */}
-            {showInstantResults && searchQuery && (
-              <div className="absolute top-full mt-2 w-full bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-[500px] overflow-y-auto">
-                {instantLoading ? (
-                  <div className="p-4 text-center text-gray-500">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto"></div>
-                  </div>
-                ) : instantResults.length > 0 ? (
-                  <>
-                    <div className="p-3 border-b border-gray-100 bg-gray-50">
-                      <p className="text-sm text-gray-600">
-                        Top {instantResults.length} Results
-                      </p>
-                    </div>
-                    <div className="py-2">
-                      {instantResults.map((product) => (
-                        <button
-                          key={product.id}
-                          type="button"
-                          onClick={() => handleInstantResultClick(product)}
-                          className="w-full px-4 py-3 hover:bg-gray-50 flex items-center gap-4 transition-colors text-left"
-                        >
-                          {/* Product Image */}
-                          <div className="relative w-16 h-16 flex-shrink-0 bg-gray-100 rounded-lg overflow-hidden">
-                            {product.imageUrl ? (
-                              <Image
-                                src={product.imageUrl}
-                                alt={product.name}
-                                fill
-                                className="object-cover"
-                                sizes="64px"
-                              />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-gray-400">
-                                <Search className="w-8 h-8" />
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Product Info */}
-                          <div className="flex-1 min-w-0">
-                            <h3 className="text-sm text-gray-900 truncate">
-                              {product.name}
-                            </h3>
-                            <div className="flex items-center gap-2 mt-1">
-                              <p className="text-sm text-red-600">
-                                {formatPrice(product.price, product.salePrice)}
-                              </p>
-                              {product.salePrice && (
-                                <p className="text-xs text-gray-500 line-through">
-                                  ৳{product.price.toLocaleString()}
-                                </p>
-                              )}
-                            </div>
-                            {product.Brand && (
-                              <p className="text-xs text-gray-500 mt-0.5">{product.Brand.name}</p>
-                            )}
-                          </div>
-
-                          {/* Sales Badge */}
-                          {product.totalSold !== undefined && product.totalSold > 0 && (
-                            <div className="flex-shrink-0">
-                              <div className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded">
-                                {product.totalSold} sold
-                              </div>
-                            </div>
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                    <div className="p-3 border-t border-gray-100 bg-gray-50">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setShowInstantResults(false);
-                          setIsSearchFocused(false);
-                          router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
-                        }}
-                        className="w-full text-center text-sm text-red-600 hover:text-red-700"
-                      >
-                        View all results for &quot;{searchQuery}&quot;
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <div className="p-4 text-center text-gray-500">
-                    No products found for &quot;{searchQuery}&quot;
-                  </div>
-                )}
-              </div>
-            )}
           </div>
           </div>
         </div>
