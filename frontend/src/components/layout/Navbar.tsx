@@ -757,7 +757,13 @@ export default function Navbar() {
               )}
 
               {/* Categories with expandable Types and SubCategories */}
-              {categories.map((category) => (
+              {categories
+                .filter(category =>
+                  category.name.toLowerCase() !== 'men' &&
+                  category.name.toLowerCase() !== 'jewellery' &&
+                  category.name.toLowerCase() !== 'jewelry'
+                )
+                .map((category) => (
                 <div key={category.id} className="border-b border-gray-100 pb-2">
                   {/* Category Level */}
                   <div className="flex items-center justify-between">
@@ -912,7 +918,14 @@ export default function Navbar() {
           {/* Category Links Bar */}
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-center flex-wrap gap-x-8 gap-y-2 min-h-12 py-2 relative z-50">
-              {categories.slice(0, 7).map((category) => (
+              {categories
+                .filter(category =>
+                  category.name.toLowerCase() !== 'men' &&
+                  category.name.toLowerCase() !== 'jewellery' &&
+                  category.name.toLowerCase() !== 'jewelry'
+                )
+                .slice(0, 7)
+                .map((category) => (
                 <div
                   key={category.id}
                   className="relative group"
