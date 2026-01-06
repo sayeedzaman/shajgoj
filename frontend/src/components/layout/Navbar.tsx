@@ -852,13 +852,35 @@ export default function Navbar() {
                 All Products
               </Link> */}
 
+              {/* Men Category - Only show if it exists */}
+              {categories.find(cat => cat.name.toLowerCase() === 'men') && (
+                <Link
+                  href={`/category/${categories.find(cat => cat.name.toLowerCase() === 'men')?.slug}`}
+                  className="block text-white bg-gray-600 hover:bg-gray-700 py-2.5 px-4 rounded-full font-medium transition-colors shadow-md"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  MEN
+                </Link>
+              )}
+
+              {/* Jewellery Category - Only show if it exists */}
+              {categories.find(cat => cat.name.toLowerCase() === 'jewellery' || cat.name.toLowerCase() === 'jewelry') && (
+                <Link
+                  href={`/category/${categories.find(cat => cat.name.toLowerCase() === 'jewellery' || cat.name.toLowerCase() === 'jewelry')?.slug}`}
+                  className="block text-white bg-yellow-600 hover:bg-yellow-700 py-2.5 px-4 rounded-full font-medium transition-colors shadow-md"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  JEWELLERY
+                </Link>
+              )}
+
               {/* Deals Link */}
               <Link
                 href="/offers"
                 className="block text-white bg-red-600 hover:bg-red-700 py-2.5 px-4 rounded-full font-medium transition-colors shadow-md"
                 onClick={() => setIsMenuOpen(false)}
               >
-                Deals
+                GIGA DEALS
               </Link>
 
               {/* Login/Signup Links for non-authenticated users */}
@@ -914,11 +936,32 @@ export default function Navbar() {
               >
                 All Products
               </Link> */}
+
+              {/* Men Category - Only show if it exists */}
+              {categories.find(cat => cat.name.toLowerCase() === 'men') && (
+                <Link
+                  href={`/category/${categories.find(cat => cat.name.toLowerCase() === 'men')?.slug}`}
+                  className="text-sm text-white bg-gray-600 hover:bg-gray-700 transition-all duration-200 whitespace-nowrap flex items-center px-4 py-2 rounded-full shadow-md font-medium"
+                >
+                  MEN
+                </Link>
+              )}
+
+              {/* Jewellery Category - Only show if it exists */}
+              {categories.find(cat => cat.name.toLowerCase() === 'jewellery' || cat.name.toLowerCase() === 'jewelry') && (
+                <Link
+                  href={`/category/${categories.find(cat => cat.name.toLowerCase() === 'jewellery' || cat.name.toLowerCase() === 'jewelry')?.slug}`}
+                  className="text-sm text-white bg-yellow-600 hover:bg-yellow-700 transition-all duration-200 whitespace-nowrap flex items-center px-4 py-2 rounded-full shadow-md font-medium"
+                >
+                  JEWELLERY
+                </Link>
+              )}
+
               <Link
                 href="/offers"
                 className="text-sm text-white bg-red-600 hover:bg-red-700 transition-all duration-200 whitespace-nowrap flex items-center px-4 py-2 rounded-full shadow-md font-medium"
               >
-                Deals
+                GIGA DEALS
               </Link>
             </div>
           </div>
