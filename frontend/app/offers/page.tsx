@@ -148,9 +148,9 @@ function OffersContent() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-red-50 via-pink-50 to-purple-50">
+    <div className="min-h-screen bg-linear-to-br from-red-50 via-pink-50 to-pink-100">
       {/* Hero Section */}
-      <section className="bg-linear-to-r from-red-500 via-pink-500 to-purple-500 text-white py-8">
+      <section className="bg-linear-to-r from-red-500 via-pink-500 to-pink-600 text-white py-8">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center">
             {viewMode === 'products' && currentOffer ? (
@@ -382,7 +382,7 @@ function OffersContent() {
                         </div>
                       ) : (
                         <>
-                          <div className="relative h-2/3 bg-linear-to-br from-red-100 to-purple-100">
+                          <div className="relative h-2/3 bg-linear-to-br from-red-100 to-pink-100">
                             {offer.imageUrl ? (
                               <div className="relative w-full h-full">
                                 <Image
@@ -448,7 +448,7 @@ function OffersContent() {
                         </div>
                       ) : (
                         <>
-                          <div className="relative aspect-[3/2] bg-linear-to-br from-red-100 to-purple-100">
+                          <div className="relative aspect-[3/2] bg-linear-to-br from-red-100 to-pink-100">
                             {offer.imageUrl ? (
                               <div className="relative w-full h-full">
                                 <Image
@@ -520,7 +520,7 @@ function OffersContent() {
                           </div>
                         ) : (
                           <>
-                            <div className="relative h-48 bg-linear-to-br from-red-100 to-purple-100">
+                            <div className="relative h-48 bg-linear-to-br from-red-100 to-pink-100">
                               {offer.imageUrl ? (
                                 <div className="relative w-full h-full">
                                   <Image
@@ -681,8 +681,8 @@ function OffersContent() {
               </p>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Check className="w-8 h-8 text-purple-600" />
+              <div className="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Check className="w-8 h-8 text-pink-600" />
               </div>
               <h3 className="font-semibold text-gray-900 mb-2">3. Apply at Checkout</h3>
               <p className="text-sm text-gray-600">
@@ -700,7 +700,7 @@ function OffersContent() {
 export default function OffersPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-linear-to-br from-red-50 via-pink-50 to-purple-50 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-red-50 via-pink-50 to-pink-100 flex items-center justify-center">
         <div className="flex flex-col items-center">
           <div className="w-16 h-16 border-4 border-red-500 border-t-transparent rounded-full animate-spin mb-4"></div>
           <p className="text-gray-600">Loading offers...</p>
