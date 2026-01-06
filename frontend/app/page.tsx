@@ -5,7 +5,6 @@ import Image from 'next/image';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import StrikingOfferCard from '@/src/components/offers/StrikingOfferCard';
-import CategoryOfferCard from '@/src/components/offers/CategoryOfferCard';
 import ProductCard from '@/src/components/products/ProductCard';
 import ProductCardSkeleton from '@/src/components/products/ProductCardSkeleton';
 import { Product } from '@/src/types/index';
@@ -61,9 +60,7 @@ interface Offer {
 export default function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [heroOffers, setHeroOffers] = useState<Offer[]>([]);
-  const [dealOffers, setDealOffers] = useState<Offer[]>([]);
   const [dealsYouCannotMiss, setDealsYouCannotMiss] = useState<Offer[]>([]);
-  const [brandOffers, setBrandOffers] = useState<Offer[]>([]);
   const [topBrandsOffers, setTopBrandsOffers] = useState<Offer[]>([]);
   const [limitedOffers, setLimitedOffers] = useState<Offer[]>([]);
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
@@ -97,31 +94,11 @@ export default function Home() {
           setHeroOffers(getDummyHeroOffers());
         }
 
-        // Deal Cards - Use API offers or fallback to dummy data
-        const dealData = activeOffers.filter((o) => o.type === 'deal');
-        if (dealData.length > 0) {
-          setDealOffers(
-            dealData.sort((a, b) => (b.priority || 0) - (a.priority || 0)).slice(0, 4)
-          );
-        } else {
-          setDealOffers(getDummyDealOffers());
-        }
-
         // Deals You Cannot Miss - New offer type with square layout
         const dealsCannotMissData = activeOffers.filter((o) => o.type === 'deals-you-cannot-miss');
         setDealsYouCannotMiss(
           dealsCannotMissData.sort((a, b) => (b.priority || 0) - (a.priority || 0))
         );
-
-        // Brand Ads - Use API offers or fallback to dummy data
-        const brandData = activeOffers.filter((o) => o.type === 'brand');
-        if (brandData.length > 0) {
-          setBrandOffers(
-            brandData.sort((a, b) => (b.priority || 0) - (a.priority || 0)).slice(0, 3)
-          );
-        } else {
-          setBrandOffers(getDummyBrandOffers());
-        }
 
         // Top Brands - New offer type with rectangle layout
         const topBrandsData = activeOffers.filter((o) => o.type === 'top-brands');
@@ -142,8 +119,6 @@ export default function Home() {
         console.error('Error loading offers:', error);
         // On error, show dummy data
         setHeroOffers(getDummyHeroOffers());
-        setDealOffers(getDummyDealOffers());
-        setBrandOffers(getDummyBrandOffers());
         setLimitedOffers(getDummyLimitedOffers());
       } finally {
         setLoading(false);
@@ -240,155 +215,6 @@ export default function Home() {
         startDate: today,
         endDate: nextMonth,
         usageLimit: 1000,
-        usageCount: 0,
-        status: 'ACTIVE',
-        displayOnHomepage: true,
-        priority: 8,
-      },
-    ];
-  };
-
-  const getDummyDealOffers = (): Offer[] => {
-    const today = new Date().toISOString().split('T')[0];
-    const nextMonth = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-
-    return [
-      {
-        id: 'dummy-deal-1',
-        name: 'Skincare Essentials',
-        code: 'SKINCARE',
-        description: 'Complete your skincare routine',
-        linkType: 'url',
-        link: '/category/skincare',
-        type: 'deal',
-        discountType: 'PERCENTAGE',
-        discountValue: 30,
-        minPurchase: 500,
-        startDate: today,
-        endDate: nextMonth,
-        usageLimit: 500,
-        usageCount: 0,
-        status: 'ACTIVE',
-        displayOnHomepage: true,
-        priority: 10,
-      },
-      {
-        id: 'dummy-deal-2',
-        name: 'Makeup Must-Haves',
-        code: 'MAKEUP',
-        description: 'Get your makeup collection started',
-        linkType: 'url',
-        link: '/category/makeup',
-        type: 'deal',
-        discountType: 'PERCENTAGE',
-        discountValue: 25,
-        minPurchase: 800,
-        startDate: today,
-        endDate: nextMonth,
-        usageLimit: 500,
-        usageCount: 0,
-        status: 'ACTIVE',
-        displayOnHomepage: true,
-        priority: 9,
-      },
-      {
-        id: 'dummy-deal-3',
-        name: 'Hair Care Bundle',
-        code: 'HAIRCARE',
-        description: 'Nourish and strengthen your hair',
-        linkType: 'url',
-        link: '/category/hair-care',
-        type: 'deal',
-        discountType: 'PERCENTAGE',
-        discountValue: 20,
-        minPurchase: 600,
-        startDate: today,
-        endDate: nextMonth,
-        usageLimit: 500,
-        usageCount: 0,
-        status: 'ACTIVE',
-        displayOnHomepage: true,
-        priority: 8,
-      },
-      {
-        id: 'dummy-deal-4',
-        name: 'Fragrances',
-        code: 'FRAGRANCE',
-        description: 'Signature scents for every occasion',
-        linkType: 'url',
-        link: '/category/fragrance',
-        type: 'deal',
-        discountType: 'PERCENTAGE',
-        discountValue: 15,
-        minPurchase: 1000,
-        startDate: today,
-        endDate: nextMonth,
-        usageLimit: 500,
-        usageCount: 0,
-        status: 'ACTIVE',
-        displayOnHomepage: true,
-        priority: 7,
-      },
-    ];
-  };
-
-  const getDummyBrandOffers = (): Offer[] => {
-    const today = new Date().toISOString().split('T')[0];
-    const nextMonth = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-
-    return [
-      {
-        id: 'dummy-brand-1',
-        name: 'Top International Brands',
-        code: 'TOPBRANDS',
-        description: 'Authentic products from trusted names',
-        linkType: 'url',
-        link: '/products',
-        type: 'brand',
-        discountType: 'PERCENTAGE',
-        discountValue: 20,
-        minPurchase: 500,
-        startDate: today,
-        endDate: nextMonth,
-        usageLimit: 500,
-        usageCount: 0,
-        status: 'ACTIVE',
-        displayOnHomepage: true,
-        priority: 10,
-      },
-      {
-        id: 'dummy-brand-2',
-        name: 'K-Beauty Collection',
-        code: 'KBEAUTY',
-        description: 'Korean skincare and cosmetics',
-        linkType: 'url',
-        link: '/category/k-beauty',
-        type: 'brand',
-        discountType: 'PERCENTAGE',
-        discountValue: 25,
-        minPurchase: 800,
-        startDate: today,
-        endDate: nextMonth,
-        usageLimit: 500,
-        usageCount: 0,
-        status: 'ACTIVE',
-        displayOnHomepage: true,
-        priority: 9,
-      },
-      {
-        id: 'dummy-brand-3',
-        name: 'Premium Wellness',
-        code: 'WELLNESS',
-        description: 'Health and wellness essentials',
-        linkType: 'url',
-        link: '/products',
-        type: 'brand',
-        discountType: 'PERCENTAGE',
-        discountValue: 15,
-        minPurchase: 600,
-        startDate: today,
-        endDate: nextMonth,
-        usageLimit: 500,
         usageCount: 0,
         status: 'ACTIVE',
         displayOnHomepage: true,
@@ -729,19 +555,6 @@ export default function Home() {
         </section>
       )}
 
-      {/* Old Deals Section (fallback for old 'deal' type offers) */}
-      {dealOffers.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 py-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6 text-center">
-            Special Deals
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {dealOffers.map((deal) => (
-              <StrikingOfferCard key={deal.id} offer={deal} />
-            ))}
-          </div>
-        </section>
-      )}
 
       {/* Top Brands - Rectangle Layout */}
       {topBrandsOffers.length > 0 && (
@@ -809,19 +622,6 @@ export default function Home() {
         </section>
       )}
 
-      {/* Old Top Brands & Offers - Category Cards (fallback for old 'brand' type) */}
-      {brandOffers.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 py-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6 text-center">
-            Brand Offers
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {brandOffers.map((brand) => (
-              <CategoryOfferCard key={brand.id} offer={brand} />
-            ))}
-          </div>
-        </section>
-      )}
 
       {/* Limited Time Offers - Striking Cards */}
       {limitedOffers.length > 0 && (
