@@ -899,12 +899,12 @@ export default function Navbar() {
                   </Link>
                 </div>
               ))}
-              <Link
+              {/* <Link
                 href="/products"
                 className="text-sm text-gray-700 hover:text-red-500 transition-all duration-200 whitespace-nowrap flex items-center px-3 py-2 rounded-md hover:bg-red-50"
               >
                 All Products
-              </Link>
+              </Link> */}
             </div>
           </div>
 
