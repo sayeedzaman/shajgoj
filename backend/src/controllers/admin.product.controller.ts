@@ -1143,15 +1143,17 @@ export const getInventoryStats = async (req: Request, res: Response): Promise<vo
 
     // Get category details
     const categoryStats = await Promise.all(
-      byCategory.map(async (item) => {
-        const category = await prisma.category.findUnique({
-          where: { id: item.categoryId },
-        });
-        return {
-          category,
-          count: item._count,
-        };
-      })
+      byCategory
+        .filter((item) => item.categoryId !== null)
+        .map(async (item) => {
+          const category = await prisma.category.findUnique({
+            where: { id: item.categoryId! },
+          });
+          return {
+            category,
+            count: item._count,
+          };
+        })
     );
 
     // Get brand details

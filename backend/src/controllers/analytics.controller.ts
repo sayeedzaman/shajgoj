@@ -306,6 +306,9 @@ export const getSalesByCategory = async (req: AuthRequest, res: Response): Promi
     const categoryStats: Record<string, { name: string; value: number; count: number }> = {};
 
     orderItems.forEach((item) => {
+      // Skip items without category
+      if (!item.Product.Category) return;
+
       const categoryId = item.Product.Category.id;
       const categoryName = item.Product.Category.name;
 
