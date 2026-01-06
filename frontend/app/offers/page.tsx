@@ -148,12 +148,12 @@ function OffersContent() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-red-50 via-orange-50 to-amber-50">
+    <div className={`min-h-screen ${viewMode === 'products' ? 'bg-white' : 'bg-linear-to-br from-red-50 via-orange-50 to-amber-50'}`}>
       {/* Hero Section */}
       <section className={`relative text-white py-8 overflow-hidden ${
         viewMode === 'products'
           ? 'bg-linear-to-r from-red-600 via-orange-500 to-amber-500'
-          : 'bg-linear-to-r from-red-600 via-orange-500 to-amber-500'
+          : 'bg-gray-900'
       }`}>
         {/* Background Image - Only for offers view */}
         {viewMode === 'offers' && (
@@ -162,7 +162,7 @@ function OffersContent() {
               src="/image.png"
               alt="Offers background"
               fill
-              className="object-cover opacity-20"
+              className="object-cover"
               priority
             />
           </div>
@@ -234,7 +234,7 @@ function OffersContent() {
       </section>
 
       {/* Content Section */}
-      <section className="max-w-7xl mx-auto px-4 py-8">
+      <section className={`max-w-7xl mx-auto px-4 py-8 ${viewMode === 'products' ? 'bg-white' : ''}`}>
         {viewMode === 'products' ? (
           /* Products Grid for specific offer */
           <>
