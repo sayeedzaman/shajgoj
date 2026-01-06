@@ -328,7 +328,7 @@ export default function Navbar() {
 
                 {/* Instant Search Results Dropdown */}
                 {showInstantResults && searchQuery && (
-                  <div className="absolute top-full mt-2 w-full bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-[500px] overflow-y-auto">
+                  <div className="absolute top-full mt-2 w-full bg-white rounded-lg shadow-xl border border-gray-200 z-[60] max-h-[500px] overflow-y-auto">
                     {instantLoading ? (
                       <div className="p-4 text-center text-gray-500">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto"></div>
@@ -573,7 +573,7 @@ export default function Navbar() {
 
             {/* Instant Search Results Dropdown - Mobile */}
             {showInstantResults && searchQuery && (
-              <div className="absolute top-full mt-2 w-full bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-[500px] overflow-y-auto">
+              <div className="absolute top-full mt-2 w-full bg-white rounded-lg shadow-xl border border-gray-200 z-[60] max-h-[500px] overflow-y-auto">
                 {instantLoading ? (
                   <div className="p-4 text-center text-gray-500">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto"></div>
