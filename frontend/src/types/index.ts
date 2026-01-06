@@ -175,9 +175,9 @@ export interface CreateProductRequest {
   stock?: number;
   images?: string[];
   featured?: boolean;
-  subCategoryId: string; // Required - backend auto-populates categoryId and typeId from this
-  categoryId?: string; // Optional - for backward compatibility
-  typeId?: string; // Optional - for backward compatibility
+  subCategoryId?: string; // Optional - backend auto-populates categoryId and typeId from this
+  categoryId?: string; // Optional - can specify category directly
+  typeId?: string; // Optional - can specify type directly
   brandId?: string;
   concernId?: string;
 }

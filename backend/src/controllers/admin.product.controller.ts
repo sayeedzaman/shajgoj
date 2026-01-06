@@ -409,11 +409,11 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
-    // HIERARCHY RESOLUTION
-    // Priority: subCategory > explicit category/type > error
-    let finalCategoryId: string;
-    let finalTypeId: string;
-    let finalSubCategoryId: string;
+    // HIERARCHY RESOLUTION (ALL OPTIONAL)
+    // Priority: subCategory > explicit category/type > none (all optional)
+    let finalCategoryId: string | null = null;
+    let finalTypeId: string | null = null;
+    let finalSubCategoryId: string | null = null;
 
     // Option 1: Resolve from subCategory (RECOMMENDED - auto-populates everything)
     if (subCategoryId || subCategoryName || subCategorySlug) {
@@ -446,49 +446,49 @@ export const createProduct = async (req: Request, res: Response): Promise<void> 
 
       console.log('✅ Hierarchy resolved from SubCategory:', hierarchy);
     }
-    // Option 2: Manual specification (backward compatibility)
-    else if ((categoryId || categoryName || categorySlug) && (typeId || typeName || typeSlug)) {
-      // Resolve category
-      let resolvedCategoryId: string | null = null;
-      if (categoryId) {
-        resolvedCategoryId = categoryId;
-      } else if (categoryName) {
-        resolvedCategoryId = await resolveCategoryId(categoryName);
-      } else if (categorySlug) {
-        resolvedCategoryId = await resolveCategoryId(categorySlug);
+    // Option 2: Manual specification (optional - can provide category and/or type)
+    else if (categoryId || categoryName || categorySlug || typeId || typeName || typeSlug) {
+      // Resolve category (if provided)
+      if (categoryId || categoryName || categorySlug) {
+        let resolvedCategoryId: string | null = null;
+        if (categoryId) {
+          resolvedCategoryId = categoryId;
+        } else if (categoryName) {
+          resolvedCategoryId = await resolveCategoryId(categoryName);
+        } else if (categorySlug) {
+          resolvedCategoryId = await resolveCategoryId(categorySlug);
+        }
+
+        if (!resolvedCategoryId) {
+          res.status(404).json({ error: 'Category not found' });
+          return;
+        }
+        finalCategoryId = resolvedCategoryId;
       }
 
-      if (!resolvedCategoryId) {
-        res.status(404).json({ error: 'Category not found' });
-        return;
+      // Resolve type (if provided)
+      if (typeId || typeName || typeSlug) {
+        let resolvedTypeId: string | null = null;
+        if (typeId) {
+          resolvedTypeId = typeId;
+        } else if (typeName) {
+          resolvedTypeId = await resolveTypeId(typeName);
+        } else if (typeSlug) {
+          resolvedTypeId = await resolveTypeId(typeSlug);
+        }
+
+        if (!resolvedTypeId) {
+          res.status(404).json({ error: 'Type not found' });
+          return;
+        }
+        finalTypeId = resolvedTypeId;
       }
 
-      // Resolve type
-      let resolvedTypeId: string | null = null;
-      if (typeId) {
-        resolvedTypeId = typeId;
-      } else if (typeName) {
-        resolvedTypeId = await resolveTypeId(typeName);
-      } else if (typeSlug) {
-        resolvedTypeId = await resolveTypeId(typeSlug);
-      }
-
-      if (!resolvedTypeId) {
-        res.status(404).json({ error: 'Type not found' });
-        return;
-      }
-
-      // For backward compatibility, if no subcategory is provided but category and type are,
-      // we need a subcategory. This should be an error.
-      res.status(400).json({
-        error: 'SubCategory is required. Please provide subCategoryId, subCategoryName, or subCategorySlug',
-      });
-      return;
-    } else {
-      res.status(400).json({
-        error: 'Must provide subCategory identifier (subCategoryId, subCategoryName, or subCategorySlug)',
-      });
-      return;
+      console.log('✅ Manual hierarchy specified - Category:', finalCategoryId, 'Type:', finalTypeId);
+    }
+    // Option 3: No hierarchy provided (now allowed)
+    else {
+      console.log('⚠️ No category hierarchy provided - product will be created without categories');
     }
 
     // Resolve brand ID (optional)
