@@ -855,7 +855,7 @@ export default function Navbar() {
               {/* Deals Link */}
               <Link
                 href="/offers"
-                className="block text-white bg-red-600 hover:bg-red-700 py-2.5 px-4 rounded-md font-medium transition-colors shadow-md"
+                className="block text-white bg-red-600 hover:bg-red-700 py-2.5 px-4 rounded-full font-medium transition-colors shadow-md"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Deals
@@ -916,7 +916,7 @@ export default function Navbar() {
               </Link> */}
               <Link
                 href="/offers"
-                className="text-sm text-white bg-red-600 hover:bg-red-700 transition-all duration-200 whitespace-nowrap flex items-center px-4 py-2 rounded-md shadow-md font-medium"
+                className="text-sm text-white bg-red-600 hover:bg-red-700 transition-all duration-200 whitespace-nowrap flex items-center px-4 py-2 rounded-full shadow-md font-medium"
               >
                 Deals
               </Link>
