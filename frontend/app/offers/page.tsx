@@ -148,9 +148,9 @@ function OffersContent() {
   };
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-red-50 via-orange-50 to-amber-50">
+    <div className="min-h-screen relative bg-cover bg-center bg-fixed" style={{ backgroundImage: 'url(/image.png)' }}>
       {/* Hero Section */}
-      <section className="bg-linear-to-r from-red-600 via-red-300 to-red-100 text-white py-8">
+      <section className="relative bg-black/50 backdrop-blur-sm text-white py-8">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center">
             {viewMode === 'products' && currentOffer ? (
@@ -700,7 +700,7 @@ function OffersContent() {
 export default function OffersPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-linear-to-br from-red-50 via-orange-50 to-amber-50 flex items-center justify-center">
+      <div className="min-h-screen bg-cover bg-center bg-fixed flex items-center justify-center" style={{ backgroundImage: 'url(/image.png)' }}>
         <div className="flex flex-col items-center">
           <div className="w-16 h-16 border-4 border-red-500 border-t-transparent rounded-full animate-spin mb-4"></div>
           <p className="text-gray-600">Loading offers...</p>
