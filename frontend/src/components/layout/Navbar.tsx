@@ -99,7 +99,13 @@ export default function Navbar() {
         })
       );
 
-      setCategories(categoriesWithHierarchy);
+      // Sort categories by createdAt (oldest to newest)
+      const sortedCategories = categoriesWithHierarchy.sort((a, b) => {
+        if (!a.createdAt || !b.createdAt) return 0;
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      });
+
+      setCategories(sortedCategories);
     } catch (error) {
       console.error('Failed to fetch categories:', error);
     }
