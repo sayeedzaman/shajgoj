@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Search, Bell, Menu, User, Settings, LogOut, Home, X, Package, ShoppingCart, Users, AlertCircle } from 'lucide-react';
+import { Search, Bell, Menu, User, Settings, LogOut, Home, X, Package, ShoppingCart, Users, AlertCircle, MessageCircle } from 'lucide-react';
 import { useAuth } from '@/src/lib/AuthContext';
 import { useNotifications } from '@/src/lib/NotificationContext';
+import { getAllConversations, type Conversation } from '@/src/lib/chatApi';
 
 interface AdminHeaderProps {
   onMenuClick: () => void;
@@ -15,6 +16,26 @@ export default function AdminHeader({ onMenuClick }: AdminHeaderProps) {
   const { notifications, unreadCount, loading, markAsRead, markAllAsRead, clearNotification } = useNotifications();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [chatUnreadCount, setChatUnreadCount] = useState(0);
+
+  // Poll for unread chat messages
+  useEffect(() => {
+    const loadUnreadChats = async () => {
+      try {
+        const conversations = await getAllConversations();
+        const totalUnread = conversations.reduce((sum, conv) => sum + conv.unreadCount, 0);
+        setChatUnreadCount(totalUnread);
+      } catch (error) {
+        console.error('Error loading unread chats:', error);
+      }
+    };
+
+    if (user?.role === 'ADMIN') {
+      loadUnreadChats();
+      const interval = setInterval(loadUnreadChats, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [user]);
 
   const handleLogout = () => {
     logout();
@@ -101,6 +122,18 @@ export default function AdminHeader({ onMenuClick }: AdminHeaderProps) {
             title="View Website"
           >
             <Home className="w-5 h-5" />
+          </Link>
+
+          {/* Messenger */}
+          <Link
+            href="/admin/messages"
+            className="relative p-2 hover:bg-gray-100 rounded-lg"
+            title="Messages"
+          >
+            <MessageCircle className="w-5 h-5 text-gray-600" />
+            {chatUnreadCount > 0 && (
+              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+            )}
           </Link>
 
           {/* Notifications */}

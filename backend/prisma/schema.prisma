@@ -276,6 +276,8 @@ model User {
   Order     Order[]
   Review    Review[]
   Wishlist  Wishlist?
+  Conversation Conversation[]
+  Message   Message[]
 }
 
 model Wishlist {
@@ -296,6 +298,37 @@ model WishlistItem {
   Wishlist   Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
 
   @@unique([wishlistId, productId])
+}
+
+model Conversation {
+  id              String    @id @default(uuid())
+  userId          String
+  User            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lastMessageAt   DateTime  @default(now())
+  unreadCount     Int       @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  Message         Message[]
+
+  @@index([userId])
+  @@index([lastMessageAt])
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String
+  Conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String
+  Sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  content        String
+  isAdminMessage Boolean      @default(false)
+  read           Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([conversationId])
+  @@index([senderId])
+  @@index([createdAt])
 }
 
 enum OrderStatus {

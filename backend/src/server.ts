@@ -19,6 +19,7 @@ import wishlistRoutes from './routes/wishlist.routes.js';
 import offerRoutes from './routes/offer.routes.js';
 import settingsRoutes from './routes/settings.routes.js';
 import reviewRoutes from './routes/review.routes.js';
+import chatRoutes from './routes/chat.routes.js';
 import './config/cloudinary.js';
 
 const app = express();
@@ -80,6 +81,7 @@ app.use('/api/admin/settings', settingsRoutes);
 app.use('/api/admin/reviews', reviewRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/addresses', addressRoutes);
+app.use('/api/chat', chatRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

@@ -8,6 +8,7 @@ import { WishlistProvider } from '@/src/lib/WishlistContext';
 import { ToastProvider } from '@/src/lib/ToastContext';
 import Navbar from '@/src/components/layout/Navbar';
 import CartSidebar from '@/src/components/cart/CartSidebar';
+import ChatWidget from '@/src/components/chat/ChatWidget';
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import type { Category } from '@/src/types';
@@ -64,6 +65,9 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
       )}
 
       <main className={isAdminPage ? '' : 'min-h-screen'}>{children}</main>
+
+      {/* Chat Widget for users */}
+      {!isAdminPage && <ChatWidget />}
 
       {!isAdminPage && (
         <footer className="bg-gray-900 text-white py-12 mt-20">
