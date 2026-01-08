@@ -868,7 +868,7 @@ export default function Navbar() {
               {categories.find(cat => cat.name.toLowerCase() === 'men') && (
                 <Link
                   href={`/category/${categories.find(cat => cat.name.toLowerCase() === 'men')?.slug}`}
-                  className="block text-white bg-gray-600 hover:bg-gray-700 py-2.5 px-4 rounded-full font-medium transition-colors shadow-md"
+                  className="block text-gray-700 hover:text-red-500 py-2"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   MEN
@@ -879,7 +879,7 @@ export default function Navbar() {
               {categories.find(cat => cat.name.toLowerCase() === 'jewellery' || cat.name.toLowerCase() === 'jewelry') && (
                 <Link
                   href={`/category/${categories.find(cat => cat.name.toLowerCase() === 'jewellery' || cat.name.toLowerCase() === 'jewelry')?.slug}`}
-                  className="block text-white bg-yellow-600 hover:bg-yellow-700 py-2.5 px-4 rounded-full font-medium transition-colors shadow-md"
+                  className="block text-gray-700 hover:text-red-500 py-2"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   JEWELLERY
@@ -889,7 +889,7 @@ export default function Navbar() {
               {/* Deals Link */}
               <Link
                 href="/offers"
-                className="block text-white bg-red-600 hover:bg-red-700 py-2.5 px-4 rounded-full font-medium transition-colors shadow-md"
+                className="block text-gray-700 hover:text-red-500 py-2"
                 onClick={() => setIsMenuOpen(false)}
               >
                 GIGA DEALS
