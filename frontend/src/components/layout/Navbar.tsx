@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/src/lib/AuthContext';
 import { useCart } from '@/src/lib/CartContext';
 import { useWishlist } from '@/src/lib/WishlistContext';
-import { ShoppingCart, User, Search, Menu, Heart, LogOut, Plus, Minus, X } from 'lucide-react';
+import { ShoppingCart, User, Search, Heart, LogOut, Plus, Minus, X } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import type { Category, Product } from '@/src/types';
 import WishlistSidebar from '@/src/components/wishlist/WishlistSidebar';
@@ -242,9 +242,11 @@ export default function Navbar() {
             <button
               aria-label='mobile menu'
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden text-white hover:text-gray-200"
+              className="md:hidden text-white hover:text-gray-200 flex flex-col gap-1.5 w-6"
             >
-              <Menu className="h-6 w-6" />
+              <span className="h-0.5 w-full bg-white rounded transition-all"></span>
+              <span className="h-0.5 w-4 bg-white rounded transition-all"></span>
+              <span className="h-0.5 w-5 bg-white rounded transition-all"></span>
             </button>
 
             {/* Logo - Centered on mobile, left on desktop */}
@@ -846,14 +848,6 @@ export default function Navbar() {
                 </div>
               ))}
 
-              {/* Brands Link */}
-              <Link
-                href="/brands"
-                className="block text-gray-700 hover:text-red-500 py-2"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Brands
-              </Link>
 {/*
               All Products Link
               <Link
@@ -893,6 +887,15 @@ export default function Navbar() {
                 onClick={() => setIsMenuOpen(false)}
               >
                 GIGA DEALS
+              </Link>
+
+              {/* Brands Link - At the end with cursive font */}
+              <Link
+                href="/brands"
+                className="block text-gray-700 hover:text-red-500 py-2 italic"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Brands
               </Link>
 
               {/* Login/Signup Links for non-authenticated users */}
