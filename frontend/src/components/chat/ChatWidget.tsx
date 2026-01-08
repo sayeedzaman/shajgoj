@@ -147,7 +147,7 @@ export default function ChatWidget() {
         <button
           onClick={handleOpen}
           data-chat-widget-button
-          className="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-br from-rose-500 to-pink-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all flex items-center justify-center z-50"
+          className="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-br from-red-500 to-red-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all flex items-center justify-center z-50"
         >
           <MessageCircle className="w-6 h-6" />
           {unreadCount > 0 && (
@@ -166,7 +166,7 @@ export default function ChatWidget() {
           }`}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-rose-500 to-pink-600 text-white rounded-t-lg">
+          <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-t-lg">
             <div className="flex items-center gap-2">
               <MessageCircle className="w-5 h-5" />
               <div>
@@ -196,7 +196,7 @@ export default function ChatWidget() {
               <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
                 {loading ? (
                   <div className="flex items-center justify-center h-full">
-                    <div className="w-8 h-8 border-4 border-rose-500 border-t-transparent rounded-full animate-spin" />
+                    <div className="w-8 h-8 border-4 border-red-500 border-t-transparent rounded-full animate-spin" />
                   </div>
                 ) : messages.length === 0 ? (
                   <div className="text-center text-gray-500 mt-8">
@@ -214,11 +214,11 @@ export default function ChatWidget() {
                         className={`max-w-[75%] rounded-lg px-4 py-2 ${
                           message.isAdminMessage
                             ? 'bg-white border border-gray-200 text-gray-900'
-                            : 'bg-gradient-to-br from-rose-500 to-pink-600 text-white'
+                            : 'bg-gradient-to-br from-red-500 to-red-600 text-white'
                         }`}
                       >
                         {message.isAdminMessage && (
-                          <p className="text-xs font-semibold mb-1 text-rose-600">Admin</p>
+                          <p className="text-xs font-semibold mb-1 text-red-600">Admin</p>
                         )}
                         <p className="text-sm break-words">{message.content}</p>
                         <p
@@ -245,16 +245,27 @@ export default function ChatWidget() {
                     type="text"
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSend(e);
+                      }
+                    }}
                     placeholder="Type your message..."
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-transparent"
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                     disabled={sending}
                   />
                   <button
                     type="submit"
                     disabled={!newMessage.trim() || sending}
-                    className="px-4 py-2 bg-gradient-to-br from-rose-500 to-pink-600 text-white rounded-lg hover:from-rose-600 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+                    className="px-4 py-2 bg-gradient-to-br from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+                    aria-label="Send message"
                   >
-                    <Send className="w-4 h-4" />
+                    {sending ? (
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <Send className="w-4 h-4" />
+                    )}
                   </button>
                 </div>
               </form>
