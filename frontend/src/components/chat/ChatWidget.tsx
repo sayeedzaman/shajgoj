@@ -151,9 +151,7 @@ export default function ChatWidget() {
         >
           <MessageCircle className="w-6 h-6" />
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-              {unreadCount > 9 ? '9+' : unreadCount}
-            </span>
+            <span className="absolute top-0 right-0 w-3 h-3 bg-red-600 border-2 border-white rounded-full animate-pulse" />
           )}
         </button>
       )}

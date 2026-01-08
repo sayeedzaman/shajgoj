@@ -184,17 +184,17 @@ export default function AdminMessagesPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                      <p className="font-medium text-gray-900 truncate">
+                      <p className={`truncate ${conversation.unreadCount > 0 ? 'font-bold text-gray-900' : 'font-medium text-gray-900'}`}>
                         {getUserName(conversation.User)}
                       </p>
                       {conversation.unreadCount > 0 && (
-                        <span className="bg-rose-500 text-white text-xs rounded-full px-2 py-0.5 ml-2">
+                        <span className="bg-rose-500 text-white text-xs font-bold rounded-full px-2 py-0.5 ml-2">
                           {conversation.unreadCount}
                         </span>
                       )}
                     </div>
                     <div className="flex items-center gap-2">
-                      <p className="text-xs text-gray-500 truncate">
+                      <p className={`text-xs truncate ${conversation.unreadCount > 0 ? 'text-gray-900 font-semibold' : 'text-gray-500'}`}>
                         {conversation.Message[0]?.content || 'No messages yet'}
                       </p>
                     </div>
