@@ -257,7 +257,7 @@ export default function Navbar() {
                   alt="Khali's Beauty"
                   width={1000}
                   height={250}
-                  className="h-16 w-auto md:h-30"
+                  className="h-16 w-auto md:h-40"
                   priority
                 />
               </Link>
