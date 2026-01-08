@@ -37,7 +37,8 @@ export interface Conversation {
   id: string;
   userId: string;
   lastMessageAt: string;
-  unreadCount: number;
+  unreadCount: number; // Unread admin messages (for USER)
+  adminUnreadCount: number; // Unread user messages (for ADMIN)
   createdAt: string;
   updatedAt: string;
   User: {

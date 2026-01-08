@@ -305,7 +305,8 @@ model Conversation {
   userId          String
   User            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   lastMessageAt   DateTime  @default(now())
-  unreadCount     Int       @default(0)
+  unreadCount     Int       @default(0) // Unread admin messages (for USER)
+  adminUnreadCount Int      @default(0) // Unread user messages (for ADMIN)
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
   Message         Message[]

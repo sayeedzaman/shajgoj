@@ -23,7 +23,8 @@ export default function AdminHeader({ onMenuClick }: AdminHeaderProps) {
     const loadUnreadChats = async () => {
       try {
         const conversations = await getAllConversations();
-        const totalUnread = conversations.reduce((sum, conv) => sum + conv.unreadCount, 0);
+        // Admin sees unread USER messages (adminUnreadCount)
+        const totalUnread = conversations.reduce((sum, conv) => sum + conv.adminUnreadCount, 0);
         setChatUnreadCount(totalUnread);
       } catch (error) {
         console.error('Error loading unread chats:', error);

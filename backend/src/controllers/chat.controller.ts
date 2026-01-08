@@ -233,12 +233,17 @@ export const sendMessage = async (req: Request, res: Response) => {
       },
     });
 
-    // Update conversation last message time and unread count
+    // Update conversation last message time and unread counts
+    // unreadCount: admin messages unread by USER
+    // adminUnreadCount: user messages unread by ADMIN
     await prisma.conversation.update({
       where: { id: conversationId },
       data: {
         lastMessageAt: new Date(),
+        // If admin sends: increment user's unread count
+        // If user sends: increment admin's unread count
         unreadCount: isAdmin ? { increment: 1 } : 0,
+        adminUnreadCount: isAdmin ? 0 : { increment: 1 },
       },
     });
 
@@ -281,9 +286,10 @@ export const markMessagesAsRead = async (req: Request, res: Response) => {
         data: { read: true },
       });
 
+      // Reset admin's unread count (user messages)
       await prisma.conversation.update({
         where: { id: conversationId },
-        data: { unreadCount: 0 },
+        data: { adminUnreadCount: 0 },
       });
     } else {
       // User marks admin messages as read
@@ -294,6 +300,12 @@ export const markMessagesAsRead = async (req: Request, res: Response) => {
           read: false,
         },
         data: { read: true },
+      });
+
+      // Reset user's unread count (admin messages)
+      await prisma.conversation.update({
+        where: { id: conversationId },
+        data: { unreadCount: 0 },
       });
     }
 
