@@ -1,10 +1,10 @@
 import { Request, Response } from 'express';
-import prisma from '../lib/prisma.js';
+import { prisma } from '../lib/prisma.js';
 
 // Get or create conversation for a user
 export const getOrCreateConversation = async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user!.userId;
 
     // Find existing conversation
     let conversation = await prisma.conversation.findFirst({
@@ -129,8 +129,8 @@ export const getAllConversations = async (req: Request, res: Response) => {
 // Get messages for a conversation
 export const getMessages = async (req: Request, res: Response) => {
   try {
-    const { conversationId } = req.params;
-    const userId = req.user!.id;
+    const conversationId = req.params.conversationId as string;
+    const userId = req.user!.userId;
     const isAdmin = req.user!.role === 'ADMIN';
 
     // Verify user has access to this conversation
@@ -190,7 +190,7 @@ export const getMessages = async (req: Request, res: Response) => {
 export const sendMessage = async (req: Request, res: Response) => {
   try {
     const { conversationId, content } = req.body;
-    const userId = req.user!.id;
+    const userId = req.user!.userId;
     const isAdmin = req.user!.role === 'ADMIN';
 
     if (!content || !content.trim()) {
@@ -252,8 +252,8 @@ export const sendMessage = async (req: Request, res: Response) => {
 // Mark messages as read (admin only)
 export const markMessagesAsRead = async (req: Request, res: Response) => {
   try {
-    const { conversationId } = req.params;
-    const userId = req.user!.id;
+    const conversationId = req.params.conversationId as string;
+    const userId = req.user!.userId;
     const isAdmin = req.user!.role === 'ADMIN';
 
     // Verify conversation exists and user has access
@@ -307,7 +307,7 @@ export const markMessagesAsRead = async (req: Request, res: Response) => {
 // Get unread count for user
 export const getUnreadCount = async (req: Request, res: Response) => {
   try {
-    const userId = req.user!.id;
+    const userId = req.user!.userId;
 
     const conversation = await prisma.conversation.findFirst({
       where: { userId },
