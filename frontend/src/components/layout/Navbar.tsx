@@ -939,6 +939,7 @@ export default function Navbar() {
                   key={category.id}
                   className="relative group"
                   onMouseEnter={() => !isSearchFocused && setHoveredCategoryId(category.id)}
+                  onMouseLeave={() => setHoveredCategoryId(null)}
                 >
                   <Link
                     href={`/category/${category.slug}`}
@@ -961,22 +962,34 @@ export default function Navbar() {
 
               {/* Men Category - Only show if it exists */}
               {categories.find(cat => cat.name.toLowerCase() === 'men') && (
-                <Link
-                  href={`/category/${categories.find(cat => cat.name.toLowerCase() === 'men')?.slug}`}
-                  className="text-sm text-white bg-gray-600 hover:bg-gray-700 transition-all duration-200 whitespace-nowrap flex items-center px-4 py-2 rounded-full shadow-md font-medium"
+                <div
+                  className="relative group"
+                  onMouseEnter={() => !isSearchFocused && setHoveredCategoryId(categories.find(cat => cat.name.toLowerCase() === 'men')!.id)}
+                  onMouseLeave={() => setHoveredCategoryId(null)}
                 >
-                  MEN
-                </Link>
+                  <Link
+                    href={`/category/${categories.find(cat => cat.name.toLowerCase() === 'men')?.slug}`}
+                    className="text-sm text-white bg-gray-600 hover:bg-gray-700 transition-all duration-200 whitespace-nowrap flex items-center px-4 py-2 rounded-full shadow-md font-medium"
+                  >
+                    MEN
+                  </Link>
+                </div>
               )}
 
               {/* Jewellery Category - Only show if it exists */}
               {categories.find(cat => cat.name.toLowerCase() === 'jewellery' || cat.name.toLowerCase() === 'jewelry') && (
-                <Link
-                  href={`/category/${categories.find(cat => cat.name.toLowerCase() === 'jewellery' || cat.name.toLowerCase() === 'jewelry')?.slug}`}
-                  className="text-sm text-white bg-yellow-600 hover:bg-yellow-700 transition-all duration-200 whitespace-nowrap flex items-center px-4 py-2 rounded-full shadow-md font-medium"
+                <div
+                  className="relative group"
+                  onMouseEnter={() => !isSearchFocused && setHoveredCategoryId(categories.find(cat => cat.name.toLowerCase() === 'jewellery' || cat.name.toLowerCase() === 'jewelry')!.id)}
+                  onMouseLeave={() => setHoveredCategoryId(null)}
                 >
-                  JEWELLERY
-                </Link>
+                  <Link
+                    href={`/category/${categories.find(cat => cat.name.toLowerCase() === 'jewellery' || cat.name.toLowerCase() === 'jewelry')?.slug}`}
+                    className="text-sm text-white bg-yellow-600 hover:bg-yellow-700 transition-all duration-200 whitespace-nowrap flex items-center px-4 py-2 rounded-full shadow-md font-medium"
+                  >
+                    JEWELLERY
+                  </Link>
+                </div>
               )}
 
               <Link
