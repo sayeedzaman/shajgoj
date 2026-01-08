@@ -858,27 +858,171 @@ export default function Navbar() {
                 All Products
               </Link> */}
 
-              {/* Men Category - Only show if it exists */}
-              {categories.find(cat => cat.name.toLowerCase() === 'men') && (
-                <Link
-                  href={`/category/${categories.find(cat => cat.name.toLowerCase() === 'men')?.slug}`}
-                  className="block text-gray-700 hover:text-red-500 py-2"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  MEN
-                </Link>
-              )}
+              {/* Men Category - Only show if it exists with expandable Types and SubCategories */}
+              {(() => {
+                const menCategory = categories.find(cat => cat.name.toLowerCase() === 'men');
+                if (!menCategory) return null;
 
-              {/* Jewellery Category - Only show if it exists */}
-              {categories.find(cat => cat.name.toLowerCase() === 'jewellery' || cat.name.toLowerCase() === 'jewelry') && (
-                <Link
-                  href={`/category/${categories.find(cat => cat.name.toLowerCase() === 'jewellery' || cat.name.toLowerCase() === 'jewelry')?.slug}`}
-                  className="block text-gray-700 hover:text-red-500 py-2"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  JEWELLERY
-                </Link>
-              )}
+                return (
+                  <div className="border-b border-gray-100 pb-2">
+                    {/* Category Level */}
+                    <div className="flex items-center justify-between">
+                      <Link
+                        href={`/category/${menCategory.slug}`}
+                        className="flex-1 text-gray-700 hover:text-red-500 py-2"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        MEN
+                      </Link>
+                      {menCategory.Type && menCategory.Type.length > 0 && (
+                        <button
+                          onClick={() => setExpandedCategoryId(expandedCategoryId === menCategory.id ? null : menCategory.id)}
+                          className="p-2 text-gray-600 hover:text-red-500"
+                          aria-label={expandedCategoryId === menCategory.id ? "Collapse" : "Expand"}
+                        >
+                          {expandedCategoryId === menCategory.id ? (
+                            <Minus className="h-4 w-4" />
+                          ) : (
+                            <Plus className="h-4 w-4" />
+                          )}
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Types Level - Show when category is expanded */}
+                    {expandedCategoryId === menCategory.id && menCategory.Type && (
+                      <div className="ml-4 mt-2 space-y-2">
+                        {menCategory.Type.map((type) => (
+                          <div key={type.id}>
+                            {/* Type Level */}
+                            <div className="flex items-center justify-between">
+                              <Link
+                                href={`/type/${type.slug}`}
+                                className="flex-1 text-sm text-gray-600 hover:text-red-500 py-1.5"
+                                onClick={() => setIsMenuOpen(false)}
+                              >
+                                {type.name}
+                              </Link>
+                              {type.SubCategory && type.SubCategory.length > 0 && (
+                                <button
+                                  onClick={() => setExpandedTypeId(expandedTypeId === type.id ? null : type.id)}
+                                  className="p-1.5 text-gray-500 hover:text-red-500"
+                                  aria-label={expandedTypeId === type.id ? "Collapse" : "Expand"}
+                                >
+                                  {expandedTypeId === type.id ? (
+                                    <Minus className="h-3.5 w-3.5" />
+                                  ) : (
+                                    <Plus className="h-3.5 w-3.5" />
+                                  )}
+                                </button>
+                              )}
+                            </div>
+
+                            {/* SubCategories Level - Show when type is expanded */}
+                            {expandedTypeId === type.id && type.SubCategory && (
+                              <div className="ml-4 mt-1 space-y-1">
+                                {type.SubCategory.map((subCat) => (
+                                  <Link
+                                    key={subCat.id}
+                                    href={`/subcategory/${subCat.slug}`}
+                                    className="block text-xs text-gray-500 hover:text-red-500 py-1"
+                                    onClick={() => setIsMenuOpen(false)}
+                                  >
+                                    {subCat.name}
+                                  </Link>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+
+              {/* Jewellery Category - Only show if it exists with expandable Types and SubCategories */}
+              {(() => {
+                const jewelleryCategory = categories.find(cat => cat.name.toLowerCase() === 'jewellery' || cat.name.toLowerCase() === 'jewelry');
+                if (!jewelleryCategory) return null;
+
+                return (
+                  <div className="border-b border-gray-100 pb-2">
+                    {/* Category Level */}
+                    <div className="flex items-center justify-between">
+                      <Link
+                        href={`/category/${jewelleryCategory.slug}`}
+                        className="flex-1 text-gray-700 hover:text-red-500 py-2"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        JEWELLERY
+                      </Link>
+                      {jewelleryCategory.Type && jewelleryCategory.Type.length > 0 && (
+                        <button
+                          onClick={() => setExpandedCategoryId(expandedCategoryId === jewelleryCategory.id ? null : jewelleryCategory.id)}
+                          className="p-2 text-gray-600 hover:text-red-500"
+                          aria-label={expandedCategoryId === jewelleryCategory.id ? "Collapse" : "Expand"}
+                        >
+                          {expandedCategoryId === jewelleryCategory.id ? (
+                            <Minus className="h-4 w-4" />
+                          ) : (
+                            <Plus className="h-4 w-4" />
+                          )}
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Types Level - Show when category is expanded */}
+                    {expandedCategoryId === jewelleryCategory.id && jewelleryCategory.Type && (
+                      <div className="ml-4 mt-2 space-y-2">
+                        {jewelleryCategory.Type.map((type) => (
+                          <div key={type.id}>
+                            {/* Type Level */}
+                            <div className="flex items-center justify-between">
+                              <Link
+                                href={`/type/${type.slug}`}
+                                className="flex-1 text-sm text-gray-600 hover:text-red-500 py-1.5"
+                                onClick={() => setIsMenuOpen(false)}
+                              >
+                                {type.name}
+                              </Link>
+                              {type.SubCategory && type.SubCategory.length > 0 && (
+                                <button
+                                  onClick={() => setExpandedTypeId(expandedTypeId === type.id ? null : type.id)}
+                                  className="p-1.5 text-gray-500 hover:text-red-500"
+                                  aria-label={expandedTypeId === type.id ? "Collapse" : "Expand"}
+                                >
+                                  {expandedTypeId === type.id ? (
+                                    <Minus className="h-3.5 w-3.5" />
+                                  ) : (
+                                    <Plus className="h-3.5 w-3.5" />
+                                  )}
+                                </button>
+                              )}
+                            </div>
+
+                            {/* SubCategories Level - Show when type is expanded */}
+                            {expandedTypeId === type.id && type.SubCategory && (
+                              <div className="ml-4 mt-1 space-y-1">
+                                {type.SubCategory.map((subCat) => (
+                                  <Link
+                                    key={subCat.id}
+                                    href={`/subcategory/${subCat.slug}`}
+                                    className="block text-xs text-gray-500 hover:text-red-500 py-1"
+                                    onClick={() => setIsMenuOpen(false)}
+                                  >
+                                    {subCat.name}
+                                  </Link>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
 
               {/* Deals Link */}
               <Link
