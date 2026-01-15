@@ -68,29 +68,31 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [productsLoading, setProductsLoading] = useState(true);
 
-  // Fetch offers from API on mount
+  // Fetch all homepage data on mount - OPTIMIZED: Parallel API calls
   useEffect(() => {
-    const fetchOffers = async () => {
+    const fetchAllData = async () => {
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-        const response = await fetch(`${apiUrl}/api/offers/active`);
 
+        // Fetch all data in parallel for faster loading
+        const [offersRes, featuredRes, topSellingRes] = await Promise.all([
+          fetch(`${apiUrl}/api/offers/active`),
+          fetch(`${apiUrl}/api/products/featured?limit=8`),
+          fetch(`${apiUrl}/api/products/top-selling?limit=12`)
+        ]);
+
+        // Process offers
         let activeOffers: Offer[] = [];
-
-        if (response.ok) {
-          activeOffers = await response.json();
+        if (offersRes.ok) {
+          activeOffers = await offersRes.json();
         }
 
         // Hero Banners - Use API offers or fallback to dummy data
         const heroData = activeOffers.filter((o) => o.type === 'hero');
-        console.log('🎯 Hero offers from API:', heroData);
         if (heroData.length > 0) {
           const sortedHero = heroData.sort((a, b) => (b.priority || 0) - (a.priority || 0));
-          console.log('✅ Using API hero offers:', sortedHero);
           setHeroOffers(sortedHero);
         } else {
-          // Dummy hero banners (company/website advertisement)
-          console.log('⚠️ No API hero offers found, using dummy data');
           setHeroOffers(getDummyHeroOffers());
         }
 
@@ -115,46 +117,30 @@ export default function Home() {
         } else {
           setLimitedOffers(getDummyLimitedOffers());
         }
-      } catch (error) {
-        console.error('Error loading offers:', error);
-        // On error, show dummy data
-        setHeroOffers(getDummyHeroOffers());
-        setLimitedOffers(getDummyLimitedOffers());
-      } finally {
-        setLoading(false);
-      }
-    };
 
-    fetchOffers();
-  }, []);
-
-  // Fetch featured and top selling products
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-
-        // Fetch featured products from dedicated endpoint
-        const featuredRes = await fetch(`${apiUrl}/api/products/featured?limit=8`);
+        // Process featured products
         if (featuredRes.ok) {
           const featuredData = await featuredRes.json();
           setFeaturedProducts(Array.isArray(featuredData) ? featuredData : []);
         }
 
-        // Fetch top selling products from dedicated endpoint
-        const topSellingRes = await fetch(`${apiUrl}/api/products/top-selling?limit=12`);
+        // Process top selling products
         if (topSellingRes.ok) {
           const topSellingData = await topSellingRes.json();
           setTopSellingProducts(topSellingData.products || []);
         }
       } catch (error) {
-        console.error('Error fetching products:', error);
+        console.error('Error loading homepage data:', error);
+        // On error, show dummy data
+        setHeroOffers(getDummyHeroOffers());
+        setLimitedOffers(getDummyLimitedOffers());
       } finally {
+        setLoading(false);
         setProductsLoading(false);
       }
     };
 
-    fetchProducts();
+    fetchAllData();
   }, []);
 
   // Dummy data generators for initial website appearance

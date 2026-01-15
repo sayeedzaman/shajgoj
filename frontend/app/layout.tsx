@@ -6,6 +6,7 @@ import { AuthProvider } from '@/src/lib/AuthContext';
 import { CartProvider, useCart } from '@/src/lib/CartContext';
 import { WishlistProvider } from '@/src/lib/WishlistContext';
 import { ToastProvider } from '@/src/lib/ToastContext';
+import { ReviewStatsProvider } from '@/src/lib/ReviewStatsContext';
 import Navbar from '@/src/components/layout/Navbar';
 import CartSidebar from '@/src/components/cart/CartSidebar';
 import ChatWidget from '@/src/components/chat/ChatWidget';
@@ -207,7 +208,9 @@ export default function RootLayout({
           <ToastProvider>
             <WishlistProvider>
               <CartProvider>
-                <LayoutContent>{children}</LayoutContent>
+                <ReviewStatsProvider>
+                  <LayoutContent>{children}</LayoutContent>
+                </ReviewStatsProvider>
               </CartProvider>
             </WishlistProvider>
           </ToastProvider>

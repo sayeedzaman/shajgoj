@@ -393,6 +393,57 @@ export const getUserReviews = async (req: AuthRequest, res: Response): Promise<v
   }
 };
 
+// Get review stats for multiple products (batch endpoint for optimization)
+export const getBatchProductReviewStats = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { productIds } = req.query;
+
+    if (!productIds || typeof productIds !== 'string') {
+      res.status(400).json({ error: 'productIds query parameter is required (comma-separated)' });
+      return;
+    }
+
+    const productIdArray = productIds.split(',').map(id => id.trim()).filter(Boolean);
+
+    if (productIdArray.length === 0) {
+      res.status(400).json({ error: 'At least one product ID is required' });
+      return;
+    }
+
+    // Limit batch size to prevent abuse
+    if (productIdArray.length > 50) {
+      res.status(400).json({ error: 'Maximum 50 product IDs allowed per batch request' });
+      return;
+    }
+
+    // Fetch review stats for all products in parallel
+    const statsPromises = productIdArray.map(async (productId) => {
+      const stats = await calculateProductReviewStats(productId);
+      return {
+        productId,
+        ...stats,
+      };
+    });
+
+    const batchStats = await Promise.all(statsPromises);
+
+    // Convert array to object keyed by productId for easier lookup
+    const statsMap: Record<string, any> = {};
+    batchStats.forEach((stat) => {
+      statsMap[stat.productId] = {
+        averageRating: stat.averageRating,
+        totalReviews: stat.totalReviews,
+        ratingDistribution: stat.ratingDistribution,
+      };
+    });
+
+    res.json(statsMap);
+  } catch (error) {
+    console.error('Error fetching batch product review stats:', error);
+    res.status(500).json({ error: 'Failed to fetch batch review stats' });
+  }
+};
+
 // Helper function to calculate overall review statistics
 async function calculateReviewStats() {
   const totalReviews = await prisma.review.count();

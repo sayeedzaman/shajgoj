@@ -55,14 +55,25 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // Fetch product details for all items
+      // Fetch product details for all items in parallel (OPTIMIZED)
       const cartItems: CartItem[] = [];
       let subtotal = 0;
       let itemCount = 0;
 
-      for (const item of localItems) {
-        try {
-          const product = await productsAPI.getById(item.productId);
+      const productPromises = localItems.map(item =>
+        productsAPI.getById(item.productId)
+          .then(product => ({ product, item }))
+          .catch(error => {
+            console.error(`Failed to load product ${item.productId}:`, error);
+            return null;
+          })
+      );
+
+      const results = await Promise.all(productPromises);
+
+      for (const result of results) {
+        if (result) {
+          const { product, item } = result;
           const price = product.salePrice || product.price;
 
           cartItems.push({
@@ -79,8 +90,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
           subtotal += price * item.quantity;
           itemCount += item.quantity;
-        } catch (error) {
-          console.error(`Failed to load product ${item.productId}:`, error);
         }
       }
 

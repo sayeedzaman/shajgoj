@@ -108,24 +108,48 @@ export default function ChatWidget() {
     }
   };
 
-  // Set up polling
+  // Set up polling with exponential backoff (OPTIMIZED)
   useEffect(() => {
     if (user && isOpen && conversation) {
-      // Poll every 3 seconds
-      pollingInterval.current = setInterval(pollMessages, 3000);
+      let pollDelay = 3000; // Start with 3 seconds
+      const maxDelay = 30000; // Max 30 seconds
+      let consecutiveEmptyPolls = 0;
+
+      const schedulePoll = () => {
+        pollingInterval.current = setTimeout(async () => {
+          const previousMessageCount = messages.length;
+          await pollMessages();
+
+          // If no new messages, increase delay (exponential backoff)
+          if (messages.length === previousMessageCount) {
+            consecutiveEmptyPolls++;
+            pollDelay = Math.min(pollDelay * 1.5, maxDelay);
+          } else {
+            // Reset to fast polling when new messages arrive
+            consecutiveEmptyPolls = 0;
+            pollDelay = 3000;
+          }
+
+          schedulePoll();
+        }, pollDelay);
+      };
+
+      schedulePoll();
+
       return () => {
         if (pollingInterval.current) {
-          clearInterval(pollingInterval.current);
+          clearTimeout(pollingInterval.current);
         }
       };
     }
-  }, [user, isOpen, conversation]);
+  }, [user, isOpen, conversation, messages.length]);
 
-  // Load unread count on mount and periodically
+  // Load unread count on mount and periodically (only when closed)
   useEffect(() => {
     if (user && !isOpen) {
       loadUnreadCount();
-      const interval = setInterval(loadUnreadCount, 5000);
+      // Check less frequently when chat is closed
+      const interval = setInterval(loadUnreadCount, 15000); // Every 15 seconds instead of 5
       return () => clearInterval(interval);
     }
   }, [user, isOpen]);

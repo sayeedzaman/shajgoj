@@ -6,6 +6,7 @@ import { Heart, ShoppingCart, Star } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useCart } from '@/src/lib/CartContext';
 import { useWishlist } from '@/src/lib/WishlistContext';
+import { useReviewStats } from '@/src/lib/ReviewStatsContext';
 
 interface ProductCardProps {
   product: Product;
@@ -23,6 +24,7 @@ export default function ProductCard({
 }: ProductCardProps) {
   const { addToCart, isLoading } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+  const { getReviewStats } = useReviewStats();
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [reviewStats, setReviewStats] = useState<ReviewStats>({ averageRating: 0, totalReviews: 0 });
   const displayPrice = product.salePrice || product.price;
@@ -31,25 +33,12 @@ export default function ProductCard({
     ? Math.round(((product.price - product.salePrice!) / product.price) * 100)
     : 0;
 
-  // Fetch review stats for this product
+  // Fetch review stats using batched context (OPTIMIZED)
   useEffect(() => {
-    const fetchReviewStats = async () => {
-      try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reviews/products/${product.id}`);
-        if (response.ok) {
-          const data = await response.json();
-          setReviewStats({
-            averageRating: data.statistics?.averageRating || 0,
-            totalReviews: data.statistics?.totalReviews || 0
-          });
-        }
-      } catch (error) {
-        console.error('Error fetching review stats:', error);
-      }
-    };
-
-    fetchReviewStats();
-  }, [product.id]);
+    getReviewStats(product.id).then((stats) => {
+      setReviewStats(stats);
+    });
+  }, [product.id, getReviewStats]);
 
   const rating = reviewStats.averageRating;
   const reviewCount = reviewStats.totalReviews;

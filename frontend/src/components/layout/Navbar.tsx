@@ -56,54 +56,41 @@ export default function Navbar() {
   const fetchCategories = async () => {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      const cacheKey = 'navbar_categories_cache';
+      const cacheTimeKey = 'navbar_categories_cache_time';
+      const cacheExpiry = 10 * 60 * 1000; // 10 minutes
 
-      // Fetch categories
+      // Check cache first
+      const cachedData = localStorage.getItem(cacheKey);
+      const cacheTime = localStorage.getItem(cacheTimeKey);
+
+      if (cachedData && cacheTime) {
+        const age = Date.now() - parseInt(cacheTime);
+        if (age < cacheExpiry) {
+          // Use cached data
+          const sortedCategories = JSON.parse(cachedData);
+          setCategories(sortedCategories);
+          return;
+        }
+      }
+
+      // Fetch categories with complete hierarchy in one call
+      // The backend already includes Type and SubCategory relations
       const categoriesResponse = await fetch(`${apiUrl}/api/categories`);
       if (!categoriesResponse.ok) return;
 
       const categoriesData = await categoriesResponse.json();
       const categoriesList = categoriesData.categories || [];
 
-      // Fetch types and subcategories for each category
-      const categoriesWithHierarchy = await Promise.all(
-        categoriesList.map(async (category: Category) => {
-          try {
-            // Fetch types for this category
-            const typesResponse = await fetch(`${apiUrl}/api/types?categoryId=${category.id}`);
-            if (!typesResponse.ok) return { ...category, Type: [] };
-
-            const typesData = await typesResponse.json();
-            const typesList = typesData.types || [];
-
-            // Fetch subcategories for each type
-            const typesWithSubCategories = await Promise.all(
-              typesList.map(async (type: Type) => {
-                try {
-                  const subCategoriesResponse = await fetch(`${apiUrl}/api/subcategories/type/${type.id}`);
-                  if (!subCategoriesResponse.ok) return { ...type, SubCategory: [] };
-
-                  const subCategoriesData = await subCategoriesResponse.json();
-                  return { ...type, SubCategory: subCategoriesData.subcategories || [] };
-                } catch (error) {
-                  console.error(`Failed to fetch subcategories for type ${type.id}:`, error);
-                  return { ...type, SubCategory: [] };
-                }
-              })
-            );
-
-            return { ...category, Type: typesWithSubCategories };
-          } catch (error) {
-            console.error(`Failed to fetch types for category ${category.id}:`, error);
-            return { ...category, Type: [] };
-          }
-        })
-      );
-
       // Sort categories by createdAt (oldest to newest)
-      const sortedCategories = categoriesWithHierarchy.sort((a, b) => {
+      const sortedCategories = categoriesList.sort((a: CategoryWithHierarchy, b: CategoryWithHierarchy) => {
         if (!a.createdAt || !b.createdAt) return 0;
         return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
       });
+
+      // Cache the results
+      localStorage.setItem(cacheKey, JSON.stringify(sortedCategories));
+      localStorage.setItem(cacheTimeKey, Date.now().toString());
 
       setCategories(sortedCategories);
     } catch (error) {
@@ -114,6 +101,24 @@ export default function Navbar() {
   const fetchBrands = async () => {
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      const cacheKey = 'navbar_brands_cache';
+      const cacheTimeKey = 'navbar_brands_cache_time';
+      const cacheExpiry = 60 * 60 * 1000; // 1 hour (brands change rarely)
+
+      // Check cache first
+      const cachedData = localStorage.getItem(cacheKey);
+      const cacheTime = localStorage.getItem(cacheTimeKey);
+
+      if (cachedData && cacheTime) {
+        const age = Date.now() - parseInt(cacheTime);
+        if (age < cacheExpiry) {
+          // Use cached data
+          const sortedBrands = JSON.parse(cachedData);
+          setBrands(sortedBrands);
+          return;
+        }
+      }
+
       const brandsResponse = await fetch(`${apiUrl}/api/brands`);
       if (!brandsResponse.ok) return;
 
@@ -124,6 +129,10 @@ export default function Navbar() {
       const sortedBrands = brandsList.sort((a: { name: string }, b: { name: string }) =>
         a.name.localeCompare(b.name)
       );
+
+      // Cache the results
+      localStorage.setItem(cacheKey, JSON.stringify(sortedBrands));
+      localStorage.setItem(cacheTimeKey, Date.now().toString());
 
       setBrands(sortedBrands);
     } catch (error) {
