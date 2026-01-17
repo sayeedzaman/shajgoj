@@ -19,6 +19,7 @@ import type {
   Type,
   SubCategory,
 } from '@/src/types/index';
+import { cachedFetch, apiCache } from './apiCache';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
@@ -82,11 +83,10 @@ export const authAPI = {
   },
 
   getProfile: async (): Promise<User> => {
-    const response = await fetch(`${API_URL}/api/auth/profile`, {
+    return cachedFetch<User>(`${API_URL}/api/auth/profile`, {
       method: 'GET',
       headers: createHeaders(true),
     });
-    return handleResponse<User>(response);
   },
 };
 
@@ -94,7 +94,7 @@ export const authAPI = {
 export const productsAPI = {
   getAll: async (filters?: ProductFilters): Promise<ProductsResponse> => {
     const params = new URLSearchParams();
-    
+
     if (filters) {
       Object.entries(filters).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
@@ -104,36 +104,31 @@ export const productsAPI = {
     }
 
     const url = `${API_URL}/api/products${params.toString() ? `?${params.toString()}` : ''}`;
-    const response = await fetch(url, {
+    return cachedFetch<ProductsResponse>(url, {
       method: 'GET',
       headers: createHeaders(),
     });
-    return handleResponse<ProductsResponse>(response);
   },
 
   getById: async (id: string): Promise<Product> => {
-    const response = await fetch(`${API_URL}/api/products/${id}`, {
+    return cachedFetch<Product>(`${API_URL}/api/products/${id}`, {
       method: 'GET',
       headers: createHeaders(),
     });
-    return handleResponse<Product>(response);
   },
 
   getBySlug: async (slug: string): Promise<Product> => {
-    // Try fetching by slug parameter first
-    const response = await fetch(`${API_URL}/api/products/${slug}`, {
+    return cachedFetch<Product>(`${API_URL}/api/products/${slug}`, {
       method: 'GET',
       headers: createHeaders(),
     });
-    return handleResponse<Product>(response);
   },
 
   getFeatured: async (): Promise<Product[]> => {
-    const response = await fetch(`${API_URL}/api/products?featured=true&limit=8`, {
+    const data = await cachedFetch<ProductsResponse>(`${API_URL}/api/products?featured=true&limit=8`, {
       method: 'GET',
       headers: createHeaders(),
     });
-    const data = await handleResponse<ProductsResponse>(response);
     return data.products;
   },
 };
@@ -154,6 +149,8 @@ export const cartAPI = {
       headers: createHeaders(true),
       body: JSON.stringify(data),
     });
+    // Invalidate cart cache after adding item
+    apiCache.invalidate(/\/cart/);
     return handleResponse<Cart>(response);
   },
 
@@ -163,6 +160,8 @@ export const cartAPI = {
       headers: createHeaders(true),
       body: JSON.stringify(data),
     });
+    // Invalidate cart cache after updating item
+    apiCache.invalidate(/\/cart/);
     return handleResponse<Cart>(response);
   },
 
@@ -171,6 +170,8 @@ export const cartAPI = {
       method: 'DELETE',
       headers: createHeaders(true),
     });
+    // Invalidate cart cache after removing item
+    apiCache.invalidate(/\/cart/);
     return handleResponse<Cart>(response);
   },
 
@@ -179,6 +180,8 @@ export const cartAPI = {
       method: 'DELETE',
       headers: createHeaders(true),
     });
+    // Invalidate cart cache after clearing
+    apiCache.invalidate(/\/cart/);
     return handleResponse<{ message: string }>(response);
   },
 };
@@ -186,59 +189,53 @@ export const cartAPI = {
 // Categories API
 export const categoriesAPI = {
   getAll: async (): Promise<Category[]> => {
-    const response = await fetch(`${API_URL}/api/categories`, {
+    const data = await cachedFetch<{ categories: Category[] }>(`${API_URL}/api/categories`, {
       method: 'GET',
       headers: createHeaders(),
     });
-    const data = await handleResponse<{ categories: Category[] }>(response);
     return data.categories || [];
   },
 
   getById: async (id: string): Promise<Category> => {
-    const response = await fetch(`${API_URL}/api/categories/${id}`, {
+    return cachedFetch<Category>(`${API_URL}/api/categories/${id}`, {
       method: 'GET',
       headers: createHeaders(),
     });
-    return handleResponse<Category>(response);
   },
 };
 
 // Brands API
 export const brandsAPI = {
   getAll: async (): Promise<Brand[]> => {
-    const response = await fetch(`${API_URL}/api/brands`, {
+    const data = await cachedFetch<{ brands: Brand[] }>(`${API_URL}/api/brands`, {
       method: 'GET',
       headers: createHeaders(),
     });
-    const data = await handleResponse<{ brands: Brand[] }>(response);
     return data.brands || [];
   },
 
   getById: async (id: string): Promise<Brand> => {
-    const response = await fetch(`${API_URL}/api/brands/${id}`, {
+    return cachedFetch<Brand>(`${API_URL}/api/brands/${id}`, {
       method: 'GET',
       headers: createHeaders(),
     });
-    return handleResponse<Brand>(response);
   },
 };
 
 // Concerns API
 export const concernsAPI = {
   getAll: async (): Promise<Concern[]> => {
-    const response = await fetch(`${API_URL}/api/concerns`, {
+    return cachedFetch<Concern[]>(`${API_URL}/api/concerns`, {
       method: 'GET',
       headers: createHeaders(),
     });
-    return handleResponse<Concern[]>(response);
   },
 
   getById: async (id: string): Promise<Concern> => {
-    const response = await fetch(`${API_URL}/api/concerns/${id}`, {
+    return cachedFetch<Concern>(`${API_URL}/api/concerns/${id}`, {
       method: 'GET',
       headers: createHeaders(),
     });
-    return handleResponse<Concern>(response);
   },
 
   searchProducts: async (concernId: string, filters?: Omit<ProductFilters, 'concernId'>): Promise<ProductsResponse> => {
@@ -254,39 +251,35 @@ export const concernsAPI = {
     }
 
     const url = `${API_URL}/api/concerns/search?${params.toString()}`;
-    const response = await fetch(url, {
+    return cachedFetch<ProductsResponse>(url, {
       method: 'GET',
       headers: createHeaders(),
     });
-    return handleResponse<ProductsResponse>(response);
   },
 };
 
 // Types API
 export const typesAPI = {
   getAll: async (): Promise<Type[]> => {
-    const response = await fetch(`${API_URL}/api/types`, {
+    const data = await cachedFetch<{ types: Type[] }>(`${API_URL}/api/types`, {
       method: 'GET',
       headers: createHeaders(),
     });
-    const data = await handleResponse<{ types: Type[] }>(response);
     return data.types || [];
   },
 
   getById: async (id: string): Promise<Type> => {
-    const response = await fetch(`${API_URL}/api/types/${id}`, {
+    return cachedFetch<Type>(`${API_URL}/api/types/${id}`, {
       method: 'GET',
       headers: createHeaders(),
     });
-    return handleResponse<Type>(response);
   },
 
   getByCategoryId: async (categoryId: string): Promise<Type[]> => {
-    const response = await fetch(`${API_URL}/api/types/category/${categoryId}`, {
+    const data = await cachedFetch<{ types: Type[] }>(`${API_URL}/api/types/category/${categoryId}`, {
       method: 'GET',
       headers: createHeaders(),
     });
-    const data = await handleResponse<{ types: Type[] }>(response);
     return data.types || [];
   },
 };
@@ -294,28 +287,25 @@ export const typesAPI = {
 // SubCategories API
 export const subCategoriesAPI = {
   getAll: async (): Promise<SubCategory[]> => {
-    const response = await fetch(`${API_URL}/api/subcategories`, {
+    const data = await cachedFetch<{ subcategories: SubCategory[] }>(`${API_URL}/api/subcategories`, {
       method: 'GET',
       headers: createHeaders(),
     });
-    const data = await handleResponse<{ subcategories: SubCategory[] }>(response);
     return data.subcategories || [];
   },
 
   getById: async (id: string): Promise<SubCategory> => {
-    const response = await fetch(`${API_URL}/api/subcategories/${id}`, {
+    return cachedFetch<SubCategory>(`${API_URL}/api/subcategories/${id}`, {
       method: 'GET',
       headers: createHeaders(),
     });
-    return handleResponse<SubCategory>(response);
   },
 
   getByTypeId: async (typeId: string): Promise<SubCategory[]> => {
-    const response = await fetch(`${API_URL}/api/subcategories/type/${typeId}`, {
+    const data = await cachedFetch<{ subcategories: SubCategory[] }>(`${API_URL}/api/subcategories/type/${typeId}`, {
       method: 'GET',
       headers: createHeaders(),
     });
-    const data = await handleResponse<{ subcategories: SubCategory[] }>(response);
     return data.subcategories || [];
   },
 };
@@ -332,20 +322,18 @@ export const ordersAPI = {
   },
 
   getUserOrders: async (): Promise<Order[]> => {
-    const response = await fetch(`${API_URL}/api/orders`, {
+    const data = await cachedFetch<{ orders: Order[] }>(`${API_URL}/api/orders`, {
       method: 'GET',
       headers: createHeaders(true),
     });
-    const data = await handleResponse<{ orders: Order[] }>(response);
     return data.orders || [];
   },
 
   getById: async (id: string): Promise<Order> => {
-    const response = await fetch(`${API_URL}/api/orders/${id}`, {
+    return cachedFetch<Order>(`${API_URL}/api/orders/${id}`, {
       method: 'GET',
       headers: createHeaders(true),
     });
-    return handleResponse<Order>(response);
   },
 
   cancel: async (id: string): Promise<Order> => {
@@ -360,20 +348,18 @@ export const ordersAPI = {
 // Addresses API
 export const addressesAPI = {
   getAll: async (): Promise<Address[]> => {
-    const response = await fetch(`${API_URL}/api/addresses`, {
+    const data = await cachedFetch<{ addresses: Address[] }>(`${API_URL}/api/addresses`, {
       method: 'GET',
       headers: createHeaders(true),
     });
-    const data = await handleResponse<{ addresses: Address[] }>(response);
     return data.addresses || [];
   },
 
   getById: async (id: string): Promise<Address> => {
-    const response = await fetch(`${API_URL}/api/addresses/${id}`, {
+    return cachedFetch<Address>(`${API_URL}/api/addresses/${id}`, {
       method: 'GET',
       headers: createHeaders(true),
     });
-    return handleResponse<Address>(response);
   },
 
   create: async (data: CreateAddressRequest): Promise<Address> => {
@@ -382,6 +368,8 @@ export const addressesAPI = {
       headers: createHeaders(true),
       body: JSON.stringify(data),
     });
+    // Invalidate addresses cache after creating
+    apiCache.invalidate(/\/addresses/);
     return handleResponse<Address>(response);
   },
 
@@ -391,6 +379,8 @@ export const addressesAPI = {
       headers: createHeaders(true),
       body: JSON.stringify(data),
     });
+    // Invalidate addresses cache after updating
+    apiCache.invalidate(/\/addresses/);
     return handleResponse<Address>(response);
   },
 
@@ -399,6 +389,8 @@ export const addressesAPI = {
       method: 'DELETE',
       headers: createHeaders(true),
     });
+    // Invalidate addresses cache after deleting
+    apiCache.invalidate(/\/addresses/);
     return handleResponse<{ message: string }>(response);
   },
 };
@@ -406,11 +398,7 @@ export const addressesAPI = {
 // Reviews API
 export const reviewsAPI = {
   getProductReviews: async (productId: string, page = 1, limit = 10) => {
-    const response = await fetch(`${API_URL}/api/reviews/products/${productId}?page=${page}&limit=${limit}`, {
-      method: 'GET',
-      headers: createHeaders(),
-    });
-    return handleResponse<{
+    return cachedFetch<{
       reviews: Array<{
         id: string;
         rating: number;
@@ -440,7 +428,10 @@ export const reviewsAPI = {
           5: number;
         };
       };
-    }>(response);
+    }>(`${API_URL}/api/reviews/products/${productId}?page=${page}&limit=${limit}`, {
+      method: 'GET',
+      headers: createHeaders(),
+    });
   },
 
   create: async (productId: string, rating: number, comment?: string) => {
@@ -449,6 +440,8 @@ export const reviewsAPI = {
       headers: createHeaders(true),
       body: JSON.stringify({ productId, rating, comment }),
     });
+    // Invalidate reviews cache after creating
+    apiCache.invalidate(/\/reviews/);
     return handleResponse<{
       id: string;
       rating: number;
@@ -466,6 +459,8 @@ export const reviewsAPI = {
       headers: createHeaders(true),
       body: JSON.stringify({ rating, comment }),
     });
+    // Invalidate reviews cache after updating
+    apiCache.invalidate(/\/reviews/);
     return handleResponse<{
       id: string;
       rating: number;
@@ -480,6 +475,8 @@ export const reviewsAPI = {
       method: 'DELETE',
       headers: createHeaders(true),
     });
+    // Invalidate reviews cache after deleting
+    apiCache.invalidate(/\/reviews/);
     return handleResponse<{ message: string }>(response);
   },
 };
@@ -487,11 +484,7 @@ export const reviewsAPI = {
 // Wishlist API
 export const wishlistAPI = {
   get: async () => {
-    const response = await fetch(`${API_URL}/api/wishlist`, {
-      method: 'GET',
-      headers: createHeaders(true),
-    });
-    return handleResponse<{
+    return cachedFetch<{
       id: string;
       items: Array<{
         id: string;
@@ -499,7 +492,10 @@ export const wishlistAPI = {
         Product: Product;
       }>;
       itemCount: number;
-    }>(response);
+    }>(`${API_URL}/api/wishlist`, {
+      method: 'GET',
+      headers: createHeaders(true),
+    });
   },
 
   addItem: async (productId: string) => {
@@ -508,6 +504,8 @@ export const wishlistAPI = {
       headers: createHeaders(true),
       body: JSON.stringify({ productId }),
     });
+    // Invalidate wishlist cache after adding
+    apiCache.invalidate(/\/wishlist/);
     return handleResponse<{
       id: string;
       items: Array<{
@@ -525,6 +523,8 @@ export const wishlistAPI = {
       method: 'DELETE',
       headers: createHeaders(true),
     });
+    // Invalidate wishlist cache after removing
+    apiCache.invalidate(/\/wishlist/);
     return handleResponse<{
       id: string;
       items: Array<{
@@ -542,6 +542,8 @@ export const wishlistAPI = {
       method: 'DELETE',
       headers: createHeaders(true),
     });
+    // Invalidate wishlist cache after clearing
+    apiCache.invalidate(/\/wishlist/);
     return handleResponse<{ message: string }>(response);
   },
 };

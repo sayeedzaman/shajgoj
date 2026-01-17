@@ -5,6 +5,7 @@ import type {
   Concern,
   Review,
 } from '@/src/types/index';
+import { cachedFetch, apiCache } from './apiCache';
 
 // Order Types for Admin
 export interface OrderItem {
@@ -307,27 +308,24 @@ export const adminProductsAPI = {
     }
 
     const url = `${API_URL}/api/admin/products${searchParams.toString() ? `?${searchParams.toString()}` : ''}`;
-    const response = await fetch(url, {
+    return cachedFetch<ProductsAdminResponse>(url, {
       method: 'GET',
       headers: createHeaders(),
     });
-    return handleResponse<ProductsAdminResponse>(response);
   },
 
   getById: async (id: string): Promise<ProductAdminDetail> => {
-    const response = await fetch(`${API_URL}/api/admin/products/${id}`, {
+    return cachedFetch<ProductAdminDetail>(`${API_URL}/api/admin/products/${id}`, {
       method: 'GET',
       headers: createHeaders(),
     });
-    return handleResponse<ProductAdminDetail>(response);
   },
 
   getStats: async (): Promise<InventoryStats> => {
-    const response = await fetch(`${API_URL}/api/admin/products/stats`, {
+    return cachedFetch<InventoryStats>(`${API_URL}/api/admin/products/stats`, {
       method: 'GET',
       headers: createHeaders(),
     });
-    return handleResponse<InventoryStats>(response);
   },
 
   create: async (data: CreateProductRequest): Promise<{ message: string; product: Product }> => {
@@ -347,6 +345,9 @@ export const adminProductsAPI = {
     console.log('📡 Response status:', response.status);
     console.log('📡 Response headers:', Object.fromEntries(response.headers.entries()));
 
+    // Invalidate product caches after creating
+    apiCache.invalidate(/\/products/);
+    apiCache.invalidate(/\/admin\/products/);
     return handleResponse<{ message: string; product: Product }>(response);
   },
 
@@ -356,6 +357,9 @@ export const adminProductsAPI = {
       headers: createHeaders(),
       body: JSON.stringify(data),
     });
+    // Invalidate product caches after updating
+    apiCache.invalidate(/\/products/);
+    apiCache.invalidate(/\/admin\/products/);
     return handleResponse<{ message: string; product: Product }>(response);
   },
 
@@ -364,6 +368,9 @@ export const adminProductsAPI = {
       method: 'DELETE',
       headers: createHeaders(),
     });
+    // Invalidate product caches after deleting
+    apiCache.invalidate(/\/products/);
+    apiCache.invalidate(/\/admin\/products/);
     return handleResponse<{ message: string }>(response);
   },
 
@@ -373,6 +380,9 @@ export const adminProductsAPI = {
       headers: createHeaders(),
       body: JSON.stringify({ productIds, updates }),
     });
+    // Invalidate product caches after bulk updating
+    apiCache.invalidate(/\/products/);
+    apiCache.invalidate(/\/admin\/products/);
     return handleResponse<{ message: string; count: number }>(response);
   },
 
@@ -410,20 +420,18 @@ export const adminProductsAPI = {
 // Admin Categories API
 export const adminCategoriesAPI = {
   getAll: async (): Promise<Category[]> => {
-    const response = await fetch(`${API_URL}/api/categories`, {
+    const data = await cachedFetch<{ categories: Category[] }>(`${API_URL}/api/categories`, {
       method: 'GET',
       headers: createHeaders(),
     });
-    const data = await handleResponse<{ categories: Category[] }>(response);
     return data.categories;
   },
 
   getById: async (id: string): Promise<Category> => {
-    const response = await fetch(`${API_URL}/api/categories/${id}`, {
+    return cachedFetch<Category>(`${API_URL}/api/categories/${id}`, {
       method: 'GET',
       headers: createHeaders(),
     });
-    return handleResponse<Category>(response);
   },
 
   create: async (data: CreateCategoryRequest): Promise<{ message: string; category: Category }> => {
@@ -432,6 +440,8 @@ export const adminCategoriesAPI = {
       headers: createHeaders(),
       body: JSON.stringify(data),
     });
+    // Invalidate categories cache
+    apiCache.invalidate(/\/categories/);
     return handleResponse<{ message: string; category: Category }>(response);
   },
 
@@ -441,6 +451,8 @@ export const adminCategoriesAPI = {
       headers: createHeaders(),
       body: JSON.stringify(data),
     });
+    // Invalidate categories cache
+    apiCache.invalidate(/\/categories/);
     return handleResponse<{ message: string; category: Category }>(response);
   },
 
@@ -449,6 +461,8 @@ export const adminCategoriesAPI = {
       method: 'DELETE',
       headers: createHeaders(),
     });
+    // Invalidate categories cache
+    apiCache.invalidate(/\/categories/);
     return handleResponse<{ message: string }>(response);
   },
 };
@@ -456,20 +470,18 @@ export const adminCategoriesAPI = {
 // Admin Brands API
 export const adminBrandsAPI = {
   getAll: async (): Promise<Brand[]> => {
-    const response = await fetch(`${API_URL}/api/brands`, {
+    const data = await cachedFetch<{ brands: Brand[] }>(`${API_URL}/api/brands`, {
       method: 'GET',
       headers: createHeaders(),
     });
-    const data = await handleResponse<{ brands: Brand[] }>(response);
     return data.brands;
   },
 
   getById: async (id: string): Promise<Brand> => {
-    const response = await fetch(`${API_URL}/api/brands/${id}`, {
+    return cachedFetch<Brand>(`${API_URL}/api/brands/${id}`, {
       method: 'GET',
       headers: createHeaders(),
     });
-    return handleResponse<Brand>(response);
   },
 
   create: async (data: CreateBrandRequest): Promise<{ message: string; brand: Brand }> => {
@@ -478,6 +490,8 @@ export const adminBrandsAPI = {
       headers: createHeaders(),
       body: JSON.stringify(data),
     });
+    // Invalidate brands cache
+    apiCache.invalidate(/\/brands/);
     return handleResponse<{ message: string; brand: Brand }>(response);
   },
 
@@ -487,6 +501,8 @@ export const adminBrandsAPI = {
       headers: createHeaders(),
       body: JSON.stringify(data),
     });
+    // Invalidate brands cache
+    apiCache.invalidate(/\/brands/);
     return handleResponse<{ message: string; brand: Brand }>(response);
   },
 
@@ -495,6 +511,8 @@ export const adminBrandsAPI = {
       method: 'DELETE',
       headers: createHeaders(),
     });
+    // Invalidate brands cache
+    apiCache.invalidate(/\/brands/);
     return handleResponse<{ message: string }>(response);
   },
 };
@@ -502,19 +520,17 @@ export const adminBrandsAPI = {
 // Admin Concerns API
 export const adminConcernsAPI = {
   getAll: async (): Promise<Concern[]> => {
-    const response = await fetch(`${API_URL}/api/concerns`, {
+    return cachedFetch<Concern[]>(`${API_URL}/api/concerns`, {
       method: 'GET',
       headers: createHeaders(),
     });
-    return handleResponse<Concern[]>(response);
   },
 
   getById: async (id: string): Promise<Concern> => {
-    const response = await fetch(`${API_URL}/api/concerns/${id}`, {
+    return cachedFetch<Concern>(`${API_URL}/api/concerns/${id}`, {
       method: 'GET',
       headers: createHeaders(),
     });
-    return handleResponse<Concern>(response);
   },
 };
 
@@ -535,22 +551,20 @@ export const adminOrdersAPI = {
       });
     }
 
-    const response = await fetch(
+    return cachedFetch<{ orders: Order[]; pagination: PaginationResponse }>(
       `${API_URL}/api/orders/admin/all${searchParams.toString() ? `?${searchParams.toString()}` : ''}`,
       {
         method: 'GET',
         headers: createHeaders(),
       }
     );
-    return handleResponse<{ orders: Order[]; pagination: PaginationResponse }>(response);
   },
 
   getById: async (id: string): Promise<Order> => {
-    const response = await fetch(`${API_URL}/api/orders/${id}`, {
+    return cachedFetch<Order>(`${API_URL}/api/orders/${id}`, {
       method: 'GET',
       headers: createHeaders(),
     });
-    return handleResponse<Order>(response);
   },
 
   updateStatus: async (
@@ -562,6 +576,8 @@ export const adminOrdersAPI = {
       headers: createHeaders(),
       body: JSON.stringify({ status }),
     });
+    // Invalidate orders cache
+    apiCache.invalidate(/\/orders/);
     return handleResponse<{ message: string; order: Order }>(response);
   },
 };
@@ -869,29 +885,26 @@ export const adminTypesAPI = {
     const url = categoryId
       ? `${API_URL}/api/types?categoryId=${categoryId}`
       : `${API_URL}/api/types`;
-    const response = await fetch(url, {
+    const data = await cachedFetch<{ types: Type[] }>(url, {
       method: 'GET',
       headers: createHeaders(),
     });
-    const data = await handleResponse<{ types: Type[] }>(response);
     return data.types;
   },
 
   getByCategoryId: async (categoryId: string): Promise<Type[]> => {
-    const response = await fetch(`${API_URL}/api/types/category/${categoryId}`, {
+    const data = await cachedFetch<{ types: Type[] }>(`${API_URL}/api/types/category/${categoryId}`, {
       method: 'GET',
       headers: createHeaders(),
     });
-    const data = await handleResponse<{ types: Type[] }>(response);
     return data.types;
   },
 
   getById: async (id: string): Promise<Type> => {
-    const response = await fetch(`${API_URL}/api/types/${id}`, {
+    const data = await cachedFetch<{ type: Type }>(`${API_URL}/api/types/${id}`, {
       method: 'GET',
       headers: createHeaders(),
     });
-    const data = await handleResponse<{ type: Type }>(response);
     return data.type;
   },
 
@@ -901,6 +914,8 @@ export const adminTypesAPI = {
       headers: createHeaders(),
       body: JSON.stringify(data),
     });
+    // Invalidate types cache
+    apiCache.invalidate(/\/types/);
     return handleResponse<{ message: string; type: Type }>(response);
   },
 
@@ -910,6 +925,8 @@ export const adminTypesAPI = {
       headers: createHeaders(),
       body: JSON.stringify(data),
     });
+    // Invalidate types cache
+    apiCache.invalidate(/\/types/);
     return handleResponse<{ message: string; type: Type }>(response);
   },
 
@@ -918,6 +935,8 @@ export const adminTypesAPI = {
       method: 'DELETE',
       headers: createHeaders(),
     });
+    // Invalidate types cache
+    apiCache.invalidate(/\/types/);
     return handleResponse<{ message: string }>(response);
   },
 };
@@ -928,29 +947,26 @@ export const adminSubCategoriesAPI = {
     const url = typeId
       ? `${API_URL}/api/subcategories?typeId=${typeId}`
       : `${API_URL}/api/subcategories`;
-    const response = await fetch(url, {
+    const data = await cachedFetch<{ subCategories: SubCategory[] }>(url, {
       method: 'GET',
       headers: createHeaders(),
     });
-    const data = await handleResponse<{ subCategories: SubCategory[] }>(response);
     return data.subCategories;
   },
 
   getByTypeId: async (typeId: string): Promise<SubCategory[]> => {
-    const response = await fetch(`${API_URL}/api/subcategories/type/${typeId}`, {
+    const data = await cachedFetch<{ subCategories: SubCategory[] }>(`${API_URL}/api/subcategories/type/${typeId}`, {
       method: 'GET',
       headers: createHeaders(),
     });
-    const data = await handleResponse<{ subCategories: SubCategory[] }>(response);
     return data.subCategories;
   },
 
   getById: async (id: string): Promise<SubCategory> => {
-    const response = await fetch(`${API_URL}/api/subcategories/${id}`, {
+    const data = await cachedFetch<{ subCategory: SubCategory }>(`${API_URL}/api/subcategories/${id}`, {
       method: 'GET',
       headers: createHeaders(),
     });
-    const data = await handleResponse<{ subCategory: SubCategory }>(response);
     return data.subCategory;
   },
 
@@ -960,6 +976,8 @@ export const adminSubCategoriesAPI = {
       headers: createHeaders(),
       body: JSON.stringify(data),
     });
+    // Invalidate subcategories cache
+    apiCache.invalidate(/\/subcategories/);
     return handleResponse<{ message: string; subCategory: SubCategory }>(response);
   },
 
@@ -969,6 +987,8 @@ export const adminSubCategoriesAPI = {
       headers: createHeaders(),
       body: JSON.stringify(data),
     });
+    // Invalidate subcategories cache
+    apiCache.invalidate(/\/subcategories/);
     return handleResponse<{ message: string; subCategory: SubCategory }>(response);
   },
 
@@ -977,6 +997,8 @@ export const adminSubCategoriesAPI = {
       method: 'DELETE',
       headers: createHeaders(),
     });
+    // Invalidate subcategories cache
+    apiCache.invalidate(/\/subcategories/);
     return handleResponse<{ message: string }>(response);
   },
 };

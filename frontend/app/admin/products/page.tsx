@@ -78,10 +78,8 @@ export default function ProductManagementPage() {
     if (!authLoading && user?.role === 'ADMIN') {
       fetchProducts();
     }
-    // Public endpoints; fine to call regardless
-    fetchCategories();
-    fetchBrands();
-    fetchConcerns();
+    // Load categories, brands, and concerns in parallel for faster initial load
+    Promise.all([fetchCategories(), fetchBrands(), fetchConcerns()]);
   }, [authLoading, user, currentPage, searchQuery, categoryFilter, brandFilter, fetchProducts]);
 
   const fetchCategories = async () => {

@@ -45,8 +45,44 @@ function SearchContent() {
   const [typeSubCategories, setTypeSubCategories] = useState<Record<string, SubCategory[]>>({});
 
   useEffect(() => {
-    fetchCategories();
-    fetchBrands();
+    // Load all filter data in parallel for faster initial load
+    const loadAllFilters = async () => {
+      try {
+        const [categoriesData, brandsData, typesData, subCategoriesData] = await Promise.all([
+          categoriesAPI.getAll(),
+          brandsAPI.getAll(),
+          typesAPI.getAll(),
+          subCategoriesAPI.getAll(),
+        ]);
+
+        setCategories(categoriesData);
+        setBrands(brandsData);
+
+        // Organize types by category
+        const typesByCategory: Record<string, Type[]> = {};
+        typesData.forEach(type => {
+          if (!typesByCategory[type.categoryId]) {
+            typesByCategory[type.categoryId] = [];
+          }
+          typesByCategory[type.categoryId].push(type);
+        });
+        setCategoryTypes(typesByCategory);
+
+        // Organize subcategories by type
+        const subCategoriesByType: Record<string, SubCategory[]> = {};
+        subCategoriesData.forEach(subCategory => {
+          if (!subCategoriesByType[subCategory.typeId]) {
+            subCategoriesByType[subCategory.typeId] = [];
+          }
+          subCategoriesByType[subCategory.typeId].push(subCategory);
+        });
+        setTypeSubCategories(subCategoriesByType);
+      } catch (error) {
+        console.error('Error loading filters:', error);
+      }
+    };
+
+    loadAllFilters();
   }, []);
 
   useEffect(() => {
@@ -155,63 +191,27 @@ function SearchContent() {
     }
   };
 
-  const fetchCategories = async () => {
-    try {
-      const data = await categoriesAPI.getAll();
-      setCategories(data);
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-    }
-  };
-
-  const fetchBrands = async () => {
-    try {
-      const data = await brandsAPI.getAll();
-      setBrands(data);
-    } catch (error) {
-      console.error('Error fetching brands:', error);
-    }
-  };
-
-  // Handle category expansion and fetch types
-  const handleCategoryClick = async (categoryId: string) => {
+  // Handle category expansion (no need to fetch - already loaded)
+  const handleCategoryClick = (categoryId: string) => {
     const newExpanded = new Set(expandedCategories);
 
     if (newExpanded.has(categoryId)) {
       newExpanded.delete(categoryId);
     } else {
       newExpanded.add(categoryId);
-      // Fetch types for this category if not already fetched
-      if (!categoryTypes[categoryId]) {
-        try {
-          const data = await typesAPI.getByCategoryId(categoryId);
-          setCategoryTypes(prev => ({ ...prev, [categoryId]: data }));
-        } catch (error) {
-          console.error('Error fetching types:', error);
-        }
-      }
     }
 
     setExpandedCategories(newExpanded);
   };
 
-  // Handle type expansion and fetch subcategories
-  const handleTypeClick = async (typeId: string) => {
+  // Handle type expansion (no need to fetch - already loaded)
+  const handleTypeClick = (typeId: string) => {
     const newExpanded = new Set(expandedTypes);
 
     if (newExpanded.has(typeId)) {
       newExpanded.delete(typeId);
     } else {
       newExpanded.add(typeId);
-      // Fetch subcategories for this type if not already fetched
-      if (!typeSubCategories[typeId]) {
-        try {
-          const data = await subCategoriesAPI.getByTypeId(typeId);
-          setTypeSubCategories(prev => ({ ...prev, [typeId]: data }));
-        } catch (error) {
-          console.error('Error fetching subcategories:', error);
-        }
-      }
     }
 
     setExpandedTypes(newExpanded);

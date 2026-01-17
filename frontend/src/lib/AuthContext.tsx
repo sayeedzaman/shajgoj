@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 import { authAPI } from '@/src/lib/api';
 import type { User, LoginRequest, SignupRequest } from '@/src/types/index';
 
@@ -32,6 +32,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const profileFetchInProgress = useRef(false);
 
   // Check for existing token on mount
   useEffect(() => {
@@ -44,7 +45,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         return;
       }
 
+      if (profileFetchInProgress.current) {
+        return; // Prevent duplicate fetch
+      }
+
       console.log('Token found, validating session...');
+      profileFetchInProgress.current = true;
       try {
         const user = await authAPI.getProfile();
         console.log('Session validated successfully:', user);
@@ -61,6 +67,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setUser(null);
       } finally {
         setLoading(false);
+        profileFetchInProgress.current = false;
       }
     };
 
@@ -74,13 +81,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         if (e.newValue === null) {
           // Token was removed (logout in another tab)
           setUser(null);
-        } else if (e.newValue !== e.oldValue) {
+        } else if (e.newValue !== e.oldValue && !profileFetchInProgress.current) {
           // Token was added or changed (login in another tab)
+          profileFetchInProgress.current = true;
           authAPI.getProfile()
             .then(user => setUser(user))
             .catch(() => {
               localStorage.removeItem('token');
               setUser(null);
+            })
+            .finally(() => {
+              profileFetchInProgress.current = false;
             });
         }
       }
