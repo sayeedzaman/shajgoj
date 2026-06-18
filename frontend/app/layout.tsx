@@ -75,7 +75,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
               <div>
-                <h3 className="text-lg font-semibold mb-4 gradient-text">Khali&apos;s Beauty</h3>
+                <h3 className="text-lg font-semibold mb-4 text-red-500">Khali&apos;s Beauty</h3>
                 <p className="text-gray-400 text-sm mb-6">
                   Your trusted destination for authentic beauty products in Bangladesh.
                 </p>

@@ -10,7 +10,7 @@ interface EmptyStateProps {
 }
 
 export default function EmptyState({
-  title = 'No products found',
+  title = 'No products in stock',
   message = 'We couldn\'t find any products matching your criteria.',
   actionLabel = 'Browse All Products',
   actionHref = '/products',

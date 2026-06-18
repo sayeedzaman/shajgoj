@@ -429,7 +429,7 @@ export default function Navbar() {
                       </>
                     ) : (
                       <div className="p-4 text-center text-gray-500">
-                        No products found for &quot;{searchQuery}&quot;
+                        No products in stock for &quot;{searchQuery}&quot;
                       </div>
                     )}
                   </div>
@@ -675,7 +675,7 @@ export default function Navbar() {
                   </>
                 ) : (
                   <div className="p-4 text-center text-gray-500">
-                    No products found for &quot;{searchQuery}&quot;
+                    No products in stock for &quot;{searchQuery}&quot;
                   </div>
                 )}
               </div>

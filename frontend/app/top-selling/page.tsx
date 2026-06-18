@@ -271,7 +271,7 @@ export default function TopSellingPage() {
         ) : (
           <div className="text-center py-16">
             <TrendingUp className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No products found</h3>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">No products in stock</h3>
             <p className="text-gray-600 mb-4">Try adjusting your filters or check back later</p>
             {hasActiveFilters && (
               <button

@@ -434,7 +434,7 @@ export default function ConcernPage() {
               </>
             ) : (
               <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-                <p className="text-gray-500 text-lg mb-2">No products found</p>
+                <p className="text-gray-500 text-lg mb-2">No products in stock</p>
                 <p className="text-gray-400 text-sm mb-4">
                   Try adjusting your filters or check back later
                 </p>

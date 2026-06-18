@@ -3,23 +3,22 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { productsAPI, categoriesAPI, brandsAPI } from '@/src/lib/api';
-import { Product, Category, Brand } from '@/src/types/index';
+import { productsAPI, typesAPI, brandsAPI } from '@/src/lib/api';
+import { Product, Type, Brand } from '@/src/types/index';
 import ProductCard from '@/src/components/products/ProductCard';
 import { ChevronRight, SlidersHorizontal } from 'lucide-react';
 
-export default function CategoryPage() {
+export default function TypePage() {
   const params = useParams();
   const slug = params?.slug as string;
 
-  const [category, setCategory] = useState<Category | null>(null);
+  const [type, setType] = useState<Type | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
 
-  // Filter states
   const [selectedBrand, setSelectedBrand] = useState<string>('');
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000000]);
   const [sortBy, setSortBy] = useState<'createdAt' | 'price' | 'name'>('createdAt');
@@ -29,38 +28,39 @@ export default function CategoryPage() {
 
   useEffect(() => {
     if (slug) {
-      fetchCategory();
+      fetchType();
       fetchBrands();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug]);
 
   useEffect(() => {
-    if (category) {
+    if (type) {
       fetchProducts();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [category, selectedBrand, sortBy, sortOrder, currentPage, priceRange]);
+  }, [type, selectedBrand, sortBy, sortOrder, currentPage, priceRange]);
 
-  const fetchCategory = async () => {
+  const fetchType = async () => {
     try {
-      const categories = await categoriesAPI.getAll();
-      const foundCategory = categories.find((cat) => cat.slug === slug);
-      setCategory(foundCategory || null);
-    } catch (error) {
-      console.error('Error fetching category:', error);
-      setError('No categories available to show');
+      const all = await typesAPI.getAll();
+      const found = all.find((t) => t.slug === slug);
+      setType(found || null);
+    } catch (err) {
+      console.error('Error fetching type:', err);
+      setError('Could not load type');
+    } finally {
+      setLoading(false);
     }
   };
 
   const fetchProducts = async () => {
-    if (!category) return;
-
+    if (!type) return;
     try {
       setLoading(true);
       setError(null);
       const response = await productsAPI.getAll({
-        categoryId: category.id,
+        typeId: type.id,
         brandId: selectedBrand || undefined,
         minPrice: priceRange[0],
         maxPrice: priceRange[1],
@@ -71,8 +71,8 @@ export default function CategoryPage() {
       });
       setProducts(response.products);
       setTotalPages(response.pagination.totalPages);
-    } catch (error) {
-      console.error('Error fetching products:', error);
+    } catch (err) {
+      console.error('Error fetching products:', err);
       setError('No products available to show');
       setProducts([]);
     } finally {
@@ -84,8 +84,8 @@ export default function CategoryPage() {
     try {
       const data = await brandsAPI.getAll();
       setBrands(data);
-    } catch (error) {
-      console.error('Error fetching brands:', error);
+    } catch (err) {
+      console.error('Error fetching brands:', err);
     }
   };
 
@@ -97,13 +97,14 @@ export default function CategoryPage() {
     setCurrentPage(1);
   };
 
-  if (!category && !loading) {
+  if (!type && !loading) {
     return (
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-7xl mx-auto px-4 text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Category not found</h1>
-          <Link href="/" className="text-red-600 hover:text-red-700 font-medium">
-            Go back home
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">No products in stock</h1>
+          <p className="text-gray-600 mb-6">This category doesn&apos;t have any products yet.</p>
+          <Link href="/products" className="text-red-600 hover:text-red-700 font-medium">
+            Browse all products
           </Link>
         </div>
       </div>
@@ -112,47 +113,43 @@ export default function CategoryPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Category Header with Image */}
-      {category?.image && (
+      {type?.image && (
         <div className="relative h-48 md:h-64 bg-linear-to-r from-red-100 to-purple-100 overflow-hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={category.image}
-            alt={category.name}
-            className="w-full h-full object-cover"
-          />
+          <img src={type.image} alt={type.name} className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
             <div className="text-center text-white">
-              <h1 className="text-4xl md:text-5xl font-bold mb-2">{category.name}</h1>
-              {category.description && (
-                <p className="text-lg opacity-90">{category.description}</p>
-              )}
+              <h1 className="text-4xl md:text-5xl font-bold mb-2">{type.name}</h1>
+              {type.description && <p className="text-lg opacity-90">{type.description}</p>}
             </div>
           </div>
         </div>
       )}
 
       <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* Breadcrumbs */}
         <nav className="flex items-center gap-2 text-sm text-gray-600 mb-6">
           <Link href="/" className="hover:text-red-600">Home</Link>
           <ChevronRight className="w-4 h-4" />
           <Link href="/products" className="hover:text-red-600">Products</Link>
+          {type?.Category && (
+            <>
+              <ChevronRight className="w-4 h-4" />
+              <Link href={`/category/${type.Category.slug}`} className="hover:text-red-600">
+                {type.Category.name}
+              </Link>
+            </>
+          )}
           <ChevronRight className="w-4 h-4" />
-          <span className="text-gray-900 font-medium">{category?.name}</span>
+          <span className="text-gray-900 font-medium">{type?.name}</span>
         </nav>
 
-        {/* Category Title (if no image) */}
-        {!category?.image && (
+        {!type?.image && (
           <div className="mb-6">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">{category?.name}</h1>
-            {category?.description && (
-              <p className="text-gray-600">{category.description}</p>
-            )}
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">{type?.name}</h1>
+            {type?.description && <p className="text-gray-600">{type.description}</p>}
           </div>
         )}
 
-        {/* Mobile Filter Toggle */}
         <div className="lg:hidden mb-4">
           <button
             onClick={() => setShowFilters(!showFilters)}
@@ -164,27 +161,18 @@ export default function CategoryPage() {
         </div>
 
         <div className="flex flex-col lg:flex-row gap-6">
-          {/* Filters Sidebar */}
-          <aside
-            className={`${
-              showFilters ? 'block' : 'hidden'
-            } lg:block lg:w-64 shrink-0`}
-          >
+          <aside className={`${showFilters ? 'block' : 'hidden'} lg:block lg:w-64 shrink-0`}>
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 sticky top-20 max-h-[calc(100vh-6rem)] flex flex-col">
               <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-100">
                 <h2 className="text-lg font-bold text-gray-900">Filters</h2>
                 {(selectedBrand || priceRange[0] > 0 || priceRange[1] < 1000000) && (
-                  <button
-                    onClick={clearFilters}
-                    className="text-sm text-red-600 hover:text-red-700 font-medium"
-                  >
+                  <button onClick={clearFilters} className="text-sm text-red-600 hover:text-red-700 font-medium">
                     Clear
                   </button>
                 )}
               </div>
 
               <div className="overflow-y-auto p-6 pt-4 space-y-6">
-                {/* Brand Filter */}
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-3">Brand</h3>
                   <div className="space-y-2 max-h-40 overflow-y-auto pr-2">
@@ -213,21 +201,16 @@ export default function CategoryPage() {
                   </div>
                 </div>
 
-                {/* Price Range */}
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-3">Price Range</h3>
                   <div className="space-y-4">
-                    {/* Input Fields */}
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <label className="text-xs text-gray-600 mb-1 block">Min</label>
                         <div className="relative">
                           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">৳</span>
                           <input
-                            type="number"
-                            min="0"
-                            max={priceRange[1]}
-                            step="100"
+                            type="number" min="0" max={priceRange[1]} step="100"
                             value={priceRange[0]}
                             onChange={(e) => {
                               const newMin = Math.max(0, Math.min(parseInt(e.target.value) || 0, priceRange[1]));
@@ -242,10 +225,7 @@ export default function CategoryPage() {
                         <div className="relative">
                           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">৳</span>
                           <input
-                            type="number"
-                            min={priceRange[0]}
-                            max="1000000"
-                            step="100"
+                            type="number" min={priceRange[0]} max="1000000" step="100"
                             value={priceRange[1]}
                             onChange={(e) => {
                               const newMax = Math.max(priceRange[0], Math.min(parseInt(e.target.value) || 1000000, 1000000));
@@ -257,61 +237,32 @@ export default function CategoryPage() {
                       </div>
                     </div>
 
-                    {/* Range Slider */}
                     <div className="relative h-2">
                       <div className="absolute w-full h-2 bg-gray-200 rounded-lg" />
                       <div
                         className="absolute h-2 bg-red-600 rounded-lg"
-                        style={{
-                          left: `${(priceRange[0] / 1000000) * 100}%`,
-                          right: `${100 - (priceRange[1] / 1000000) * 100}%`
-                        }}
+                        style={{ left: `${(priceRange[0] / 1000000) * 100}%`, right: `${100 - (priceRange[1] / 1000000) * 100}%` }}
                       />
                       <input
-                        type="range"
-                        min="0"
-                        max="1000000"
-                        step="1000"
+                        type="range" min="0" max="1000000" step="1000"
                         value={priceRange[0]}
-                        onChange={(e) => {
-                          const newMin = parseInt(e.target.value);
-                          setPriceRange([Math.min(newMin, priceRange[1]), priceRange[1]]);
-                        }}
-                        className="absolute top-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-red-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-red-600 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:shadow-md"
-                        style={{ height: '8px' }}
-                        aria-label="Minimum price"
+                        onChange={(e) => { const v = parseInt(e.target.value); setPriceRange([Math.min(v, priceRange[1]), priceRange[1]]); }}
+                        className="absolute top-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-red-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-md"
+                        style={{ height: '8px' }} aria-label="Minimum price"
                       />
                       <input
-                        type="range"
-                        min="0"
-                        max="1000000"
-                        step="1000"
+                        type="range" min="0" max="1000000" step="1000"
                         value={priceRange[1]}
-                        onChange={(e) => {
-                          const newMax = parseInt(e.target.value);
-                          setPriceRange([priceRange[0], Math.max(newMax, priceRange[0])]);
-                        }}
-                        className="absolute top-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-red-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-red-600 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:shadow-md"
-                        style={{ height: '8px' }}
-                        aria-label="Maximum price"
+                        onChange={(e) => { const v = parseInt(e.target.value); setPriceRange([priceRange[0], Math.max(v, priceRange[0])]); }}
+                        className="absolute top-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-red-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-md"
+                        style={{ height: '8px' }} aria-label="Maximum price"
                       />
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          </aside>
 
-          {/* Products Grid */}
-          <main className="flex-1">
-            {/* Sort Options */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <p className="text-sm text-gray-600">
-                  {loading ? 'Loading...' : `${products.length} products found`}
-                </p>
-                <div className="flex items-center gap-3">
-                  <label className="text-sm text-gray-700 font-medium">Sort by:</label>
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-3">Sort by</h3>
                   <select
                     aria-label="Sort products"
                     value={`${sortBy}-${sortOrder}`}
@@ -320,7 +271,7 @@ export default function CategoryPage() {
                       setSortBy(sort as 'createdAt' | 'price' | 'name');
                       setSortOrder(order as 'asc' | 'desc');
                     }}
-                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
                   >
                     <option value="createdAt-desc">Newest First</option>
                     <option value="createdAt-asc">Oldest First</option>
@@ -332,8 +283,15 @@ export default function CategoryPage() {
                 </div>
               </div>
             </div>
+          </aside>
 
-            {/* Products Grid */}
+          <main className="flex-1">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6">
+              <p className="text-sm text-gray-600">
+                {loading ? 'Loading...' : `${products.length} products found`}
+              </p>
+            </div>
+
             {error ? (
               <div className="bg-white rounded-lg p-12 text-center">
                 <p className="text-gray-600">{error}</p>
@@ -347,10 +305,7 @@ export default function CategoryPage() {
             ) : loading ? (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {[...Array(12)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="bg-white rounded-lg border border-gray-200 animate-pulse"
-                  >
+                  <div key={i} className="bg-white rounded-lg border border-gray-200 animate-pulse">
                     <div className="aspect-square bg-gray-200"></div>
                     <div className="p-4 space-y-3">
                       <div className="h-4 bg-gray-200 rounded"></div>
@@ -364,15 +319,10 @@ export default function CategoryPage() {
               <>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {products.map((product) => (
-                    <ProductCard
-                      key={product.id}
-                      product={product}
-                      showAddToCart={true}
-                    />
+                    <ProductCard key={product.id} product={product} showAddToCart={true} />
                   ))}
                 </div>
 
-                {/* Pagination */}
                 {totalPages > 1 && (
                   <div className="mt-8 flex justify-center items-center gap-2">
                     <button
@@ -382,38 +332,21 @@ export default function CategoryPage() {
                     >
                       Previous
                     </button>
-
                     <div className="flex gap-1">
-                      {(() => {
-                        const maxPagesToShow = 5;
-                        let startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
-                        const endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
-
-                        if (endPage - startPage < maxPagesToShow - 1) {
-                          startPage = Math.max(1, endPage - maxPagesToShow + 1);
-                        }
-
-                        const pages = [];
-                        for (let i = startPage; i <= endPage; i++) {
-                          pages.push(i);
-                        }
-
-                        return pages.map((pageNum) => (
+                      {Array.from({ length: totalPages }, (_, i) => i + 1)
+                        .slice(Math.max(0, currentPage - 3), currentPage + 2)
+                        .map((pageNum) => (
                           <button
                             key={pageNum}
                             onClick={() => setCurrentPage(pageNum)}
                             className={`px-3 py-2 rounded-lg text-sm font-medium ${
-                              currentPage === pageNum
-                                ? 'bg-red-600 text-white'
-                                : 'text-gray-700 hover:bg-gray-100'
+                              currentPage === pageNum ? 'bg-red-600 text-white' : 'text-gray-700 hover:bg-gray-100'
                             }`}
                           >
                             {pageNum}
                           </button>
-                        ));
-                      })()}
+                        ))}
                     </div>
-
                     <button
                       onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                       disabled={currentPage === totalPages}
@@ -427,15 +360,12 @@ export default function CategoryPage() {
             ) : (
               <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
                 <p className="text-gray-500 text-lg mb-2">No products in stock</p>
-                <p className="text-gray-400 text-sm mb-4">
-                  Try adjusting your filters
-                </p>
-                <button
-                  onClick={clearFilters}
-                  className="text-red-600 hover:text-red-700 font-medium text-sm"
-                >
-                  Clear all filters
-                </button>
+                <p className="text-gray-400 text-sm mb-4">Try adjusting your filters or check back later</p>
+                {(selectedBrand || priceRange[0] > 0 || priceRange[1] < 1000000) && (
+                  <button onClick={clearFilters} className="text-red-600 hover:text-red-700 font-medium text-sm">
+                    Clear all filters
+                  </button>
+                )}
               </div>
             )}
           </main>

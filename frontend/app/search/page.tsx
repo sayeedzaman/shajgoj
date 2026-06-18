@@ -374,7 +374,7 @@ function SearchContent() {
                   </>
                 ) : (
                   <div className="p-4 text-center text-gray-500">
-                    No products found for &quot;{searchQuery}&quot;
+                    No products in stock for &quot;{searchQuery}&quot;
                   </div>
                 )}
               </div>
@@ -862,7 +862,7 @@ function SearchContent() {
                 ) : searchQuery ? (
                   <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
                     <SearchIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-500 text-lg mb-2">No products found</p>
+                    <p className="text-gray-500 text-lg mb-2">No products in stock</p>
                     <p className="text-gray-400 text-sm mb-4">
                       Try different keywords or adjust your filters
                     </p>

@@ -742,7 +742,7 @@ function ProductsContent() {
               </>
             ) : (
               <EmptyState
-                title="No Products Found"
+                title="No Products In Stock"
                 message="We couldn't find any products matching your filters. Try adjusting your search criteria."
                 actionLabel="Clear Filters"
                 actionHref="#"
