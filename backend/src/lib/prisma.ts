@@ -1,7 +1,5 @@
 import { PrismaClient } from '@prisma/client';
 
-// PrismaClient is attached to the `global` object in development to prevent
-// exhausting your database connection limit.
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
 export const prisma =
@@ -12,7 +10,22 @@ export const prisma =
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 
-// Graceful shutdown handling
+// Re-connect on lost connection (Railway admin_shutdown / idle timeout)
+const withReconnect = async <T>(fn: () => Promise<T>): Promise<T> => {
+  try {
+    return await fn();
+  } catch (e: any) {
+    if (e?.code === 'P1001' || e?.message?.includes('terminating connection')) {
+      await prisma.$disconnect();
+      await prisma.$connect();
+      return fn();
+    }
+    throw e;
+  }
+};
+
+export { withReconnect };
+
 const shutdownHandler = async () => {
   await prisma.$disconnect();
 };
