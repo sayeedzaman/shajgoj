@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useCart } from '@/src/lib/CartContext';
 import { useAuth } from '@/src/lib/AuthContext';
-import { addressesAPI, ordersAPI } from '@/src/lib/api';
+import { addressesAPI, ordersAPI, settingsAPI } from '@/src/lib/api';
 import { Address, CreateAddressRequest } from '@/src/types/index';
 import {
   MapPin,
@@ -31,6 +31,7 @@ export default function CheckoutPage() {
   const [placingOrder, setPlacingOrder] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<'COD' | 'CARD'>('COD');
+  const [shippingFees, setShippingFees] = useState({ dhakaShippingFee: 60, outsideDhakaShippingFee: 120 });
 
   // Address form state
   const [addressForm, setAddressForm] = useState<CreateAddressRequest>({
@@ -50,7 +51,7 @@ export default function CheckoutPage() {
   // Calculate shipping based on selected address city and order amount/quantity
   const selectedAddress = addresses.find(addr => addr.id === selectedAddressId);
   const isDhaka = selectedAddress?.city.toLowerCase().includes('dhaka');
-  const baseShipping = isDhaka ? 60 : 120;
+  const baseShipping = isDhaka ? shippingFees.dhakaShippingFee : shippingFees.outsideDhakaShippingFee;
   const isFreeShipping = subtotal >= 2000 || totalQuantity >= 20;
   const shipping = isFreeShipping ? 0 : baseShipping;
   const total = subtotal + shipping;
@@ -63,6 +64,12 @@ export default function CheckoutPage() {
 
     fetchAddresses();
   }, [user]);
+
+  useEffect(() => {
+    settingsAPI.getShipping()
+      .then((fees) => setShippingFees(fees))
+      .catch((error) => console.error('Error fetching shipping fees:', error));
+  }, []);
 
   useEffect(() => {
     if (cartItems.length === 0 && !cartLoading) {

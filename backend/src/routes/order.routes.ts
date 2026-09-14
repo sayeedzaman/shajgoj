@@ -6,6 +6,7 @@ import {
   cancelOrder,
   getAllOrders,
   updateOrderStatus,
+  updateOrderShipping,
 } from '../controllers/order.controller.js';
 import { authenticate, authorize } from '../middleware/auth.middleware.js';
 
@@ -60,5 +61,12 @@ router.get('/admin/all', authenticate, authorize('ADMIN'), getAllOrders);
  * @access  Private (Admin only)
  */
 router.put('/admin/:id', authenticate, authorize('ADMIN'), updateOrderStatus);
+
+/**
+ * @route   PATCH /api/orders/admin/:id/shipping
+ * @desc    Manually set/override an order's shipping cost (recalculates total)
+ * @access  Private (Admin only)
+ */
+router.patch('/admin/:id/shipping', authenticate, authorize('ADMIN'), updateOrderShipping);
 
 export default router;

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ShoppingBag, Search, Filter, ChevronDown, Eye, Package } from 'lucide-react';
+import { ShoppingBag, Search, Filter, ChevronDown, Eye, Package, Truck, Pencil, Check, X } from 'lucide-react';
 import { adminAPI, type Order } from '@/src/lib/adminApi';
 
 export default function OrderManagementPage() {
@@ -17,9 +17,84 @@ export default function OrderManagementPage() {
   const [showModal, setShowModal] = useState(false);
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
 
+  // Delivery charge settings (Dhaka / Outside Dhaka)
+  const [shippingFees, setShippingFees] = useState({ dhakaShippingFee: 60, outsideDhakaShippingFee: 120 });
+  const [shippingFeesLoading, setShippingFeesLoading] = useState(true);
+  const [shippingFeesSaving, setShippingFeesSaving] = useState(false);
+
+  // Per-order shipping override
+  const [editingShipping, setEditingShipping] = useState(false);
+  const [shippingInput, setShippingInput] = useState('');
+  const [shippingSaving, setShippingSaving] = useState(false);
+
   useEffect(() => {
     fetchOrders();
   }, [currentPage, searchQuery, statusFilter]);
+
+  useEffect(() => {
+    fetchShippingFees();
+  }, []);
+
+  const fetchShippingFees = async () => {
+    try {
+      setShippingFeesLoading(true);
+      const settings = await adminAPI.settings.get();
+      setShippingFees({
+        dhakaShippingFee: settings.dhakaShippingFee,
+        outsideDhakaShippingFee: settings.outsideDhakaShippingFee,
+      });
+    } catch (error) {
+      console.error('Failed to fetch shipping settings:', error);
+    } finally {
+      setShippingFeesLoading(false);
+    }
+  };
+
+  const handleShippingFeesSave = async () => {
+    try {
+      setShippingFeesSaving(true);
+      await adminAPI.settings.update(shippingFees);
+      showSuccess('Delivery charges updated successfully');
+    } catch (error) {
+      console.error('Failed to update shipping settings:', error);
+      showError('Failed to update delivery charges');
+    } finally {
+      setShippingFeesSaving(false);
+    }
+  };
+
+  const startEditingShipping = (order: Order) => {
+    setShippingInput(String(order.shippingCost));
+    setEditingShipping(true);
+  };
+
+  const cancelEditingShipping = () => {
+    setEditingShipping(false);
+    setShippingInput('');
+  };
+
+  const handleShippingCostUpdate = async (orderId: string) => {
+    const value = Number(shippingInput);
+    if (Number.isNaN(value) || value < 0) {
+      showError('Please enter a valid shipping cost');
+      return;
+    }
+
+    try {
+      setShippingSaving(true);
+      const response = await adminAPI.orders.updateShipping(orderId, value);
+      showSuccess('Shipping cost updated successfully');
+
+      setOrders(orders.map(order => (order.id === orderId ? response.order : order)));
+      setSelectedOrder(response.order);
+      setEditingShipping(false);
+    } catch (error: unknown) {
+      console.error('Shipping cost update error:', error);
+      showError(error instanceof Error ? error.message : 'Failed to update shipping cost');
+    } finally {
+      setShippingSaving(false);
+    }
+  };
 
   const fetchOrders = async () => {
     try {
@@ -80,6 +155,7 @@ export default function OrderManagementPage() {
   const viewOrderDetails = (order: Order) => {
     setSelectedOrder(order);
     setShowModal(true);
+    setEditingShipping(false);
   };
 
   const getStatusBadge = (status: Order['status']) => {
@@ -130,6 +206,48 @@ export default function OrderManagementPage() {
           {errorMessage}
         </div>
       )}
+
+      {/* Delivery Charges */}
+      <div className="bg-white rounded-lg border border-gray-200 p-4">
+        <div className="flex items-center gap-2 mb-4">
+          <Truck className="w-5 h-5 text-red-600" />
+          <h2 className="text-lg font-semibold text-gray-900">Delivery Charges</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Dhaka (৳)</label>
+            <input
+              type="number"
+              min={0}
+              value={shippingFees.dhakaShippingFee}
+              onChange={(e) => setShippingFees({ ...shippingFees, dhakaShippingFee: Number(e.target.value) })}
+              disabled={shippingFeesLoading}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Outside Dhaka (৳)</label>
+            <input
+              type="number"
+              min={0}
+              value={shippingFees.outsideDhakaShippingFee}
+              onChange={(e) => setShippingFees({ ...shippingFees, outsideDhakaShippingFee: Number(e.target.value) })}
+              disabled={shippingFeesLoading}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50"
+            />
+          </div>
+          <button
+            onClick={handleShippingFeesSave}
+            disabled={shippingFeesLoading || shippingFeesSaving}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {shippingFeesSaving ? 'Saving...' : 'Save Charges'}
+          </button>
+        </div>
+        <p className="text-xs text-gray-500 mt-2">
+          Applied automatically to new orders based on the delivery city. Existing orders keep their original shipping cost unless edited individually below.
+        </p>
+      </div>
 
       {/* Filters */}
       <div className="bg-white rounded-lg border border-gray-200 p-4">
@@ -413,7 +531,49 @@ export default function OrderManagementPage() {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-600">Subtotal:</span>
-                    <span className="font-medium text-gray-900">৳{selectedOrder.total.toFixed(2)}</span>
+                    <span className="font-medium text-gray-900">৳{selectedOrder.subtotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-600">Shipping:</span>
+                    {editingShipping ? (
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          min={0}
+                          value={shippingInput}
+                          onChange={(e) => setShippingInput(e.target.value)}
+                          autoFocus
+                          className="w-24 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500 text-right"
+                        />
+                        <button
+                          onClick={() => handleShippingCostUpdate(selectedOrder.id)}
+                          disabled={shippingSaving}
+                          title="Save"
+                          className="p-1 text-green-600 hover:bg-green-50 rounded disabled:opacity-50"
+                        >
+                          <Check className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={cancelEditingShipping}
+                          disabled={shippingSaving}
+                          title="Cancel"
+                          className="p-1 text-gray-500 hover:bg-gray-100 rounded disabled:opacity-50"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-gray-900">৳{selectedOrder.shippingCost.toFixed(2)}</span>
+                        <button
+                          onClick={() => startEditingShipping(selectedOrder)}
+                          title="Edit shipping cost"
+                          className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                   <div className="flex justify-between text-base font-bold pt-2 border-t border-gray-200">
                     <span className="text-gray-900">Total:</span>

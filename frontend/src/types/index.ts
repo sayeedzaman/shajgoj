@@ -164,6 +164,10 @@ export interface SignupRequest {
   firstName?: string;
   lastName?: string;
   phone?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
 }
 
 export interface CreateProductRequest {
@@ -237,6 +241,8 @@ export interface Order {
   id: string;
   orderNumber: string;
   status: 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
+  subtotal: number;
+  shippingCost: number;
   total: number;
   createdAt: string;
   updatedAt: string;

@@ -27,6 +27,8 @@ export interface Order {
   id: string;
   orderNumber: string;
   status: 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
+  subtotal: number;
+  shippingCost: number;
   total: number;
   createdAt: string;
   updatedAt: string;
@@ -580,6 +582,45 @@ export const adminOrdersAPI = {
     apiCache.invalidate(/\/orders/);
     return handleResponse<{ message: string; order: Order }>(response);
   },
+
+  updateShipping: async (
+    id: string,
+    shippingCost: number
+  ): Promise<{ message: string; order: Order }> => {
+    const response = await fetch(`${API_URL}/api/orders/admin/${id}/shipping`, {
+      method: 'PATCH',
+      headers: createHeaders(),
+      body: JSON.stringify({ shippingCost }),
+    });
+    // Invalidate orders cache
+    apiCache.invalidate(/\/orders/);
+    return handleResponse<{ message: string; order: Order }>(response);
+  },
+};
+
+// Admin Settings API
+export const adminSettingsAPI = {
+  get: async (): Promise<{
+    dhakaShippingFee: number;
+    outsideDhakaShippingFee: number;
+    freeShippingThreshold: number;
+    [key: string]: unknown;
+  }> => {
+    const response = await fetch(`${API_URL}/api/admin/settings`, {
+      method: 'GET',
+      headers: createHeaders(),
+    });
+    return handleResponse(response);
+  },
+
+  update: async (data: Record<string, unknown>): Promise<unknown> => {
+    const response = await fetch(`${API_URL}/api/admin/settings`, {
+      method: 'PUT',
+      headers: createHeaders(),
+      body: JSON.stringify(data),
+    });
+    return handleResponse(response);
+  },
 };
 
 // Admin Customers API
@@ -1009,6 +1050,7 @@ export const adminAPI = {
   brands: adminBrandsAPI,
   concerns: adminConcernsAPI,
   orders: adminOrdersAPI,
+  settings: adminSettingsAPI,
   customers: adminCustomersAPI,
   upload: uploadAPI,
   analytics: adminAnalyticsAPI,

@@ -10,6 +10,21 @@ const generateOrderNumber = (): string => {
   return `ORD-${timestamp}-${random}`;
 };
 
+// Fixed settings ID for the StoreSettings singleton (see settings.controller.ts)
+const SETTINGS_ID = '00000000-0000-0000-0000-000000000001';
+
+const getShippingFees = async () => {
+  const settings = await prisma.storeSettings.findUnique({
+    where: { id: SETTINGS_ID },
+    select: { dhakaShippingFee: true, outsideDhakaShippingFee: true },
+  });
+
+  return {
+    dhakaShippingFee: settings?.dhakaShippingFee ?? 60,
+    outsideDhakaShippingFee: settings?.outsideDhakaShippingFee ?? 120,
+  };
+};
+
 // Create new order
 export const createOrder = async (req: AuthRequest, res: Response): Promise<any> => {
   try {
@@ -72,8 +87,9 @@ export const createOrder = async (req: AuthRequest, res: Response): Promise<any>
     }
 
     // Calculate shipping cost based on city and order criteria
+    const { dhakaShippingFee, outsideDhakaShippingFee } = await getShippingFees();
     const isDhaka = address.city.toLowerCase().includes('dhaka');
-    const baseShipping = isDhaka ? 60 : 120;
+    const baseShipping = isDhaka ? dhakaShippingFee : outsideDhakaShippingFee;
     const isFreeShipping = subtotal >= 2000 || totalQuantity >= 20;
     const shippingCost = isFreeShipping ? 0 : baseShipping;
     const total = subtotal + shippingCost;
@@ -84,6 +100,8 @@ export const createOrder = async (req: AuthRequest, res: Response): Promise<any>
         orderNumber: generateOrderNumber(),
         userId: userId,
         addressId: addressId,
+        subtotal: parseFloat(subtotal.toFixed(2)),
+        shippingCost: parseFloat(shippingCost.toFixed(2)),
         total: parseFloat(total.toFixed(2)),
         status: 'PENDING',
         OrderItem: {
@@ -412,5 +430,62 @@ export const updateOrderStatus = async (req: AuthRequest, res: Response): Promis
   } catch (error) {
     console.error('Update order status error:', error);
     res.status(500).json({ error: 'Failed to update order status' });
+  }
+};
+
+// Update shipping cost for a specific order (Admin only) - recalculates total
+export const updateOrderShipping = async (req: AuthRequest, res: Response): Promise<any> => {
+  try {
+    const { id } = req.params;
+    const { shippingCost } = req.body;
+
+    if (!id) {
+      return res.status(400).json({ error: 'Order ID is required' });
+    }
+
+    if (typeof shippingCost !== 'number' || Number.isNaN(shippingCost) || shippingCost < 0) {
+      return res.status(400).json({ error: 'A valid non-negative shippingCost is required' });
+    }
+
+    const order = await prisma.order.findUnique({ where: { id } });
+
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    const newTotal = order.subtotal + shippingCost;
+
+    const updatedOrder = await prisma.order.update({
+      where: { id },
+      data: {
+        shippingCost: parseFloat(shippingCost.toFixed(2)),
+        total: parseFloat(newTotal.toFixed(2)),
+      },
+      include: {
+        OrderItem: {
+          include: {
+            Product: true,
+          },
+        },
+        Address: true,
+        User: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            phone: true,
+          },
+        },
+      },
+    });
+
+    res.json({
+      message: 'Order shipping cost updated successfully',
+      order: updatedOrder,
+    });
+  } catch (error) {
+    console.error('Update order shipping error:', error);
+    res.status(500).json({ error: 'Failed to update order shipping cost' });
   }
 };

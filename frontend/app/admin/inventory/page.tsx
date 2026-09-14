@@ -1,112 +1,53 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Warehouse, Search, AlertTriangle, TrendingUp, TrendingDown, Package, Filter, ChevronDown } from 'lucide-react';
+import { adminAPI } from '@/src/lib/adminApi';
+import { useAuth } from '@/src/lib/AuthContext';
+import type { Product } from '@/src/types';
 
-interface InventoryItem {
-  id: string;
-  productName: string;
-  sku: string;
-  category: string;
-  brand: string;
-  currentStock: number;
-  minStock: number;
-  maxStock: number;
-  price: number;
-  status: 'IN_STOCK' | 'LOW_STOCK' | 'OUT_OF_STOCK';
-}
+type StockStatus = 'IN_STOCK' | 'LOW_STOCK' | 'OUT_OF_STOCK';
+
+const LOW_STOCK_THRESHOLD = 10;
+
+const getStockStatus = (stock: number): StockStatus => {
+  if (stock === 0) return 'OUT_OF_STOCK';
+  if (stock < LOW_STOCK_THRESHOLD) return 'LOW_STOCK';
+  return 'IN_STOCK';
+};
 
 export default function InventoryPage() {
-  const [inventory, setInventory] = useState<InventoryItem[]>([]);
+  const [inventory, setInventory] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const { user, loading: authLoading } = useAuth();
 
-  // Mock data - replace with actual API call
-  useEffect(() => {
-    setTimeout(() => {
-      const mockInventory: InventoryItem[] = [
-        {
-          id: '1',
-          productName: 'Himalaya Face Wash',
-          sku: 'HIM-FW-001',
-          category: 'Skin Care',
-          brand: 'Himalaya',
-          currentStock: 150,
-          minStock: 50,
-          maxStock: 500,
-          price: 250,
-          status: 'IN_STOCK'
-        },
-        {
-          id: '2',
-          productName: 'Nivea Soft Cream',
-          sku: 'NIV-SC-002',
-          category: 'Skin Care',
-          brand: 'Nivea',
-          currentStock: 25,
-          minStock: 30,
-          maxStock: 300,
-          price: 450,
-          status: 'LOW_STOCK'
-        },
-        {
-          id: '3',
-          productName: 'LOreal Lipstick Red',
-          sku: 'LOR-LP-003',
-          category: 'Makeup',
-          brand: 'LOreal',
-          currentStock: 0,
-          minStock: 20,
-          maxStock: 200,
-          price: 850,
-          status: 'OUT_OF_STOCK'
-        },
-        {
-          id: '4',
-          productName: 'Pantene Shampoo',
-          sku: 'PAN-SH-004',
-          category: 'Hair Care',
-          brand: 'Pantene',
-          currentStock: 200,
-          minStock: 40,
-          maxStock: 400,
-          price: 380,
-          status: 'IN_STOCK'
-        },
-        {
-          id: '5',
-          productName: 'Dove Soap',
-          sku: 'DOV-SP-005',
-          category: 'Personal Care',
-          brand: 'Dove',
-          currentStock: 15,
-          minStock: 25,
-          maxStock: 250,
-          price: 120,
-          status: 'LOW_STOCK'
-        },
-        {
-          id: '6',
-          productName: 'Maybelline Mascara',
-          sku: 'MAY-MS-006',
-          category: 'Makeup',
-          brand: 'Maybelline',
-          currentStock: 80,
-          minStock: 30,
-          maxStock: 150,
-          price: 950,
-          status: 'IN_STOCK'
-        },
-      ];
-      setInventory(mockInventory);
+  const fetchInventory = useCallback(async () => {
+    if (authLoading || !user || user.role !== 'ADMIN') return;
+    try {
+      setLoading(true);
+      // Pull the full catalog once so search/filter/pagination can stay client-side
+      const response = await adminAPI.products.getAll({
+        limit: 1000,
+        sortBy: 'stock',
+        order: 'asc',
+      });
+      setInventory(response.products);
+    } catch (error) {
+      console.error('Failed to fetch inventory:', error);
+    } finally {
       setLoading(false);
-    }, 1000);
-  }, []);
+    }
+  }, [authLoading, user]);
 
-  const getStatusBadge = (status: InventoryItem['status'], currentStock: number) => {
+  useEffect(() => {
+    fetchInventory();
+  }, [fetchInventory]);
+
+  const getStatusBadge = (status: StockStatus) => {
     const styles = {
       IN_STOCK: 'bg-green-100 text-green-800 border-green-200',
       LOW_STOCK: 'bg-yellow-100 text-yellow-800 border-yellow-200',
@@ -131,11 +72,11 @@ export default function InventoryPage() {
 
   const filteredInventory = inventory.filter(item => {
     const matchesSearch =
-      item.productName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.sku.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.brand.toLowerCase().includes(searchQuery.toLowerCase());
+      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.slug.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.Brand?.name.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
 
-    const matchesStatus = statusFilter === 'ALL' || item.status === statusFilter;
+    const matchesStatus = statusFilter === 'ALL' || getStockStatus(item.stock) === statusFilter;
 
     return matchesSearch && matchesStatus;
   });
@@ -147,10 +88,10 @@ export default function InventoryPage() {
 
   const inventoryStats = {
     totalProducts: inventory.length,
-    inStock: inventory.filter(i => i.status === 'IN_STOCK').length,
-    lowStock: inventory.filter(i => i.status === 'LOW_STOCK').length,
-    outOfStock: inventory.filter(i => i.status === 'OUT_OF_STOCK').length,
-    totalValue: inventory.reduce((sum, item) => sum + (item.currentStock * item.price), 0),
+    inStock: inventory.filter(i => getStockStatus(i.stock) === 'IN_STOCK').length,
+    lowStock: inventory.filter(i => getStockStatus(i.stock) === 'LOW_STOCK').length,
+    outOfStock: inventory.filter(i => getStockStatus(i.stock) === 'OUT_OF_STOCK').length,
+    totalValue: inventory.reduce((sum, item) => sum + item.stock * (item.salePrice ?? item.price), 0),
   };
 
   return (
@@ -196,9 +137,12 @@ export default function InventoryPage() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
               type="text"
-              placeholder="Search by product name, SKU, or brand..."
+              placeholder="Search by product name, slug, or brand..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
             />
           </div>
@@ -208,7 +152,10 @@ export default function InventoryPage() {
             <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setCurrentPage(1);
+              }}
               className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 appearance-none bg-white"
             >
               <option value="ALL">All Status</option>
@@ -243,16 +190,10 @@ export default function InventoryPage() {
                       Product
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      SKU
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Category
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Current Stock
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Min/Max
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Price
@@ -266,42 +207,38 @@ export default function InventoryPage() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {currentItems.map((item) => (
-                    <tr key={item.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="text-sm font-medium text-gray-900">{item.productName}</div>
-                        <div className="text-sm text-gray-500">{item.brand}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900 font-mono">{item.sku}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{item.category}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <Package className="w-4 h-4 text-gray-400" />
-                          <span className="text-sm font-semibold text-gray-900">{item.currentStock}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-600">
-                          {item.minStock} / {item.maxStock}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">৳{item.price.toFixed(2)}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {getStatusBadge(item.status, item.currentStock)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-semibold text-gray-900">
-                          ৳{(item.currentStock * item.price).toLocaleString()}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                  {currentItems.map((item) => {
+                    const status = getStockStatus(item.stock);
+                    const effectivePrice = item.salePrice ?? item.price;
+                    return (
+                      <tr key={item.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-4">
+                          <div className="text-sm font-medium text-gray-900">{item.name}</div>
+                          <div className="text-sm text-gray-500">{item.Brand?.name || 'No Brand'}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">{item.Category?.name || '-'}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <Package className="w-4 h-4 text-gray-400" />
+                            <span className="text-sm font-semibold text-gray-900">{item.stock}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">৳{effectivePrice.toFixed(2)}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {getStatusBadge(status)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-semibold text-gray-900">
+                            ৳{(item.stock * effectivePrice).toLocaleString()}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

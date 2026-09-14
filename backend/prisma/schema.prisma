@@ -162,17 +162,19 @@ model OfferProduct {
 }
 
 model Order {
-  id          String      @id @default(uuid())
-  orderNumber String      @unique
-  status      OrderStatus @default(PENDING)
-  total       Float
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  userId      String
-  addressId   String
-  Address     Address     @relation(fields: [addressId], references: [id])
-  User        User        @relation(fields: [userId], references: [id])
-  OrderItem   OrderItem[]
+  id           String      @id @default(uuid())
+  orderNumber  String      @unique
+  status       OrderStatus @default(PENDING)
+  subtotal     Float       @default(0)
+  shippingCost Float       @default(0)
+  total        Float
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  userId       String
+  addressId    String
+  Address      Address     @relation(fields: [addressId], references: [id])
+  User         User        @relation(fields: [userId], references: [id])
+  OrderItem    OrderItem[]
 }
 
 model OrderItem {
@@ -250,9 +252,9 @@ model StoreSettings {
   twoFactorAuth         Boolean  @default(false)
   loginAlerts           Boolean  @default(true)
   sessionTimeout        Int      @default(30)
-  freeShippingThreshold Float    @default(500)
-  standardShippingFee   Float    @default(60)
-  expressShippingFee    Float    @default(120)
+  freeShippingThreshold    Float @default(500)
+  dhakaShippingFee         Float @default(60)
+  outsideDhakaShippingFee  Float @default(120)
   cashOnDelivery        Boolean  @default(true)
   bkashEnabled          Boolean  @default(false)
   nagadEnabled          Boolean  @default(false)

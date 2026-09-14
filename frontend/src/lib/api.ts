@@ -345,6 +345,20 @@ export const ordersAPI = {
   },
 };
 
+// Public Settings API
+export const settingsAPI = {
+  getShipping: async (): Promise<{
+    dhakaShippingFee: number;
+    outsideDhakaShippingFee: number;
+    freeShippingThreshold: number;
+  }> => {
+    return cachedFetch(`${API_URL}/api/settings/shipping`, {
+      method: 'GET',
+      headers: createHeaders(),
+    });
+  },
+};
+
 // Addresses API
 export const addressesAPI = {
   getAll: async (): Promise<Address[]> => {
@@ -559,6 +573,7 @@ export const api = {
   subCategories: subCategoriesAPI,
   orders: ordersAPI,
   addresses: addressesAPI,
+  settings: settingsAPI,
   reviews: reviewsAPI,
   wishlist: wishlistAPI,
 };

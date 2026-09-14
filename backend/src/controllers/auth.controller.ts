@@ -7,7 +7,7 @@ import { prisma } from '../lib/prisma.js';
 
 export const register = async (req: Request, res: Response) => {
   try {
-    const { firstName, lastName, email, password, phone } = req.body;
+    const { firstName, lastName, email, password, phone, address, city, state, zipCode } = req.body;
 
     const existingUser = await prisma.user.findUnique({
       where: { email }
@@ -39,6 +39,22 @@ export const register = async (req: Request, res: Response) => {
         role: true
       }
     });
+
+    // If address details were provided at signup, save them as the user's default address
+    if (address && city && state && zipCode) {
+      await prisma.address.create({
+        data: {
+          fullName: `${firstName || ''} ${lastName || ''}`.trim() || user.email,
+          phone: phone || '',
+          address,
+          city,
+          state,
+          zipCode,
+          isDefault: true,
+          userId: user.id,
+        },
+      });
+    }
 
     const token = jwt.sign(
       { userId: user.id, role: user.role },

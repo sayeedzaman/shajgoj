@@ -360,16 +360,16 @@ export default function OrderDetailPage() {
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Subtotal</span>
                   <span className="font-medium text-gray-900">
-                    ৳{order.OrderItem.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2)}
+                    ৳{order.subtotal.toFixed(2)}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Shipping</span>
                   <span className="font-medium text-gray-900">
-                    {order.total > 500 ? (
+                    {order.shippingCost === 0 ? (
                       <span className="text-green-600">FREE</span>
                     ) : (
-                      '৳60.00'
+                      `৳${order.shippingCost.toFixed(2)}`
                     )}
                   </span>
                 </div>

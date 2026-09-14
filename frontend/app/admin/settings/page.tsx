@@ -27,8 +27,8 @@ export default function SettingsPage() {
     loginAlerts: true,
     sessionTimeout: 30,
     freeShippingThreshold: 500,
-    standardShippingFee: 60,
-    expressShippingFee: 120,
+    dhakaShippingFee: 60,
+    outsideDhakaShippingFee: 120,
     cashOnDelivery: true,
     bkashEnabled: false,
     nagadEnabled: false,
@@ -363,20 +363,20 @@ export default function SettingsPage() {
                   <p className="text-sm text-gray-500 mt-1">Orders above this amount get free shipping</p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Standard Shipping Fee (৳)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Dhaka Delivery Charge (৳)</label>
                   <input
                     type="number"
-                    value={settings.standardShippingFee}
-                    onChange={(e) => setSettings({ ...settings, standardShippingFee: Number(e.target.value) })}
+                    value={settings.dhakaShippingFee}
+                    onChange={(e) => setSettings({ ...settings, dhakaShippingFee: Number(e.target.value) })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Express Shipping Fee (৳)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Outside Dhaka Delivery Charge (৳)</label>
                   <input
                     type="number"
-                    value={settings.expressShippingFee}
-                    onChange={(e) => setSettings({ ...settings, expressShippingFee: Number(e.target.value) })}
+                    value={settings.outsideDhakaShippingFee}
+                    onChange={(e) => setSettings({ ...settings, outsideDhakaShippingFee: Number(e.target.value) })}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
                   />
                 </div>

@@ -30,6 +30,40 @@ export const getSettings = async (req: Request, res: Response): Promise<void> =>
   }
 };
 
+// Get public shipping fees (no admin auth required) so the storefront can
+// display accurate delivery charges before an order is placed
+export const getPublicShippingSettings = async (req: Request, res: Response): Promise<void> => {
+  try {
+    let settings = await prisma.storeSettings.findUnique({
+      where: { id: SETTINGS_ID },
+      select: {
+        dhakaShippingFee: true,
+        outsideDhakaShippingFee: true,
+        freeShippingThreshold: true,
+      },
+    });
+
+    if (!settings) {
+      settings = await prisma.storeSettings.create({
+        data: {
+          id: SETTINGS_ID,
+          updatedAt: new Date(),
+        },
+        select: {
+          dhakaShippingFee: true,
+          outsideDhakaShippingFee: true,
+          freeShippingThreshold: true,
+        },
+      });
+    }
+
+    res.json(settings);
+  } catch (error) {
+    console.error('Error fetching shipping settings:', error);
+    res.status(500).json({ error: 'Failed to fetch shipping settings' });
+  }
+};
+
 // Update store settings
 export const updateSettings = async (req: Request, res: Response): Promise<void> => {
   try {
