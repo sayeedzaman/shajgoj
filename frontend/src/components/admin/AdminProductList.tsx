@@ -53,7 +53,7 @@ export default function AdminProductList() {
   };
 
   if (loading) return <div>Loading products...</div>;
-  if (error) return <div className="text-red-600">{error}</div>;
+  if (error) return <div className="text-pink-600">{error}</div>;
 
   return (
     <div className="bg-white rounded shadow-sm border p-4">
@@ -61,7 +61,7 @@ export default function AdminProductList() {
         <h2 className="text-lg font-semibold">Products</h2>
         <button
           onClick={() => alert('Add product flow not implemented in demo')}
-          className="px-3 py-1 bg-red-500 text-white rounded"
+          className="px-3 py-1 bg-pink-500 text-white rounded"
         >
           + Add
         </button>
@@ -94,7 +94,7 @@ export default function AdminProductList() {
                   </button>
                   <button
                     onClick={() => handleDelete(p.id)}
-                    className="text-sm text-red-600"
+                    className="text-sm text-pink-600"
                   >
                     Delete
                   </button>

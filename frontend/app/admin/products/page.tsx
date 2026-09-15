@@ -327,7 +327,7 @@ export default function ProductManagementPage() {
       return;
     }
 
-    if (subCategories.length > 0 && !selectedSubCategoryId) {
+    if (subCategories?.length > 0 && !selectedSubCategoryId) {
       showError('Please select a sub-category for this type');
       return;
     }
@@ -449,14 +449,14 @@ export default function ProductManagementPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <Package className="w-8 h-8 text-red-600" />
+            <Package className="w-8 h-8 text-pink-600" />
             Product Management
           </h1>
           <p className="text-gray-600 mt-2">Manage your product catalog</p>
         </div>
         <button
           onClick={() => openModal()}
-          className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors"
         >
           <Plus className="w-5 h-5" />
           Add Product
@@ -470,7 +470,7 @@ export default function ProductManagementPage() {
         </div>
       )}
       {errorMessage && (
-        <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
+        <div className="bg-pink-50 border border-pink-200 text-pink-800 px-4 py-3 rounded-lg">
           {errorMessage}
         </div>
       )}
@@ -489,7 +489,7 @@ export default function ProductManagementPage() {
                 setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
             />
           </div>
 
@@ -502,7 +502,7 @@ export default function ProductManagementPage() {
                 setCategoryFilter(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 appearance-none bg-white"
+              className="w-full pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 appearance-none bg-white"
             >
               <option value="">All Categories</option>
               {categories.map((cat) => (
@@ -523,7 +523,7 @@ export default function ProductManagementPage() {
                 setBrandFilter(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 appearance-none bg-white"
+              className="w-full pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 appearance-none bg-white"
             >
               <option value="">All Brands</option>
               {brands.map((brand) => (
@@ -541,7 +541,7 @@ export default function ProductManagementPage() {
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
         {loading ? (
           <div className="p-12 text-center">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600"></div>
             <p className="text-gray-600 mt-4">Loading products...</p>
           </div>
         ) : products.length === 0 ? (
@@ -611,7 +611,7 @@ export default function ProductManagementPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex flex-col">
-                          <span className="text-sm font-bold text-red-600">
+                          <span className="text-sm font-bold text-pink-600">
                             ৳{product.salePrice || product.price}
                           </span>
                           {product.salePrice && (
@@ -623,7 +623,7 @@ export default function ProductManagementPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`text-sm font-medium ${
-                          product.stock === 0 ? 'text-red-600' : product.stock < 10 ? 'text-orange-600' : 'text-green-600'
+                          product.stock === 0 ? 'text-pink-600' : product.stock < 10 ? 'text-orange-600' : 'text-green-600'
                         }`}>
                           {product.stock}
                         </span>
@@ -648,7 +648,7 @@ export default function ProductManagementPage() {
                           </button>
                           <button
                             onClick={() => handleDelete(product.id, product.name)}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            className="p-2 text-pink-600 hover:bg-pink-50 rounded-lg transition-colors"
                             title="Delete"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -726,7 +726,7 @@ export default function ProductManagementPage() {
                             <button
                               type="button"
                               onClick={() => removeImage(index)}
-                              className="absolute top-2 right-2 p-1 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                              className="absolute top-2 right-2 p-1 bg-pink-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                             >
                               <X className="w-4 h-4" />
                             </button>
@@ -759,7 +759,7 @@ export default function ProductManagementPage() {
                         placeholder="Or paste image URL"
                         value={imagePreviews[index]}
                         onChange={(e) => handleImageUrlChange(index, e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-red-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-pink-500"
                       />
                     </div>
                   ))}
@@ -784,7 +784,7 @@ export default function ProductManagementPage() {
                         slug: generateSlug(name),
                       });
                     }}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
                   />
                 </div>
 
@@ -796,7 +796,7 @@ export default function ProductManagementPage() {
                     type="text"
                     value={formData.slug}
                     onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-gray-50"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 bg-gray-50"
                   />
                 </div>
 
@@ -808,7 +808,7 @@ export default function ProductManagementPage() {
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     rows={3}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
                   />
                 </div>
 
@@ -823,7 +823,7 @@ export default function ProductManagementPage() {
                     step="0.01"
                     value={formData.price || ''}
                     onChange={(e) => setFormData({ ...formData, price: e.target.value ? parseFloat(e.target.value) : 0 })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
                   />
                 </div>
 
@@ -839,13 +839,13 @@ export default function ProductManagementPage() {
                     onChange={(e) => setFormData({ ...formData, salePrice: e.target.value ? parseFloat(e.target.value) : undefined })}
                     className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
                       formData.salePrice && formData.price && formData.salePrice >= formData.price
-                        ? 'border-red-500 focus:ring-red-500'
-                        : 'border-gray-300 focus:ring-red-500'
+                        ? 'border-pink-500 focus:ring-pink-500'
+                        : 'border-gray-300 focus:ring-pink-500'
                     }`}
                   />
                   {formData.salePrice && formData.price && formData.salePrice >= formData.price && (
-                    <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
-                      <span>⚠️</span>
+                    <p className="mt-1 text-sm text-pink-600 flex items-center gap-1">
+                      <span>âš ï¸</span>
                       <span>Sale price must be less than regular price (৳{formData.price})</span>
                     </p>
                   )}
@@ -866,7 +866,7 @@ export default function ProductManagementPage() {
                     min="0"
                     value={formData.stock || ''}
                     onChange={(e) => setFormData({ ...formData, stock: e.target.value ? parseInt(e.target.value) : 0 })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
                   />
                 </div>
 
@@ -881,7 +881,7 @@ export default function ProductManagementPage() {
                       setFormData({ ...formData, categoryId: e.target.value });
                       handleCategoryChange(e.target.value);
                     }}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
                   >
                     <option value="">Select Category</option>
                     {categories.map((cat) => (
@@ -902,7 +902,7 @@ export default function ProductManagementPage() {
                     value={selectedTypeId}
                     onChange={(e) => handleTypeChange(e.target.value)}
                     disabled={!selectedCategoryId || types.length === 0}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 disabled:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 disabled:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     <option value="">
                       {!selectedCategoryId ? 'Select a category first' : types.length === 0 ? 'No types available' : 'Select Type'}
@@ -921,16 +921,16 @@ export default function ProductManagementPage() {
                     Sub-Category *
                   </label>
                   <select
-                    required={subCategories.length > 0}
+                    required={subCategories?.length > 0}
                     value={selectedSubCategoryId}
                     onChange={(e) => handleSubCategoryChange(e.target.value)}
-                    disabled={!selectedTypeId || subCategories.length === 0}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 disabled:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
+                    disabled={!selectedTypeId || !subCategories?.length}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 disabled:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     <option value="">
-                      {!selectedTypeId ? 'Select a type first' : subCategories.length === 0 ? 'No sub-categories available' : 'Select Sub-Category'}
+                      {!selectedTypeId ? 'Select a type first' : !subCategories?.length ? 'No sub-categories available' : 'Select Sub-Category'}
                     </option>
-                    {subCategories.map((subCat) => (
+                    {subCategories?.map((subCat) => (
                       <option key={subCat.id} value={subCat.id}>
                         {subCat.name}
                       </option>
@@ -945,7 +945,7 @@ export default function ProductManagementPage() {
                   <select
                     value={formData.brandId}
                     onChange={(e) => setFormData({ ...formData, brandId: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
                   >
                     <option value="">No Brand</option>
                     {brands.map((brand) => (
@@ -963,7 +963,7 @@ export default function ProductManagementPage() {
                   <select
                     value={formData.concernId}
                     onChange={(e) => setFormData({ ...formData, concernId: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
                   >
                     <option value="">No Concern</option>
                     {concerns.map((concern) => (
@@ -980,7 +980,7 @@ export default function ProductManagementPage() {
                       type="checkbox"
                       checked={formData.featured}
                       onChange={(e) => setFormData({ ...formData, featured: e.target.checked })}
-                      className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
+                      className="w-4 h-4 text-pink-600 border-gray-300 rounded focus:ring-pink-500"
                     />
                     <span className="text-sm font-medium text-gray-700">
                       Mark as Featured Product
@@ -1001,7 +1001,7 @@ export default function ProductManagementPage() {
                 <button
                   type="submit"
                   disabled={submitting || uploadingImages || (formData.salePrice !== undefined && formData.price > 0 && formData.salePrice >= formData.price)}
-                  className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="px-6 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   {(submitting || uploadingImages) && (
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>

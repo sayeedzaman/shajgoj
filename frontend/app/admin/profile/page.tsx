@@ -139,13 +139,13 @@ export default function AdminProfilePage() {
         <div className="mb-8">
           <Link
             href="/admin"
-            className="inline-flex items-center gap-2 text-red-600 hover:text-red-700 font-medium mb-4"
+            className="inline-flex items-center gap-2 text-pink-600 hover:text-pink-700 font-medium mb-4"
           >
             <ChevronLeft className="w-5 h-5" />
             Back to Dashboard
           </Link>
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <User className="w-8 h-8 text-red-600" />
+            <User className="w-8 h-8 text-pink-600" />
             My Profile
           </h1>
           <p className="text-gray-600 mt-2">Manage your personal information</p>
@@ -158,14 +158,14 @@ export default function AdminProfilePage() {
           </div>
         )}
         {errorMessage && (
-          <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg mb-6">
+          <div className="bg-pink-50 border border-pink-200 text-pink-800 px-4 py-3 rounded-lg mb-6">
             {errorMessage}
           </div>
         )}
 
         {loading ? (
           <div className="bg-white rounded-lg p-12 text-center">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600"></div>
             <p className="text-gray-600 mt-4">Loading profile...</p>
           </div>
         ) : user ? (
@@ -173,10 +173,10 @@ export default function AdminProfilePage() {
             {/* Profile Card */}
             <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
               {/* Header */}
-              <div className="bg-gradient-to-r from-red-600 to-pink-600 px-6 py-8">
+              <div className="bg-gradient-to-r from-pink-600 to-pink-600 px-6 py-8">
                 <div className="flex items-center gap-4">
                   <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center">
-                    <span className="text-3xl font-bold text-red-600">
+                    <span className="text-3xl font-bold text-pink-600">
                       {user.firstName?.[0]?.toUpperCase() || user.email?.[0]?.toUpperCase() || 'A'}
                     </span>
                   </div>
@@ -184,7 +184,7 @@ export default function AdminProfilePage() {
                     <h2 className="text-2xl font-bold">
                       {user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : user.email || 'Admin'}
                     </h2>
-                    <p className="text-red-100">{user.email || 'No email'}</p>
+                    <p className="text-pink-100">{user.email || 'No email'}</p>
                   </div>
                 </div>
               </div>
@@ -213,7 +213,7 @@ export default function AdminProfilePage() {
                       <button
                         onClick={handleSaveProfile}
                         disabled={saving}
-                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors disabled:opacity-50"
+                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-pink-600 hover:bg-pink-700 rounded-lg transition-colors disabled:opacity-50"
                       >
                         <Save className="w-4 h-4" />
                         {saving ? 'Saving...' : 'Save'}
@@ -233,7 +233,7 @@ export default function AdminProfilePage() {
                         type="text"
                         value={formData.firstName}
                         onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
                       />
                     ) : (
                       <div className="px-4 py-2 bg-gray-50 rounded-lg text-gray-900">
@@ -252,7 +252,7 @@ export default function AdminProfilePage() {
                         type="text"
                         value={formData.lastName}
                         onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
                       />
                     ) : (
                       <div className="px-4 py-2 bg-gray-50 rounded-lg text-gray-900">
@@ -283,8 +283,8 @@ export default function AdminProfilePage() {
                         type="tel"
                         value={formData.phone}
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        placeholder="+880 1712-345678"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                        placeholder="+8801883096484"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
                       />
                     ) : (
                       <div className="flex items-center gap-3 px-4 py-2 bg-gray-50 rounded-lg text-gray-900">
@@ -326,7 +326,7 @@ export default function AdminProfilePage() {
               <button
                 type="button"
                 onClick={handleLogout}
-                className="flex items-center gap-2 px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+                className="flex items-center gap-2 px-6 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors font-medium"
               >
                 <LogOut className="w-4 h-4" />
                 Logout

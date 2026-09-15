@@ -31,17 +31,17 @@ export default function AdminStats() {
   }, []);
 
   if (loading) return <div>Loading stats...</div>;
-  if (error) return <div className="text-red-600">{error}</div>;
+  if (error) return <div className="text-pink-600">{error}</div>;
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div className="p-4 bg-white rounded shadow-sm border">
         <h3 className="text-sm text-gray-500">Total Products</h3>
-        <p className="text-2xl font-semibold">{stats?.totalProducts ?? '—'}</p>
+        <p className="text-2xl font-semibold">{stats?.totalProducts ?? 'â€”'}</p>
       </div>
       <div className="p-4 bg-white rounded shadow-sm border">
         <h3 className="text-sm text-gray-500">Low Stock Items</h3>
-        <p className="text-2xl font-semibold">{stats?.lowStock ?? '—'}</p>
+        <p className="text-2xl font-semibold">{stats?.lowStock ?? 'â€”'}</p>
       </div>
     </div>
   );

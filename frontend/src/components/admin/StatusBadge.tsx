@@ -15,26 +15,26 @@ const orderStatusConfig: Record<OrderStatus, { bg: string; text: string; label: 
   PROCESSING: { bg: 'bg-blue-100', text: 'text-blue-800', label: 'Processing' },
   SHIPPED: { bg: 'bg-purple-100', text: 'text-purple-800', label: 'Shipped' },
   DELIVERED: { bg: 'bg-green-100', text: 'text-green-800', label: 'Delivered' },
-  CANCELLED: { bg: 'bg-red-100', text: 'text-red-800', label: 'Cancelled' },
+  CANCELLED: { bg: 'bg-pink-100', text: 'text-pink-800', label: 'Cancelled' },
 };
 
 const paymentStatusConfig: Record<PaymentStatus, { bg: string; text: string; label: string }> = {
   PAID: { bg: 'bg-green-100', text: 'text-green-800', label: 'Paid' },
   PENDING: { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Pending' },
-  FAILED: { bg: 'bg-red-100', text: 'text-red-800', label: 'Failed' },
+  FAILED: { bg: 'bg-pink-100', text: 'text-pink-800', label: 'Failed' },
   REFUNDED: { bg: 'bg-gray-100', text: 'text-gray-800', label: 'Refunded' },
 };
 
 const stockStatusConfig: Record<StockStatus, { bg: string; text: string; label: string }> = {
   IN_STOCK: { bg: 'bg-green-100', text: 'text-green-800', label: 'In Stock' },
   LOW_STOCK: { bg: 'bg-orange-100', text: 'text-orange-800', label: 'Low Stock' },
-  OUT_OF_STOCK: { bg: 'bg-red-100', text: 'text-red-800', label: 'Out of Stock' },
+  OUT_OF_STOCK: { bg: 'bg-pink-100', text: 'text-pink-800', label: 'Out of Stock' },
 };
 
 const userStatusConfig: Record<UserStatus, { bg: string; text: string; label: string }> = {
   ACTIVE: { bg: 'bg-green-100', text: 'text-green-800', label: 'Active' },
   INACTIVE: { bg: 'bg-gray-100', text: 'text-gray-800', label: 'Inactive' },
-  BANNED: { bg: 'bg-red-100', text: 'text-red-800', label: 'Banned' },
+  BANNED: { bg: 'bg-pink-100', text: 'text-pink-800', label: 'Banned' },
 };
 
 export default function StatusBadge({ status, variant = 'custom' }: StatusBadgeProps) {

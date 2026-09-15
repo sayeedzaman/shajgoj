@@ -109,7 +109,7 @@ export default function SalesPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-red-500 via-pink-500 to-purple-500 text-white py-16">
+      <section className="bg-gradient-to-r from-pink-500 via-pink-500 to-purple-500 text-white py-16">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center">
             <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full mb-6">
@@ -156,7 +156,7 @@ export default function SalesPage() {
                     setSelectedCategory(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="w-full md:w-auto pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 appearance-none bg-white text-sm"
+                  className="w-full md:w-auto pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 appearance-none bg-white text-sm"
                   aria-label="Filter by category"
                 >
                   <option value="">All Categories</option>
@@ -178,7 +178,7 @@ export default function SalesPage() {
                     setSortBy(e.target.value as 'discount' | 'price' | 'name');
                     setCurrentPage(1);
                   }}
-                  className="w-full md:w-auto pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 appearance-none bg-white text-sm"
+                  className="w-full md:w-auto pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 appearance-none bg-white text-sm"
                   aria-label="Sort by"
                 >
                   <option value="discount">Highest Discount</option>
@@ -196,7 +196,7 @@ export default function SalesPage() {
       <section className="max-w-7xl mx-auto px-4 py-8">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20">
-            <div className="w-16 h-16 border-4 border-red-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+            <div className="w-16 h-16 border-4 border-pink-500 border-t-transparent rounded-full animate-spin mb-4"></div>
             <p className="text-gray-600">Loading amazing deals...</p>
           </div>
         ) : products.length === 0 ? (
@@ -210,7 +210,7 @@ export default function SalesPage() {
             {/* Backend API Notice */}
             <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
               <p className="text-sm text-orange-800">
-                <strong>⚠️ Note:</strong> Backend API not yet implemented. Currently showing mock data.
+                <strong>âš ï¸ Note:</strong> Backend API not yet implemented. Currently showing mock data.
                 <br />
                 <span className="text-xs">Required endpoint: GET /api/products/on-sale</span>
               </p>
@@ -258,7 +258,7 @@ export default function SalesPage() {
                   onClick={() => setCurrentPage(pageNum)}
                   className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                     currentPage === pageNum
-                      ? 'bg-red-600 text-white shadow-lg'
+                      ? 'bg-pink-600 text-white shadow-lg'
                       : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
                   }`}
                 >

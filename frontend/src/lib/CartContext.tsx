@@ -5,6 +5,7 @@ import { Cart, CartItem, Product } from '@/src/types/index';
 import { cartAPI, productsAPI } from '@/src/lib/api';
 import { useAuth } from './AuthContext';
 import { useToast } from './ToastContext';
+import { brand } from '@/src/config/brand';
 
 interface CartContextType {
   cart: Cart | null;
@@ -26,7 +27,8 @@ interface LocalStorageCartItem {
   quantity: number;
 }
 
-const CART_STORAGE_KEY = 'khalis_beauty_guest_cart';
+const CART_STORAGE_KEY = `${brand.slug}_guest_cart`;
+const LEGACY_CART_STORAGE_KEY = 'khalis_beauty_guest_cart';
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
@@ -43,7 +45,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   // Load guest cart from localStorage
   const loadGuestCart = useCallback(async () => {
     try {
-      const storedCart = localStorage.getItem(CART_STORAGE_KEY);
+      const storedCart = localStorage.getItem(CART_STORAGE_KEY) || localStorage.getItem(LEGACY_CART_STORAGE_KEY);
       if (!storedCart) {
         setCart(null);
         return;

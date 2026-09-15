@@ -135,12 +135,12 @@ export default function AdminDashboard() {
   // Error State
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-xl p-6">
-        <h3 className="text-lg font-semibold text-red-900 mb-2">Error Loading Dashboard</h3>
-        <p className="text-red-700 mb-4">{error}</p>
+      <div className="bg-pink-50 border border-pink-200 rounded-xl p-6">
+        <h3 className="text-lg font-semibold text-pink-900 mb-2">Error Loading Dashboard</h3>
+        <p className="text-pink-700 mb-4">{error}</p>
         <button
           onClick={loadDashboardData}
-          className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+          className="px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors font-medium"
         >
           Retry
         </button>
@@ -216,13 +216,13 @@ export default function AdminDashboard() {
               <p className="text-sm text-gray-500 mt-1">Last 6 months performance</p>
             </div>
             <div className={`flex items-center gap-2 px-3 py-1 rounded-lg ${
-              (analytics?.totalRevenue.isPositive ?? true) ? 'bg-green-50' : 'bg-red-50'
+              (analytics?.totalRevenue.isPositive ?? true) ? 'bg-green-50' : 'bg-pink-50'
             }`}>
               <TrendingUp className={`w-4 h-4 ${
-                (analytics?.totalRevenue.isPositive ?? true) ? 'text-green-600' : 'text-red-600'
+                (analytics?.totalRevenue.isPositive ?? true) ? 'text-green-600' : 'text-pink-600'
               }`} />
               <span className={`text-sm font-semibold ${
-                (analytics?.totalRevenue.isPositive ?? true) ? 'text-green-600' : 'text-red-600'
+                (analytics?.totalRevenue.isPositive ?? true) ? 'text-green-600' : 'text-pink-600'
               }`}>
                 {(analytics?.totalRevenue.isPositive ?? true) ? '+' : ''}
                 {analytics?.totalRevenue.change ?? 0}%

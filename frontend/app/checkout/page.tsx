@@ -164,7 +164,7 @@ export default function CheckoutPage() {
   if (loading || cartLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-red-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-pink-600" />
       </div>
     );
   }
@@ -182,9 +182,9 @@ export default function CheckoutPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Breadcrumbs */}
         <nav className="flex items-center gap-2 text-sm text-gray-600 mb-6">
-          <Link href="/" className="hover:text-red-600">Home</Link>
+          <Link href="/" className="hover:text-pink-600">Home</Link>
           <ChevronRight className="w-4 h-4" />
-          <Link href="/cart" className="hover:text-red-600">Cart</Link>
+          <Link href="/cart" className="hover:text-pink-600">Cart</Link>
           <ChevronRight className="w-4 h-4" />
           <span className="text-gray-900 font-medium">Checkout</span>
         </nav>
@@ -197,11 +197,11 @@ export default function CheckoutPage() {
 
         {/* Error Message */}
         {error && (
-          <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+          <div className="mb-6 bg-pink-50 border border-pink-200 rounded-lg p-4 flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-pink-600 flex-shrink-0 mt-0.5" />
             <div>
-              <h3 className="text-sm font-semibold text-red-900">Error</h3>
-              <p className="text-sm text-red-700 mt-1">{error}</p>
+              <h3 className="text-sm font-semibold text-pink-900">Error</h3>
+              <p className="text-sm text-pink-700 mt-1">{error}</p>
             </div>
           </div>
         )}
@@ -213,15 +213,15 @@ export default function CheckoutPage() {
             <div className="bg-white rounded-lg shadow-sm p-6">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-                    <MapPin className="w-5 h-5 text-red-600" />
+                  <div className="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center">
+                    <MapPin className="w-5 h-5 text-pink-600" />
                   </div>
                   <h2 className="text-xl font-bold text-gray-900">Delivery Address</h2>
                 </div>
                 {!showAddressForm && (
                   <button
                     onClick={() => setShowAddressForm(true)}
-                    className="flex items-center gap-2 text-red-600 hover:text-red-700 font-medium text-sm"
+                    className="flex items-center gap-2 text-pink-600 hover:text-pink-700 font-medium text-sm"
                   >
                     <Plus className="w-4 h-4" />
                     Add New
@@ -242,7 +242,7 @@ export default function CheckoutPage() {
                         required
                         value={addressForm.fullName}
                         onChange={(e) => setAddressForm({ ...addressForm, fullName: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                       />
                     </div>
                     <div>
@@ -254,7 +254,7 @@ export default function CheckoutPage() {
                         required
                         value={addressForm.phone}
                         onChange={(e) => setAddressForm({ ...addressForm, phone: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                       />
                     </div>
                   </div>
@@ -268,7 +268,7 @@ export default function CheckoutPage() {
                       rows={3}
                       value={addressForm.address}
                       onChange={(e) => setAddressForm({ ...addressForm, address: e.target.value })}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                     />
                   </div>
 
@@ -282,7 +282,7 @@ export default function CheckoutPage() {
                         required
                         value={addressForm.city}
                         onChange={(e) => setAddressForm({ ...addressForm, city: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                       />
                     </div>
                     <div>
@@ -294,7 +294,7 @@ export default function CheckoutPage() {
                         required
                         value={addressForm.state}
                         onChange={(e) => setAddressForm({ ...addressForm, state: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                       />
                     </div>
                     <div>
@@ -306,7 +306,7 @@ export default function CheckoutPage() {
                         required
                         value={addressForm.zipCode}
                         onChange={(e) => setAddressForm({ ...addressForm, zipCode: e.target.value })}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                       />
                     </div>
                   </div>
@@ -317,7 +317,7 @@ export default function CheckoutPage() {
                       id="isDefault"
                       checked={addressForm.isDefault}
                       onChange={(e) => setAddressForm({ ...addressForm, isDefault: e.target.checked })}
-                      className="w-4 h-4 text-red-600 rounded focus:ring-red-500"
+                      className="w-4 h-4 text-pink-600 rounded focus:ring-pink-500"
                     />
                     <label htmlFor="isDefault" className="text-sm text-gray-700">
                       Set as default address
@@ -328,7 +328,7 @@ export default function CheckoutPage() {
                     <button
                       type="submit"
                       disabled={loading}
-                      className="px-6 py-2 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-colors disabled:opacity-50"
+                      className="px-6 py-2 bg-pink-600 text-white rounded-lg font-semibold hover:bg-pink-700 transition-colors disabled:opacity-50"
                     >
                       Save Address
                     </button>
@@ -356,7 +356,7 @@ export default function CheckoutPage() {
                       key={address.id}
                       className={`block p-4 border-2 rounded-lg cursor-pointer transition-all ${
                         selectedAddressId === address.id
-                          ? 'border-red-500 bg-red-50'
+                          ? 'border-pink-500 bg-pink-50'
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
                     >
@@ -367,7 +367,7 @@ export default function CheckoutPage() {
                           value={address.id}
                           checked={selectedAddressId === address.id}
                           onChange={(e) => setSelectedAddressId(e.target.value)}
-                          className="mt-1 w-4 h-4 text-red-600 focus:ring-red-500"
+                          className="mt-1 w-4 h-4 text-pink-600 focus:ring-pink-500"
                         />
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
@@ -393,8 +393,8 @@ export default function CheckoutPage() {
             {/* Payment Method Section */}
             <div className="bg-white rounded-lg shadow-sm p-6">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-                  <CreditCard className="w-5 h-5 text-red-600" />
+                <div className="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center">
+                  <CreditCard className="w-5 h-5 text-pink-600" />
                 </div>
                 <h2 className="text-xl font-bold text-gray-900">Payment Method</h2>
               </div>
@@ -402,7 +402,7 @@ export default function CheckoutPage() {
               <div className="space-y-3">
                 <label className={`flex items-start gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${
                   paymentMethod === 'COD'
-                    ? 'border-red-500 bg-red-50'
+                    ? 'border-pink-500 bg-pink-50'
                     : 'border-gray-200 hover:border-gray-300'
                 }`}>
                   <input
@@ -411,7 +411,7 @@ export default function CheckoutPage() {
                     value="COD"
                     checked={paymentMethod === 'COD'}
                     onChange={() => setPaymentMethod('COD')}
-                    className="mt-1 w-4 h-4 text-red-600 focus:ring-red-500"
+                    className="mt-1 w-4 h-4 text-pink-600 focus:ring-pink-500"
                   />
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
@@ -426,7 +426,7 @@ export default function CheckoutPage() {
 
                 <label className={`flex items-start gap-3 p-4 border-2 rounded-lg cursor-not-allowed opacity-50 ${
                   paymentMethod === 'CARD'
-                    ? 'border-red-500 bg-red-50'
+                    ? 'border-pink-500 bg-pink-50'
                     : 'border-gray-200'
                 }`}>
                   <input
@@ -436,7 +436,7 @@ export default function CheckoutPage() {
                     disabled
                     checked={paymentMethod === 'CARD'}
                     onChange={() => setPaymentMethod('CARD')}
-                    className="mt-1 w-4 h-4 text-red-600 focus:ring-red-500"
+                    className="mt-1 w-4 h-4 text-pink-600 focus:ring-pink-500"
                   />
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
@@ -527,7 +527,7 @@ export default function CheckoutPage() {
                 )}
                 <div className="flex justify-between text-lg font-bold pt-3 border-t border-gray-200">
                   <span className="text-gray-900">Total</span>
-                  <span className="text-red-600">৳{total.toFixed(2)}</span>
+                  <span className="text-pink-600">৳{total.toFixed(2)}</span>
                 </div>
               </div>
 
@@ -535,7 +535,7 @@ export default function CheckoutPage() {
               <button
                 onClick={handlePlaceOrder}
                 disabled={placingOrder || !selectedAddressId || cartItems.length === 0}
-                className="w-full py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full py-3 bg-pink-600 text-white rounded-lg font-semibold hover:bg-pink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {placingOrder ? (
                   <>

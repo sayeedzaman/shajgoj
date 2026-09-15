@@ -7,7 +7,7 @@ export default function NotFound() {
       <div className="max-w-md w-full text-center">
         {/* 404 Illustration */}
         <div className="mb-8">
-          <h1 className="text-9xl font-bold text-red-500">404</h1>
+          <h1 className="text-9xl font-bold text-pink-500">404</h1>
           <div className="relative">
             <div className="absolute inset-0 flex items-center justify-center">
               <Search className="w-32 h-32 text-gray-200" />
@@ -27,14 +27,14 @@ export default function NotFound() {
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link
             href="/"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-colors"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-pink-600 text-white rounded-lg font-semibold hover:bg-pink-700 transition-colors"
           >
             <Home className="w-5 h-5" />
             Go to Homepage
           </Link>
           <Link
             href="/products"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-gray-700 rounded-lg font-semibold border-2 border-gray-300 hover:border-red-500 hover:text-red-500 transition-colors"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-gray-700 rounded-lg font-semibold border-2 border-gray-300 hover:border-pink-500 hover:text-pink-500 transition-colors"
           >
             <Search className="w-5 h-5" />
             Browse Products
@@ -47,19 +47,19 @@ export default function NotFound() {
           <div className="flex flex-wrap gap-2 justify-center">
             <Link
               href="/category/makeup"
-              className="px-4 py-2 bg-white rounded-full text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors border border-gray-200"
+              className="px-4 py-2 bg-white rounded-full text-sm text-gray-700 hover:bg-pink-50 hover:text-pink-600 transition-colors border border-gray-200"
             >
               Makeup
             </Link>
             <Link
               href="/category/skin"
-              className="px-4 py-2 bg-white rounded-full text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors border border-gray-200"
+              className="px-4 py-2 bg-white rounded-full text-sm text-gray-700 hover:bg-pink-50 hover:text-pink-600 transition-colors border border-gray-200"
             >
               Skin Care
             </Link>
             <Link
               href="/category/hair"
-              className="px-4 py-2 bg-white rounded-full text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors border border-gray-200"
+              className="px-4 py-2 bg-white rounded-full text-sm text-gray-700 hover:bg-pink-50 hover:text-pink-600 transition-colors border border-gray-200"
             >
               Hair Care
             </Link>

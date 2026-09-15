@@ -82,9 +82,9 @@ export default function OffersPage() {
     displayOnHomepage: false,
     priority: 1,
     // Visual styling options
-    backgroundColor: 'from-red-500 via-pink-500 to-rose-600',
+    backgroundColor: 'from-pink-500 via-pink-500 to-rose-600',
     textColor: 'text-white',
-    badgeColor: 'bg-yellow-400 text-red-900',
+    badgeColor: 'bg-yellow-400 text-pink-900',
     borderStyle: 'wavy' as 'wavy' | 'rounded' | 'sharp' | 'irregular',
     cardStyle: 'gradient' as 'gradient' | 'solid' | 'image',
     showPlainImage: false,
@@ -171,9 +171,9 @@ export default function OffersPage() {
         displayOnHomepage: offer.displayOnHomepage,
         priority: offer.priority || 1,
         // Visual styling options
-        backgroundColor: offer.backgroundColor || 'from-red-500 via-pink-500 to-rose-600',
+        backgroundColor: offer.backgroundColor || 'from-pink-500 via-pink-500 to-rose-600',
         textColor: offer.textColor || 'text-white',
-        badgeColor: offer.badgeColor || 'bg-yellow-400 text-red-900',
+        badgeColor: offer.badgeColor || 'bg-yellow-400 text-pink-900',
         borderStyle: offer.borderStyle || 'wavy',
         cardStyle: offer.cardStyle || 'gradient',
         showPlainImage: offer.showPlainImage || false,
@@ -213,9 +213,9 @@ export default function OffersPage() {
         displayOnHomepage: false,
         priority: 1,
         // Visual styling options
-        backgroundColor: 'from-red-500 via-pink-500 to-rose-600',
+        backgroundColor: 'from-pink-500 via-pink-500 to-rose-600',
         textColor: 'text-white',
-        badgeColor: 'bg-yellow-400 text-red-900',
+        badgeColor: 'bg-yellow-400 text-pink-900',
         borderStyle: 'wavy',
         cardStyle: 'gradient',
         showPlainImage: false,
@@ -250,9 +250,9 @@ export default function OffersPage() {
       displayOnHomepage: false,
       priority: 1,
       // Visual styling options
-      backgroundColor: 'from-red-500 via-pink-500 to-rose-600',
+      backgroundColor: 'from-pink-500 via-pink-500 to-rose-600',
       textColor: 'text-white',
-      badgeColor: 'bg-yellow-400 text-red-900',
+      badgeColor: 'bg-yellow-400 text-pink-900',
       borderStyle: 'wavy',
       cardStyle: 'gradient',
       showPlainImage: false,
@@ -335,13 +335,13 @@ export default function OffersPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    console.log('🚀 Offer Form Submitted:', formData);
+    console.log('ðŸš€ Offer Form Submitted:', formData);
 
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
     const token = localStorage.getItem('token');
 
     if (!token) {
-      console.error('❌ No authentication token found');
+      console.error('âŒ No authentication token found');
       alert('Please log in to create offers');
       return;
     }
@@ -350,7 +350,7 @@ export default function OffersPage() {
     try {
       const tokenParts = token.split('.');
       const payload = JSON.parse(atob(tokenParts[1]));
-      console.log('🔑 JWT Token Payload:', payload);
+      console.log('ðŸ”‘ JWT Token Payload:', payload);
     } catch (err) {
       console.error('Failed to decode token:', err);
     }
@@ -367,7 +367,7 @@ export default function OffersPage() {
       status = 'EXPIRED';
     }
 
-    console.log('📅 Computed Status:', { status, now, start, end });
+    console.log('ðŸ“… Computed Status:', { status, now, start, end });
 
     // Only send fields that exist in the backend schema
     const offerData = {
@@ -398,7 +398,7 @@ export default function OffersPage() {
       showPlainImage: formData.showPlainImage,
     };
 
-    console.log('📦 Offer Data Being Sent:', JSON.stringify(offerData, null, 2));
+    console.log('ðŸ“¦ Offer Data Being Sent:', JSON.stringify(offerData, null, 2));
 
     try {
       const url = editingOffer
@@ -407,7 +407,7 @@ export default function OffersPage() {
 
       const method = editingOffer ? 'PUT' : 'POST';
 
-      console.log('🎯 Creating/Updating Offer:', {
+      console.log('ðŸŽ¯ Creating/Updating Offer:', {
         url,
         method,
         token: token ? 'Token exists' : 'No token',
@@ -423,7 +423,7 @@ export default function OffersPage() {
         body: JSON.stringify(offerData),
       });
 
-      console.log('📡 Offer API Response Status:', response.status);
+      console.log('ðŸ“¡ Offer API Response Status:', response.status);
 
       if (response.ok) {
         console.log('✅ Offer saved successfully');
@@ -431,7 +431,7 @@ export default function OffersPage() {
         closeModal();
       } else {
         const error = await response.json();
-        console.error('❌ Offer API Error Response:', {
+        console.error('âŒ Offer API Error Response:', {
           status: response.status,
           statusText: response.statusText,
           error
@@ -439,7 +439,7 @@ export default function OffersPage() {
         alert(`Failed to save offer: ${error.error || error.message || 'Unknown error'}`);
       }
     } catch (error) {
-      console.error('❌ Network or JavaScript Error:', error);
+      console.error('âŒ Network or JavaScript Error:', error);
       alert(`Failed to save offer: ${error instanceof Error ? error.message : 'Please try again'}`);
     }
   };
@@ -474,7 +474,7 @@ export default function OffersPage() {
   const getStatusBadge = (status: Offer['status']) => {
     const styles = {
       ACTIVE: 'bg-green-100 text-green-800 border-green-200',
-      EXPIRED: 'bg-red-100 text-red-800 border-red-200',
+      EXPIRED: 'bg-pink-100 text-pink-800 border-pink-200',
       SCHEDULED: 'bg-blue-100 text-blue-800 border-blue-200',
     };
 
@@ -514,14 +514,14 @@ export default function OffersPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <Tag className="w-8 h-8 text-red-600" />
+            <Tag className="w-8 h-8 text-pink-600" />
             Offers & Promotions
           </h1>
           <p className="text-gray-600 mt-2">Create and manage discount codes and promotional offers</p>
         </div>
         <button
           onClick={() => openModal()}
-          className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors"
         >
           <Plus className="w-5 h-5" />
           Create Offer
@@ -542,9 +542,9 @@ export default function OffersPage() {
           <p className="text-sm text-blue-800">Scheduled</p>
           <p className="text-2xl font-bold text-blue-900 mt-1">{offerStats.scheduled}</p>
         </div>
-        <div className="bg-red-50 rounded-lg border border-red-200 p-4">
-          <p className="text-sm text-red-800">Expired</p>
-          <p className="text-2xl font-bold text-red-900 mt-1">{offerStats.expired}</p>
+        <div className="bg-pink-50 rounded-lg border border-pink-200 p-4">
+          <p className="text-sm text-pink-800">Expired</p>
+          <p className="text-2xl font-bold text-pink-900 mt-1">{offerStats.expired}</p>
         </div>
         <div className="bg-purple-50 rounded-lg border border-purple-200 p-4">
           <p className="text-sm text-purple-800">On Homepage</p>
@@ -562,7 +562,7 @@ export default function OffersPage() {
               placeholder="Search by offer name or code..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
             />
           </div>
           <div className="relative">
@@ -570,7 +570,7 @@ export default function OffersPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 appearance-none bg-white"
+              className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 appearance-none bg-white"
               aria-label= "status"
             >
               <option value="ALL">All Status</option>
@@ -587,7 +587,7 @@ export default function OffersPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {loading ? (
           <div className="col-span-full p-12 text-center">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600"></div>
             <p className="text-gray-600 mt-4">Loading offers...</p>
           </div>
         ) : currentOffers.length === 0 ? (
@@ -596,7 +596,7 @@ export default function OffersPage() {
             <p className="text-gray-600 mb-4">No offers found</p>
             <button
               onClick={() => openModal()}
-              className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              className="px-6 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors"
             >
               Create Your First Offer
             </button>
@@ -643,7 +643,7 @@ export default function OffersPage() {
                 <div className="space-y-2 mb-4">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-gray-600">Discount:</span>
-                    <span className="font-bold text-red-600">
+                    <span className="font-bold text-pink-600">
                       {offer.discountType === 'PERCENTAGE'
                         ? `${offer.discountValue}%`
                         : `৳${offer.discountValue}`}
@@ -661,7 +661,7 @@ export default function OffersPage() {
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-1.5">
                     <div
-                      className="bg-red-600 h-1.5 rounded-full"
+                      className="bg-pink-600 h-1.5 rounded-full"
                       style={{ width: `${(offer.usageCount / offer.usageLimit) * 100}%` }}
                     ></div>
                   </div>
@@ -685,7 +685,7 @@ export default function OffersPage() {
                   </button>
                   <button
                     onClick={() => handleDelete(offer.id)}
-                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors"
+                    className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-pink-50 text-pink-600 rounded-lg hover:bg-pink-100 transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
                     Delete
@@ -713,7 +713,7 @@ export default function OffersPage() {
               onClick={() => setCurrentPage(i + 1)}
               className={`px-4 py-2 rounded-lg text-sm font-medium ${
                 currentPage === i + 1
-                  ? 'bg-red-600 text-white'
+                  ? 'bg-pink-600 text-white'
                   : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
               }`}
             >
@@ -760,7 +760,7 @@ export default function OffersPage() {
                           setImagePreview('');
                           setFormData({ ...formData, imageUrl: '' });
                         }}
-                        className="absolute top-2 right-2 p-2 bg-red-600 text-white rounded-full hover:bg-red-700"
+                        className="absolute top-2 right-2 p-2 bg-pink-600 text-white rounded-full hover:bg-pink-700"
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -787,7 +787,7 @@ export default function OffersPage() {
                     setImagePreview(e.target.value);
                   }}
                   placeholder="https://example.com/image.jpg"
-                  className="mt-2 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                  className="mt-2 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
                 />
               </div>
 
@@ -799,7 +799,7 @@ export default function OffersPage() {
                     required
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
                   />
                 </div>
                 <div>
@@ -809,7 +809,7 @@ export default function OffersPage() {
                     required
                     value={formData.code}
                     onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 font-mono"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500 font-mono"
                   />
                 </div>
               </div>
@@ -820,7 +820,7 @@ export default function OffersPage() {
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
                 />
               </div>
 
@@ -834,7 +834,7 @@ export default function OffersPage() {
                     required
                     value={formData.type}
                     onChange={(e) => setFormData({ ...formData, type: e.target.value as 'hero' | 'deal' | 'brand' | 'limited' | 'deals-you-cannot-miss' | 'top-brands' })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
                   >
                     <option value="hero">Hero Banner (Top Slider)</option>
                     <option value="deal">Deal Card (Deals Section)</option>
@@ -856,7 +856,7 @@ export default function OffersPage() {
                     max="100"
                     value={formData.priority}
                     onChange={(e) => setFormData({ ...formData, priority: Number(e.target.value) })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
                     placeholder="1-100"
                   />
                 </div>
@@ -875,7 +875,7 @@ export default function OffersPage() {
                     onClick={() => setFormData({ ...formData, linkType: 'url', productId: '', productName: '', productImage: '' })}
                     className={`flex-1 py-3 px-4 rounded-lg border-2 transition-all ${
                       formData.linkType === 'url'
-                        ? 'border-red-500 bg-red-50 text-red-700'
+                        ? 'border-pink-500 bg-pink-50 text-pink-700'
                         : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
                     }`}
                   >
@@ -894,7 +894,7 @@ export default function OffersPage() {
                     }}
                     className={`flex-1 py-3 px-4 rounded-lg border-2 transition-all ${
                       formData.linkType === 'product'
-                        ? 'border-red-500 bg-red-50 text-red-700'
+                        ? 'border-pink-500 bg-pink-50 text-pink-700'
                         : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
                     }`}
                   >
@@ -914,7 +914,7 @@ export default function OffersPage() {
                       value={formData.link}
                       onChange={(e) => setFormData({ ...formData, link: e.target.value })}
                       placeholder="/sales or /products/category-name or https://..."
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
                     />
                     <p className="text-xs text-gray-500 mt-1">
                       Examples: <code className="bg-gray-100 px-1 rounded">/sales</code>, <code className="bg-gray-100 px-1 rounded">/products</code>, <code className="bg-gray-100 px-1 rounded">/category/makeup</code>
@@ -951,7 +951,7 @@ export default function OffersPage() {
                               <button
                                 type="button"
                                 onClick={() => handleRemoveProduct(product.id)}
-                                className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+                                className="p-2 text-pink-600 hover:bg-pink-100 rounded-lg transition-colors"
                               >
                                 <X className="w-5 h-5" />
                               </button>
@@ -973,11 +973,11 @@ export default function OffersPage() {
                             }}
                             onFocus={() => setShowProductSearch(true)}
                             placeholder="Search for a product by name..."
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
                           />
                           {productSearchLoading ? (
                             <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                              <div className="w-5 h-5 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+                              <div className="w-5 h-5 border-2 border-pink-500 border-t-transparent rounded-full animate-spin"></div>
                             </div>
                           ) : (
                             <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -988,7 +988,7 @@ export default function OffersPage() {
                         {productSearchLoading && productSearchQuery.length >= 2 && (
                           <div className="mt-2 border border-gray-300 rounded-lg bg-white shadow-lg p-6 text-center">
                             <div className="flex items-center justify-center gap-2">
-                              <div className="w-5 h-5 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+                              <div className="w-5 h-5 border-2 border-pink-500 border-t-transparent rounded-full animate-spin"></div>
                               <p className="text-sm text-gray-600">Searching products...</p>
                             </div>
                           </div>
@@ -1065,7 +1065,7 @@ export default function OffersPage() {
                     required
                     value={formData.discountType}
                     onChange={(e) => setFormData({ ...formData, discountType: e.target.value as 'PERCENTAGE' | 'FIXED' })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
                   >
                     <option value="PERCENTAGE">Percentage</option>
                     <option value="FIXED">Fixed Amount</option>
@@ -1081,7 +1081,7 @@ export default function OffersPage() {
                     min="0"
                     value={formData.discountValue}
                     onChange={(e) => setFormData({ ...formData, discountValue: Number(e.target.value) })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
                   />
                 </div>
                 <div>
@@ -1091,7 +1091,7 @@ export default function OffersPage() {
                     min="0"
                     value={formData.maxDiscount}
                     onChange={(e) => setFormData({ ...formData, maxDiscount: Number(e.target.value) })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
                   />
                 </div>
               </div>
@@ -1105,7 +1105,7 @@ export default function OffersPage() {
                     min="0"
                     value={formData.minPurchase}
                     onChange={(e) => setFormData({ ...formData, minPurchase: Number(e.target.value) })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
                   />
                 </div>
                 <div>
@@ -1116,7 +1116,7 @@ export default function OffersPage() {
                     min="1"
                     value={formData.usageLimit}
                     onChange={(e) => setFormData({ ...formData, usageLimit: Number(e.target.value) })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
                   />
                 </div>
               </div>
@@ -1129,7 +1129,7 @@ export default function OffersPage() {
                     required
                     value={formData.startDate}
                     onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
                   />
                 </div>
                 <div>
@@ -1139,7 +1139,7 @@ export default function OffersPage() {
                     required
                     value={formData.endDate}
                     onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
                   />
                 </div>
               </div>
@@ -1189,16 +1189,16 @@ export default function OffersPage() {
                   <div className="grid grid-cols-3 gap-2">
                     <button
                       type="button"
-                      onClick={() => setFormData({ ...formData, backgroundColor: 'from-red-500 via-pink-500 to-rose-600' })}
-                      className="p-3 rounded-lg bg-linear-to-br from-red-500 via-pink-500 to-rose-600 border-2 border-white shadow-md hover:scale-105 transition-transform"
+                      onClick={() => setFormData({ ...formData, backgroundColor: 'from-pink-500 via-pink-500 to-rose-600' })}
+                      className="p-3 rounded-lg bg-linear-to-br from-pink-500 via-pink-500 to-rose-600 border-2 border-white shadow-md hover:scale-105 transition-transform"
                       title="Red to Rose"
                     >
                       <span className="text-white text-xs font-bold">Default</span>
                     </button>
                     <button
                       type="button"
-                      onClick={() => setFormData({ ...formData, backgroundColor: 'from-orange-400 via-red-500 to-pink-600' })}
-                      className="p-3 rounded-lg bg-linear-to-br from-orange-400 via-red-500 to-pink-600 border-2 border-white shadow-md hover:scale-105 transition-transform"
+                      onClick={() => setFormData({ ...formData, backgroundColor: 'from-orange-400 via-pink-500 to-pink-600' })}
+                      className="p-3 rounded-lg bg-linear-to-br from-orange-400 via-pink-500 to-pink-600 border-2 border-white shadow-md hover:scale-105 transition-transform"
                       title="Orange to Pink"
                     >
                       <span className="text-white text-xs font-bold">Warm</span>
@@ -1221,16 +1221,16 @@ export default function OffersPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setFormData({ ...formData, backgroundColor: 'from-yellow-400 via-orange-500 to-red-600' })}
-                      className="p-3 rounded-lg bg-linear-to-br from-yellow-400 via-orange-500 to-red-600 border-2 border-white shadow-md hover:scale-105 transition-transform"
+                      onClick={() => setFormData({ ...formData, backgroundColor: 'from-yellow-400 via-orange-500 to-pink-600' })}
+                      className="p-3 rounded-lg bg-linear-to-br from-yellow-400 via-orange-500 to-pink-600 border-2 border-white shadow-md hover:scale-105 transition-transform"
                       title="Yellow to Red"
                     >
                       <span className="text-white text-xs font-bold">Hot</span>
                     </button>
                     <button
                       type="button"
-                      onClick={() => setFormData({ ...formData, backgroundColor: 'from-purple-400 via-pink-500 to-red-600' })}
-                      className="p-3 rounded-lg bg-linear-to-br from-purple-400 via-pink-500 to-red-600 border-2 border-white shadow-md hover:scale-105 transition-transform"
+                      onClick={() => setFormData({ ...formData, backgroundColor: 'from-purple-400 via-pink-500 to-pink-600' })}
+                      className="p-3 rounded-lg bg-linear-to-br from-purple-400 via-pink-500 to-pink-600 border-2 border-white shadow-md hover:scale-105 transition-transform"
                       title="Purple to Red"
                     >
                       <span className="text-white text-xs font-bold">Bold</span>
@@ -1312,7 +1312,7 @@ export default function OffersPage() {
                     id="displayOnHomepage"
                     checked={formData.displayOnHomepage}
                     onChange={(e) => setFormData({ ...formData, displayOnHomepage: e.target.checked })}
-                    className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
+                    className="w-4 h-4 text-pink-600 border-gray-300 rounded focus:ring-pink-500"
                   />
                   <label htmlFor="displayOnHomepage" className="text-sm font-medium text-gray-700">
                     Display this offer on homepage
@@ -1325,7 +1325,7 @@ export default function OffersPage() {
                     id="showPlainImage"
                     checked={formData.showPlainImage}
                     onChange={(e) => setFormData({ ...formData, showPlainImage: e.target.checked })}
-                    className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
+                    className="w-4 h-4 text-pink-600 border-gray-300 rounded focus:ring-pink-500"
                   />
                   <label htmlFor="showPlainImage" className="text-sm font-medium text-gray-700">
                     Show plain image only (no text overlays/badges)
@@ -1346,7 +1346,7 @@ export default function OffersPage() {
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                  className="flex-1 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700"
                 >
                   {editingOffer ? 'Update Offer' : 'Create Offer'}
                 </button>

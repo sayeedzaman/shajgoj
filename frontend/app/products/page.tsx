@@ -257,7 +257,7 @@ function ProductsContent() {
             <div className="mt-4 flex flex-wrap items-center gap-2">
               <span className="text-sm text-gray-600 font-medium">Active Filters:</span>
               {selectedCategory && (
-                <span className="inline-flex items-center gap-1 bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium">
+                <span className="inline-flex items-center gap-1 bg-pink-100 text-pink-700 px-3 py-1 rounded-full text-sm font-medium">
                   {categories.find(c => c.id === selectedCategory)?.name}
                   <button
                     type="button"
@@ -266,7 +266,7 @@ function ProductsContent() {
                       setSelectedType('');
                       setSelectedSubCategory('');
                     }}
-                    className="hover:bg-red-200 rounded-full p-0.5"
+                    className="hover:bg-pink-200 rounded-full p-0.5"
                     aria-label="Remove category filter"
                   >
                     <X className="w-3 h-3" />
@@ -274,7 +274,7 @@ function ProductsContent() {
                 </span>
               )}
               {selectedType && (
-                <span className="inline-flex items-center gap-1 bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium">
+                <span className="inline-flex items-center gap-1 bg-pink-100 text-pink-700 px-3 py-1 rounded-full text-sm font-medium">
                   {Object.values(categoryTypes).flat().find(t => t.id === selectedType)?.name}
                   <button
                     type="button"
@@ -282,7 +282,7 @@ function ProductsContent() {
                       setSelectedType('');
                       setSelectedSubCategory('');
                     }}
-                    className="hover:bg-red-200 rounded-full p-0.5"
+                    className="hover:bg-pink-200 rounded-full p-0.5"
                     aria-label="Remove type filter"
                   >
                     <X className="w-3 h-3" />
@@ -290,12 +290,12 @@ function ProductsContent() {
                 </span>
               )}
               {selectedSubCategory && (
-                <span className="inline-flex items-center gap-1 bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium">
+                <span className="inline-flex items-center gap-1 bg-pink-100 text-pink-700 px-3 py-1 rounded-full text-sm font-medium">
                   {Object.values(typeSubCategories).flat().find(sc => sc.id === selectedSubCategory)?.name}
                   <button
                     type="button"
                     onClick={() => setSelectedSubCategory('')}
-                    className="hover:bg-red-200 rounded-full p-0.5"
+                    className="hover:bg-pink-200 rounded-full p-0.5"
                     aria-label="Remove sub-category filter"
                   >
                     <X className="w-3 h-3" />
@@ -303,12 +303,12 @@ function ProductsContent() {
                 </span>
               )}
               {selectedBrand && (
-                <span className="inline-flex items-center gap-1 bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium">
+                <span className="inline-flex items-center gap-1 bg-pink-100 text-pink-700 px-3 py-1 rounded-full text-sm font-medium">
                   {brands.find(b => b.id === selectedBrand)?.name}
                   <button
                     type="button"
                     onClick={() => setSelectedBrand('')}
-                    className="hover:bg-red-200 rounded-full p-0.5"
+                    className="hover:bg-pink-200 rounded-full p-0.5"
                     aria-label="Remove brand filter"
                   >
                     <X className="w-3 h-3" />
@@ -316,12 +316,12 @@ function ProductsContent() {
                 </span>
               )}
               {(priceRange[0] > 0 || priceRange[1] < 1000000) && (
-                <span className="inline-flex items-center gap-1 bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium">
+                <span className="inline-flex items-center gap-1 bg-pink-100 text-pink-700 px-3 py-1 rounded-full text-sm font-medium">
                   ৳{priceRange[0].toLocaleString()} - ৳{priceRange[1].toLocaleString()}
                   <button
                     type="button"
                     onClick={() => setPriceRange([0, 1000000])}
-                    className="hover:bg-red-200 rounded-full p-0.5"
+                    className="hover:bg-pink-200 rounded-full p-0.5"
                     aria-label="Remove price range filter"
                   >
                     <X className="w-3 h-3" />
@@ -331,7 +331,7 @@ function ProductsContent() {
               <button
                 type="button"
                 onClick={clearFilters}
-                className="text-sm text-red-600 hover:text-red-700 font-medium underline"
+                className="text-sm text-pink-600 hover:text-pink-700 font-medium underline"
               >
                 Clear All
               </button>
@@ -366,7 +366,7 @@ function ProductsContent() {
                 {(selectedCategory || selectedType || selectedSubCategory || selectedBrand || priceRange[0] > 0 || priceRange[1] < 1000000) && (
                   <button
                     onClick={clearFilters}
-                    className="text-sm text-red-600 hover:text-red-700 font-medium"
+                    className="text-sm text-pink-600 hover:text-pink-700 font-medium"
                   >
                     Clear All
                   </button>
@@ -386,7 +386,7 @@ function ProductsContent() {
                         setSelectedSubCategory('');
                       }}
                       className={`flex items-center cursor-pointer py-2 px-3 rounded-lg transition-colors ${
-                        selectedCategory === '' ? 'bg-red-50 text-red-600 font-medium' : 'text-gray-700 hover:bg-gray-50'
+                        selectedCategory === '' ? 'bg-pink-50 text-pink-600 font-medium' : 'text-gray-700 hover:bg-gray-50'
                       }`}
                     >
                       <span className="text-sm">All Categories</span>
@@ -416,7 +416,7 @@ function ProductsContent() {
                               handleCategoryClick(category.id);
                             }}
                             className={`flex-1 cursor-pointer py-2 px-2 rounded-lg transition-colors ${
-                              selectedCategory === category.id ? 'bg-red-50 text-red-600 font-medium' : 'text-gray-700 hover:bg-gray-50'
+                              selectedCategory === category.id ? 'bg-pink-50 text-pink-600 font-medium' : 'text-gray-700 hover:bg-gray-50'
                             }`}
                           >
                             <span className="text-sm">{category.name}</span>
@@ -449,7 +449,7 @@ function ProductsContent() {
                                       handleTypeClick(type.id);
                                     }}
                                     className={`flex-1 cursor-pointer py-1.5 px-2 rounded-lg transition-colors ${
-                                      selectedType === type.id ? 'bg-red-50 text-red-600 font-medium' : 'text-gray-700 hover:bg-gray-50'
+                                      selectedType === type.id ? 'bg-pink-50 text-pink-600 font-medium' : 'text-gray-700 hover:bg-gray-50'
                                     }`}
                                   >
                                     <span className="text-sm">{type.name}</span>
@@ -468,7 +468,7 @@ function ProductsContent() {
                                           setSelectedSubCategory(subCategory.id);
                                         }}
                                         className={`cursor-pointer py-1.5 px-2 rounded-lg transition-colors ${
-                                          selectedSubCategory === subCategory.id ? 'bg-red-50 text-red-600 font-medium' : 'text-gray-700 hover:bg-gray-50'
+                                          selectedSubCategory === subCategory.id ? 'bg-pink-50 text-pink-600 font-medium' : 'text-gray-700 hover:bg-gray-50'
                                         }`}
                                       >
                                         <span className="text-sm">{subCategory.name}</span>
@@ -492,7 +492,7 @@ function ProductsContent() {
                     <div
                       onClick={() => setSelectedBrand('')}
                       className={`cursor-pointer py-2 px-3 rounded-lg transition-colors ${
-                        selectedBrand === '' ? 'bg-red-50 text-red-600 font-medium' : 'text-gray-700 hover:bg-gray-50'
+                        selectedBrand === '' ? 'bg-pink-50 text-pink-600 font-medium' : 'text-gray-700 hover:bg-gray-50'
                       }`}
                     >
                       <span className="text-sm">All Brands</span>
@@ -502,7 +502,7 @@ function ProductsContent() {
                         key={brand.id}
                         onClick={() => setSelectedBrand(brand.id)}
                         className={`cursor-pointer py-2 px-3 rounded-lg transition-colors ${
-                          selectedBrand === brand.id ? 'bg-red-50 text-red-600 font-medium' : 'text-gray-700 hover:bg-gray-50'
+                          selectedBrand === brand.id ? 'bg-pink-50 text-pink-600 font-medium' : 'text-gray-700 hover:bg-gray-50'
                         }`}
                       >
                         <span className="text-sm">{brand.name}</span>
@@ -531,7 +531,7 @@ function ProductsContent() {
                               const newMin = Math.max(0, Math.min(parseInt(e.target.value) || 0, priceRange[1]));
                               setPriceRange([newMin, priceRange[1]]);
                             }}
-                            className="w-full pl-7 pr-2 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                            className="w-full pl-7 pr-2 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
                           />
                         </div>
                       </div>
@@ -549,7 +549,7 @@ function ProductsContent() {
                               const newMax = Math.max(priceRange[0], Math.min(parseInt(e.target.value) || 1000000, 1000000));
                               setPriceRange([priceRange[0], newMax]);
                             }}
-                            className="w-full pl-7 pr-2 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                            className="w-full pl-7 pr-2 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
                           />
                         </div>
                       </div>
@@ -559,7 +559,7 @@ function ProductsContent() {
                     <div className="relative h-2">
                       <div className="absolute w-full h-2 bg-gray-200 rounded-lg" />
                       <div
-                        className="absolute h-2 bg-red-600 rounded-lg"
+                        className="absolute h-2 bg-pink-600 rounded-lg"
                         style={{
                           left: `${(priceRange[0] / 1000000) * 100}%`,
                           right: `${100 - (priceRange[1] / 1000000) * 100}%`
@@ -575,7 +575,7 @@ function ProductsContent() {
                           const newMin = parseInt(e.target.value);
                           setPriceRange([Math.min(newMin, priceRange[1]), priceRange[1]]);
                         }}
-                        className="absolute top-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-red-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-red-600 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:shadow-md"
+                        className="absolute top-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-pink-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-pink-600 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:shadow-md"
                         style={{ height: '8px' }}
                         aria-label="Minimum price"
                       />
@@ -589,7 +589,7 @@ function ProductsContent() {
                           const newMax = parseInt(e.target.value);
                           setPriceRange([priceRange[0], Math.max(newMax, priceRange[0])]);
                         }}
-                        className="absolute top-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-red-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-red-600 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:shadow-md"
+                        className="absolute top-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-pink-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-pink-600 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:shadow-md"
                         style={{ height: '8px' }}
                         aria-label="Maximum price"
                       />
@@ -617,7 +617,7 @@ function ProductsContent() {
                         setItemsPerPage(Number(e.target.value));
                         setCurrentPage(1);
                       }}
-                      className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                      className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
                       aria-label="items per page"
                     >
                       <option value={12}>12</option>
@@ -634,7 +634,7 @@ function ProductsContent() {
                         setSortBy(sort as 'createdAt' | 'price' | 'name');
                         setSortOrder(order as 'asc' | 'desc');
                       }}
-                      className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                      className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
                       aria-label="sort by"
                     >
                       <option value="createdAt-desc">Newest First</option>
@@ -655,7 +655,7 @@ function ProductsContent() {
                 <p className="text-gray-600">{error}</p>
                 <button
                   onClick={fetchProducts}
-                  className="mt-4 px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                  className="mt-4 px-6 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors"
                 >
                   Try Again
                 </button>
@@ -720,7 +720,7 @@ function ProductsContent() {
                             onClick={() => setCurrentPage(pageNum)}
                             className={`px-3 py-2 rounded-lg text-sm font-medium ${
                               currentPage === pageNum
-                                ? 'bg-red-600 text-white'
+                                ? 'bg-pink-600 text-white'
                                 : 'text-gray-700 hover:bg-gray-100'
                             }`}
                           >

@@ -988,19 +988,19 @@ export const adminSubCategoriesAPI = {
     const url = typeId
       ? `${API_URL}/api/subcategories?typeId=${typeId}`
       : `${API_URL}/api/subcategories`;
-    const data = await cachedFetch<{ subCategories: SubCategory[] }>(url, {
+    const data = await cachedFetch<{ subcategories?: SubCategory[]; subCategories?: SubCategory[] }>(url, {
       method: 'GET',
       headers: createHeaders(),
     });
-    return data.subCategories;
+    return data.subcategories ?? data.subCategories ?? [];
   },
 
   getByTypeId: async (typeId: string): Promise<SubCategory[]> => {
-    const data = await cachedFetch<{ subCategories: SubCategory[] }>(`${API_URL}/api/subcategories/type/${typeId}`, {
+    const data = await cachedFetch<{ subcategories?: SubCategory[]; subCategories?: SubCategory[] }>(`${API_URL}/api/subcategories/type/${typeId}`, {
       method: 'GET',
       headers: createHeaders(),
     });
-    return data.subCategories;
+    return data.subcategories ?? data.subCategories ?? [];
   },
 
   getById: async (id: string): Promise<SubCategory> => {

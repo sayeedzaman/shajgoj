@@ -77,7 +77,7 @@ export default function CartPage() {
                           {/* Image */}
                           <Link
                             href={`/products/${item.product.slug}`}
-                            className="w-20 h-20 sm:w-24 sm:h-24 bg-white rounded-lg overflow-hidden flex-shrink-0 border border-gray-200 hover:border-red-500 transition-colors"
+                            className="w-20 h-20 sm:w-24 sm:h-24 bg-white rounded-lg overflow-hidden flex-shrink-0 border border-gray-200 hover:border-pink-500 transition-colors"
                           >
                             {item.product.imageUrl || item.product.images?.[0] ? (
                               <img
@@ -96,7 +96,7 @@ export default function CartPage() {
                           <div className="flex-1 min-w-0">
                             <Link
                               href={`/products/${item.product.slug}`}
-                              className="text-base font-semibold text-gray-900 hover:text-red-600 line-clamp-2 block mb-1"
+                              className="text-base font-semibold text-gray-900 hover:text-pink-600 line-clamp-2 block mb-1"
                             >
                               {item.product.name}
                             </Link>
@@ -111,7 +111,7 @@ export default function CartPage() {
                               </p>
                             )}
                             {item.product.stock === 0 && (
-                              <p className="text-xs text-red-600 font-medium">
+                              <p className="text-xs text-pink-600 font-medium">
                                 Out of stock
                               </p>
                             )}
@@ -123,7 +123,7 @@ export default function CartPage() {
                           <div className="flex md:flex-col md:items-center gap-1.5 md:gap-2">
                             <span className="md:hidden text-sm text-gray-600 font-medium">Price:</span>
                             <div className="flex md:flex-col items-center md:items-center gap-1.5">
-                              <span className="text-base sm:text-lg font-bold text-red-600">
+                              <span className="text-base sm:text-lg font-bold text-pink-600">
                                 ৳{displayPrice.toFixed(0)}
                               </span>
                               {hasDiscount && (
@@ -174,7 +174,7 @@ export default function CartPage() {
                           <button
                             onClick={() => removeFromCart(item.id)}
                             disabled={isLoading}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg disabled:opacity-50 transition-colors"
+                            className="p-2 text-pink-600 hover:bg-pink-50 rounded-lg disabled:opacity-50 transition-colors"
                             aria-label="Remove item"
                           >
                             <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -191,7 +191,7 @@ export default function CartPage() {
             <div className="mt-4 sm:mt-6">
               <Link
                 href="/products"
-                className="inline-flex items-center gap-2 text-red-600 hover:text-red-700 font-medium transition-colors text-sm sm:text-base"
+                className="inline-flex items-center gap-2 text-pink-600 hover:text-pink-700 font-medium transition-colors text-sm sm:text-base"
               >
                 <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 rotate-180" />
                 Continue Shopping
@@ -237,21 +237,21 @@ export default function CartPage() {
                   </p>
                 ) : (
                   <p className="text-xs sm:text-sm text-green-600 bg-green-50 p-2.5 sm:p-3 rounded-lg">
-                    🎉 You qualify for FREE shipping!
+                    ðŸŽ‰ You qualify for FREE shipping!
                   </p>
                 )}
 
                 <div className="border-t border-gray-200 pt-3 sm:pt-4">
                   <div className="flex justify-between text-base sm:text-lg font-bold">
                     <span className="text-gray-900">Total</span>
-                    <span className="text-red-600">৳{total.toFixed(2)}</span>
+                    <span className="text-pink-600">৳{total.toFixed(2)}</span>
                   </div>
                 </div>
               </div>
 
               <button
                 onClick={() => router.push('/checkout')}
-                className="w-full py-3 sm:py-3.5 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-colors flex items-center justify-center gap-2 group text-sm sm:text-base"
+                className="w-full py-3 sm:py-3.5 bg-pink-600 text-white rounded-lg font-semibold hover:bg-pink-700 transition-colors flex items-center justify-center gap-2 group text-sm sm:text-base"
               >
                 Proceed to Checkout
                 <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />

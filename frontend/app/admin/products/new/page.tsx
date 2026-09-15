@@ -245,8 +245,8 @@ export default function NewProductPage() {
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-red-800">{error}</p>
+        <div className="bg-pink-50 border border-pink-200 rounded-lg p-4">
+          <p className="text-pink-800">{error}</p>
         </div>
       )}
 
@@ -259,7 +259,7 @@ export default function NewProductPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Product Name <span className="text-red-500">*</span>
+                Product Name <span className="text-pink-500">*</span>
               </label>
               <input
                 type="text"
@@ -274,7 +274,7 @@ export default function NewProductPage() {
 
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Slug <span className="text-red-500">*</span>
+                Slug <span className="text-pink-500">*</span>
               </label>
               <input
                 type="text"
@@ -311,7 +311,7 @@ export default function NewProductPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Price <span className="text-red-500">*</span>
+                Price <span className="text-pink-500">*</span>
               </label>
               <input
                 type="number"
@@ -366,7 +366,7 @@ export default function NewProductPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Category <span className="text-red-500">*</span>
+                Category <span className="text-pink-500">*</span>
               </label>
               <select
                 name="categoryId"
@@ -388,7 +388,7 @@ export default function NewProductPage() {
             {/* Type Selection - Always visible but disabled until category is selected */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Type <span className="text-red-500">*</span>
+                Type <span className="text-pink-500">*</span>
               </label>
               <select
                 required={types.length > 0}
@@ -411,7 +411,7 @@ export default function NewProductPage() {
             {/* Sub-Category Selection - Always visible but disabled until type is selected */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Sub-Category <span className="text-red-500">*</span>
+                Sub-Category <span className="text-pink-500">*</span>
               </label>
               <select
                 required={subCategories.length > 0}
@@ -540,7 +540,7 @@ export default function NewProductPage() {
                     <button
                       type="button"
                       onClick={() => removeImage(index)}
-                      className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-2 right-2 p-1 bg-pink-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                     >
                       <X className="w-4 h-4" />
                     </button>

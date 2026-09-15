@@ -74,7 +74,7 @@ export default function CartSidebar({
                 <Link
                   href="/products"
                   onClick={onClose}
-                  className="px-6 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-colors"
+                  className="px-6 py-3 bg-pink-600 text-white rounded-lg font-semibold hover:bg-pink-700 transition-colors"
                 >
                   Browse Products
                 </Link>
@@ -113,7 +113,7 @@ export default function CartSidebar({
                             <Link
                               href={`/products/${item.product.slug}`}
                               onClick={onClose}
-                              className="text-sm font-medium text-gray-900 hover:text-red-600 line-clamp-2 block mb-1"
+                              className="text-sm font-medium text-gray-900 hover:text-pink-600 line-clamp-2 block mb-1"
                             >
                               {item.product.name}
                             </Link>
@@ -127,7 +127,7 @@ export default function CartSidebar({
 
                           {/* Price */}
                           <div className="flex items-center gap-2 mt-1">
-                            <span className="text-sm font-bold text-red-600">
+                            <span className="text-sm font-bold text-pink-600">
                               ৳{displayPrice.toFixed(0)}
                             </span>
                             {hasDiscount && (
@@ -171,7 +171,7 @@ export default function CartSidebar({
                           <button
                             onClick={() => onRemoveItem(item.id)}
                             disabled={isLoading}
-                            className="p-1.5 text-red-600 hover:bg-red-50 rounded disabled:opacity-50 transition-colors"
+                            className="p-1.5 text-pink-600 hover:bg-pink-50 rounded disabled:opacity-50 transition-colors"
                             aria-label="Remove item"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -191,7 +191,7 @@ export default function CartSidebar({
               {/* Subtotal */}
               <div className="flex items-center justify-between text-lg sm:text-xl font-bold">
                 <span className="text-gray-900">Subtotal:</span>
-                <span className="text-red-600">৳{subtotal.toFixed(2)}</span>
+                <span className="text-pink-600">৳{subtotal.toFixed(2)}</span>
               </div>
 
               {/* Action Buttons */}
@@ -199,7 +199,7 @@ export default function CartSidebar({
                 <Link
                   href="/cart"
                   onClick={onClose}
-                  className="block w-full py-3.5 bg-red-600 text-white text-center rounded-lg font-semibold hover:bg-red-700 transition-colors text-base"
+                  className="block w-full py-3.5 bg-pink-600 text-white text-center rounded-lg font-semibold hover:bg-pink-700 transition-colors text-base"
                 >
                   View Cart
                 </Link>

@@ -33,9 +33,9 @@ export default function StrikingOfferCard({ offer }: StrikingOfferCardProps) {
   };
 
   // Default colors if not provided
-  const bgColor = offer.backgroundColor || 'from-red-500 via-pink-500 to-rose-600';
+  const bgColor = offer.backgroundColor || 'from-pink-500 via-pink-500 to-rose-600';
   const textColor = offer.textColor || 'text-white';
-  const badgeColor = offer.badgeColor || 'bg-yellow-400 text-red-900';
+  const badgeColor = offer.badgeColor || 'bg-yellow-400 text-pink-900';
   const borderStyle = offer.borderStyle || 'wavy';
 
   // Border style classes

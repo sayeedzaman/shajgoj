@@ -239,10 +239,10 @@ model Review {
 
 model StoreSettings {
   id                    String   @id @default(uuid())
-  storeName             String   @default("Khali's Beauty Store")
-  storeEmail            String   @default("admin@khalisbeauty.com")
-  storePhone            String   @default("+880 1712-345678")
-  storeAddress          String   @default("Dhaka, Bangladesh")
+  storeName             String   @default("Beautiland by Rakhi")
+  storeEmail            String   @default("")
+  storePhone            String   @default("+8801883096484")
+  storeAddress          String   @default("")
   currency              String   @default("BDT")
   timezone              String   @default("Asia/Dhaka")
   emailNotifications    Boolean  @default(true)

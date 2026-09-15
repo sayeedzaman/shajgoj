@@ -58,7 +58,7 @@ export default function BrandsPage() {
           <p className="text-gray-600 mb-6">{error}</p>
           <button
             onClick={fetchBrands}
-            className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            className="px-6 py-3 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors"
           >
             Try Again
           </button>
@@ -72,7 +72,7 @@ export default function BrandsPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Breadcrumb */}
         <div className="flex items-center space-x-2 text-sm text-gray-500 mb-8">
-          <Link href="/" className="hover:text-red-600 transition-colors">
+          <Link href="/" className="hover:text-pink-600 transition-colors">
             Home
           </Link>
           <ChevronRight className="w-4 h-4" />
@@ -94,7 +94,7 @@ export default function BrandsPage() {
               <Link
                 key={brand.id}
                 href={`/brand/${brand.slug}`}
-                className="group bg-white rounded-lg p-6 hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-red-500 flex flex-col items-center justify-center min-h-[140px]"
+                className="group bg-white rounded-lg p-6 hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-pink-500 flex flex-col items-center justify-center min-h-[140px]"
               >
                 {brand.logo ? (
                   <div className="w-full h-20 mb-3 flex items-center justify-center">
@@ -105,13 +105,13 @@ export default function BrandsPage() {
                     />
                   </div>
                 ) : (
-                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-3 group-hover:bg-red-50 transition-colors">
-                    <span className="text-2xl font-bold text-gray-400 group-hover:text-red-600">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-3 group-hover:bg-pink-50 transition-colors">
+                    <span className="text-2xl font-bold text-gray-400 group-hover:text-pink-600">
                       {brand.name.charAt(0)}
                     </span>
                   </div>
                 )}
-                <h3 className="text-center text-sm font-semibold text-gray-900 group-hover:text-red-600 transition-colors line-clamp-2">
+                <h3 className="text-center text-sm font-semibold text-gray-900 group-hover:text-pink-600 transition-colors line-clamp-2">
                   {brand.name}
                 </h3>
               </Link>

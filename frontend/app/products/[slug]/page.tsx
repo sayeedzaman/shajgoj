@@ -162,7 +162,7 @@ export default function ProductDetailPage() {
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Product not found</h1>
-          <Link href="/products" className="text-red-600 hover:text-red-700 font-medium">
+          <Link href="/products" className="text-pink-600 hover:text-pink-700 font-medium">
             Browse all products
           </Link>
         </div>
@@ -185,13 +185,13 @@ export default function ProductDetailPage() {
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Breadcrumbs */}
         <nav className="flex items-center gap-2 text-sm text-gray-600 mb-6">
-          <Link href="/" className="hover:text-red-600">Home</Link>
+          <Link href="/" className="hover:text-pink-600">Home</Link>
           <ChevronRight className="w-4 h-4" />
-          <Link href="/products" className="hover:text-red-600">Products</Link>
+          <Link href="/products" className="hover:text-pink-600">Products</Link>
           <ChevronRight className="w-4 h-4" />
           {product.Category && (
             <>
-              <Link href={`/category/${product.Category.slug}`} className="hover:text-red-600">
+              <Link href={`/category/${product.Category.slug}`} className="hover:text-pink-600">
                 {product.Category.name}
               </Link>
               <ChevronRight className="w-4 h-4" />
@@ -207,12 +207,12 @@ export default function ProductDetailPage() {
             {/* Main Image */}
             <div className="relative aspect-square bg-white rounded-lg border border-gray-200 overflow-hidden">
               {hasDiscount && (
-                <div className="absolute top-4 left-4 bg-red-500 text-white text-sm font-bold px-3 py-1.5 rounded z-10">
+                <div className="absolute top-4 left-4 bg-pink-500 text-white text-sm font-bold px-3 py-1.5 rounded z-10">
                   -{discountPercent}% OFF
                 </div>
               )}
               {product.featured && (
-                <div className="absolute top-4 right-4 bg-linear-to-r from-red-500 to-pink-500 text-white text-xs font-semibold px-3 py-1.5 rounded z-10">
+                <div className="absolute top-4 right-4 bg-linear-to-r from-pink-500 to-pink-500 text-white text-xs font-semibold px-3 py-1.5 rounded z-10">
                   Featured
                 </div>
               )}
@@ -254,7 +254,7 @@ export default function ProductDetailPage() {
                       onClick={() => setSelectedImage(index)}
                       className={`aspect-square bg-white rounded-lg border-2 overflow-hidden transition-all ${
                         selectedImage === index
-                          ? 'border-red-500'
+                          ? 'border-pink-500'
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
                     >
@@ -303,7 +303,7 @@ export default function ProductDetailPage() {
 
             {/* Price */}
             <div className="flex items-center gap-3">
-              <span className="text-4xl font-bold text-red-600">
+              <span className="text-4xl font-bold text-pink-600">
                 ৳{displayPrice.toFixed(0)}
               </span>
               {hasDiscount && (
@@ -311,7 +311,7 @@ export default function ProductDetailPage() {
                   <span className="text-2xl text-gray-400 line-through">
                     ৳{product.price.toFixed(0)}
                   </span>
-                  <span className="bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm font-semibold">
+                  <span className="bg-pink-100 text-pink-600 px-3 py-1 rounded-full text-sm font-semibold">
                     Save ৳{(product.price - product.salePrice!).toFixed(0)}
                   </span>
                 </>
@@ -333,8 +333,8 @@ export default function ProductDetailPage() {
                   </div>
                 )
               ) : (
-                <div className="flex items-center gap-2 text-red-600">
-                  <div className="w-2 h-2 bg-red-600 rounded-full"></div>
+                <div className="flex items-center gap-2 text-pink-600">
+                  <div className="w-2 h-2 bg-pink-600 rounded-full"></div>
                   <span className="font-medium">Out of Stock</span>
                 </div>
               )}
@@ -386,7 +386,7 @@ export default function ProductDetailPage() {
               <button
                 onClick={handleAddToCart}
                 disabled={product.stock === 0 || addingToCart}
-                className="flex-1 bg-red-600 text-white py-4 px-6 rounded-lg font-semibold text-lg hover:bg-red-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="flex-1 bg-pink-600 text-white py-4 px-6 rounded-lg font-semibold text-lg hover:bg-pink-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {addingToCart ? (
                   <>
@@ -431,14 +431,14 @@ export default function ProductDetailPage() {
                 }}
                 className={`p-4 border-2 rounded-lg transition-all ${
                   product && isInWishlist(product.id)
-                    ? 'border-red-500 bg-red-50'
-                    : 'border-gray-300 hover:border-red-500 hover:bg-red-50'
+                    ? 'border-pink-500 bg-pink-50'
+                    : 'border-gray-300 hover:border-pink-500 hover:bg-pink-50'
                 }`}
                 aria-label={product && isInWishlist(product.id) ? 'Remove from wishlist' : 'Add to wishlist'}
               >
                 <Heart
                   className={`w-6 h-6 ${
-                    product && isInWishlist(product.id) ? 'fill-red-500 text-red-500' : 'text-gray-600'
+                    product && isInWishlist(product.id) ? 'fill-pink-500 text-pink-500' : 'text-gray-600'
                   }`}
                 />
               </button>
@@ -454,21 +454,21 @@ export default function ProductDetailPage() {
             {/* Product Benefits */}
             <div className="border-t border-gray-200 pt-6 space-y-4">
               <div className="flex items-start gap-3">
-                <Truck className="w-5 h-5 text-red-600 mt-0.5" />
+                <Truck className="w-5 h-5 text-pink-600 mt-0.5" />
                 <div>
                   <h3 className="font-semibold text-gray-900">Fast Delivery</h3>
                   <p className="text-sm text-gray-600">Quick delivery across Bangladesh</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <RotateCcw className="w-5 h-5 text-red-600 mt-0.5" />
+                <RotateCcw className="w-5 h-5 text-pink-600 mt-0.5" />
                 <div>
                   <h3 className="font-semibold text-gray-900">Easy Returns</h3>
                   <p className="text-sm text-gray-600">7-day hassle-free returns</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <Shield className="w-5 h-5 text-red-600 mt-0.5" />
+                <Shield className="w-5 h-5 text-pink-600 mt-0.5" />
                 <div>
                   <h3 className="font-semibold text-gray-900">100% Authentic</h3>
                   <p className="text-sm text-gray-600">Genuine products guaranteed</p>
@@ -486,7 +486,7 @@ export default function ProductDetailPage() {
 
           {reviewsLoading ? (
             <div className="text-center py-8">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600"></div>
             </div>
           ) : reviews.length > 0 ? (
             <div className="space-y-4">
@@ -577,7 +577,7 @@ export default function ProductDetailPage() {
                   value={reviewComment}
                   onChange={(e) => setReviewComment(e.target.value)}
                   rows={4}
-                  className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-pink-500"
                   placeholder="Share your experience with this product..."
                 />
               </div>
@@ -592,7 +592,7 @@ export default function ProductDetailPage() {
                 <button
                   onClick={handleSubmitReview}
                   disabled={submittingReview}
-                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
                 >
                   {submittingReview ? 'Submitting...' : 'Submit Review'}
                 </button>

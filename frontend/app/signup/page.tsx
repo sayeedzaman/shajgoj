@@ -75,7 +75,7 @@ export default function SignupPage() {
         <h1 className="text-2xl font-semibold text-gray-800 mb-4">Create an Account</h1>
 
         {error && (
-          <div className="mb-4 text-sm text-red-600 bg-red-50 p-3 rounded">{error}</div>
+          <div className="mb-4 text-sm text-pink-600 bg-pink-50 p-3 rounded">{error}</div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -87,7 +87,7 @@ export default function SignupPage() {
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 disabled={loading}
-                className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-pink-500 disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
             <div>
@@ -97,7 +97,7 @@ export default function SignupPage() {
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 disabled={loading}
-                className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-pink-500 disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
           </div>
@@ -110,7 +110,7 @@ export default function SignupPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={loading}
-              className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-pink-500 disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
 
@@ -125,7 +125,7 @@ export default function SignupPage() {
               }}
               required
               disabled={loading}
-              className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-pink-500 disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
 
@@ -142,12 +142,12 @@ export default function SignupPage() {
               disabled={loading}
               className={`w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed ${
                 passwordMismatch
-                  ? 'border-red-500 focus:ring-red-500'
-                  : 'border-gray-300 focus:ring-red-500'
+                  ? 'border-pink-500 focus:ring-pink-500'
+                  : 'border-gray-300 focus:ring-pink-500'
               }`}
             />
             {passwordMismatch && (
-              <p className="mt-1 text-sm text-red-600">Passwords do not match</p>
+              <p className="mt-1 text-sm text-pink-600">Passwords do not match</p>
             )}
           </div>
 
@@ -158,7 +158,7 @@ export default function SignupPage() {
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               disabled={loading}
-              className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-pink-500 disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
 
@@ -176,7 +176,7 @@ export default function SignupPage() {
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               disabled={loading}
-              className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-pink-500 disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
 
@@ -188,7 +188,7 @@ export default function SignupPage() {
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
                 disabled={loading}
-                className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-pink-500 disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
             <div>
@@ -198,7 +198,7 @@ export default function SignupPage() {
                 value={state}
                 onChange={(e) => setState(e.target.value)}
                 disabled={loading}
-                className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-pink-500 disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
           </div>
@@ -210,18 +210,18 @@ export default function SignupPage() {
               value={zipCode}
               onChange={(e) => setZipCode(e.target.value)}
               disabled={loading}
-              className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-pink-500 disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
 
           <div className="flex items-center justify-between">
-            <Link href="/login" className="text-sm text-red-500 hover:underline">
+            <Link href="/login" className="text-sm text-pink-500 hover:underline">
               Already have an account?
             </Link>
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              className="px-4 py-2 bg-pink-500 text-white rounded hover:bg-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
             >
               {loading ? 'Signing up...' : 'Create account'}
             </button>

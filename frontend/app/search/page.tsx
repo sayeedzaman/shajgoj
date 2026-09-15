@@ -273,7 +273,7 @@ function SearchContent() {
                   }
                 }}
                 placeholder="Search for products, brands, categories..."
-                className="w-full px-6 py-4 pl-12 pr-12 border-2 border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent text-lg"
+                className="w-full px-6 py-4 pl-12 pr-12 border-2 border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent text-lg"
                 autoComplete="off"
               />
               <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-400" />
@@ -294,7 +294,7 @@ function SearchContent() {
               <div className="absolute top-full mt-2 w-full bg-white rounded-lg shadow-xl border border-gray-200 z-50 max-h-[500px] overflow-y-auto">
                 {instantLoading ? (
                   <div className="p-4 text-center text-gray-500">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600 mx-auto"></div>
                   </div>
                 ) : instantResults.length > 0 ? (
                   <>
@@ -334,7 +334,7 @@ function SearchContent() {
                               {product.name}
                             </h3>
                             <div className="flex items-center gap-2 mt-1">
-                              <p className="text-sm font-semibold text-red-600">
+                              <p className="text-sm font-semibold text-pink-600">
                                 {formatPrice(product.price, product.salePrice)}
                               </p>
                               {product.salePrice && (
@@ -366,7 +366,7 @@ function SearchContent() {
                           setShowInstantResults(false);
                           handleSearch(e as any);
                         }}
-                        className="w-full text-center text-sm text-red-600 hover:text-red-700 font-medium"
+                        className="w-full text-center text-sm text-pink-600 hover:text-pink-700 font-medium"
                       >
                         View all results for &quot;{searchQuery}&quot;
                       </button>
@@ -402,7 +402,7 @@ function SearchContent() {
             <div className="mt-4 flex flex-wrap items-center gap-2">
               <span className="text-sm text-gray-600 font-medium">Active Filters:</span>
               {selectedCategory && (
-                <span className="inline-flex items-center gap-1 bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium">
+                <span className="inline-flex items-center gap-1 bg-pink-100 text-pink-700 px-3 py-1 rounded-full text-sm font-medium">
                   {categories.find(c => c.id === selectedCategory)?.name}
                   <button
                     type="button"
@@ -411,7 +411,7 @@ function SearchContent() {
                       setSelectedType('');
                       setSelectedSubCategory('');
                     }}
-                    className="hover:bg-red-200 rounded-full p-0.5"
+                    className="hover:bg-pink-200 rounded-full p-0.5"
                     aria-label="Remove category filter"
                   >
                     <X className="w-3 h-3" />
@@ -419,7 +419,7 @@ function SearchContent() {
                 </span>
               )}
               {selectedType && (
-                <span className="inline-flex items-center gap-1 bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium">
+                <span className="inline-flex items-center gap-1 bg-pink-100 text-pink-700 px-3 py-1 rounded-full text-sm font-medium">
                   {Object.values(categoryTypes).flat().find(t => t.id === selectedType)?.name}
                   <button
                     type="button"
@@ -427,7 +427,7 @@ function SearchContent() {
                       setSelectedType('');
                       setSelectedSubCategory('');
                     }}
-                    className="hover:bg-red-200 rounded-full p-0.5"
+                    className="hover:bg-pink-200 rounded-full p-0.5"
                     aria-label="Remove type filter"
                   >
                     <X className="w-3 h-3" />
@@ -435,12 +435,12 @@ function SearchContent() {
                 </span>
               )}
               {selectedSubCategory && (
-                <span className="inline-flex items-center gap-1 bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium">
+                <span className="inline-flex items-center gap-1 bg-pink-100 text-pink-700 px-3 py-1 rounded-full text-sm font-medium">
                   {Object.values(typeSubCategories).flat().find(sc => sc.id === selectedSubCategory)?.name}
                   <button
                     type="button"
                     onClick={() => setSelectedSubCategory('')}
-                    className="hover:bg-red-200 rounded-full p-0.5"
+                    className="hover:bg-pink-200 rounded-full p-0.5"
                     aria-label="Remove sub-category filter"
                   >
                     <X className="w-3 h-3" />
@@ -448,12 +448,12 @@ function SearchContent() {
                 </span>
               )}
               {selectedBrand && (
-                <span className="inline-flex items-center gap-1 bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium">
+                <span className="inline-flex items-center gap-1 bg-pink-100 text-pink-700 px-3 py-1 rounded-full text-sm font-medium">
                   {brands.find(b => b.id === selectedBrand)?.name}
                   <button
                     type="button"
                     onClick={() => setSelectedBrand('')}
-                    className="hover:bg-red-200 rounded-full p-0.5"
+                    className="hover:bg-pink-200 rounded-full p-0.5"
                     aria-label="Remove brand filter"
                   >
                     <X className="w-3 h-3" />
@@ -461,12 +461,12 @@ function SearchContent() {
                 </span>
               )}
               {(priceRange[0] > 0 || priceRange[1] < 1000000) && (
-                <span className="inline-flex items-center gap-1 bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-medium">
+                <span className="inline-flex items-center gap-1 bg-pink-100 text-pink-700 px-3 py-1 rounded-full text-sm font-medium">
                   ৳{priceRange[0].toLocaleString()} - ৳{priceRange[1].toLocaleString()}
                   <button
                     type="button"
                     onClick={() => setPriceRange([0, 1000000])}
-                    className="hover:bg-red-200 rounded-full p-0.5"
+                    className="hover:bg-pink-200 rounded-full p-0.5"
                     aria-label="Remove price range filter"
                   >
                     <X className="w-3 h-3" />
@@ -475,7 +475,7 @@ function SearchContent() {
               )}
               <button
                 onClick={clearFilters}
-                className="text-sm text-red-600 hover:text-red-700 font-medium underline"
+                className="text-sm text-pink-600 hover:text-pink-700 font-medium underline"
               >
                 Clear All
               </button>
@@ -513,7 +513,7 @@ function SearchContent() {
                     {(selectedCategory || selectedType || selectedSubCategory || selectedBrand || priceRange[0] > 0 || priceRange[1] < 1000000) && (
                       <button
                         onClick={clearFilters}
-                        className="text-sm text-red-600 hover:text-red-700 font-medium"
+                        className="text-sm text-pink-600 hover:text-pink-700 font-medium"
                       >
                         Clear All
                       </button>
@@ -534,7 +534,7 @@ function SearchContent() {
                             setSelectedSubCategory('');
                           }}
                           className={`flex items-center cursor-pointer py-2 px-3 rounded-lg transition-colors ${
-                            selectedCategory === '' ? 'bg-red-50 text-red-600 font-medium' : 'text-gray-700 hover:bg-gray-50'
+                            selectedCategory === '' ? 'bg-pink-50 text-pink-600 font-medium' : 'text-gray-700 hover:bg-gray-50'
                           }`}
                         >
                           <span className="text-sm">All Categories</span>
@@ -563,7 +563,7 @@ function SearchContent() {
                                   setSelectedSubCategory('');
                                 }}
                                 className={`flex-1 cursor-pointer py-2 px-2 rounded-lg transition-colors ${
-                                  selectedCategory === category.id ? 'bg-red-50 text-red-600 font-medium' : 'text-gray-700 hover:bg-gray-50'
+                                  selectedCategory === category.id ? 'bg-pink-50 text-pink-600 font-medium' : 'text-gray-700 hover:bg-gray-50'
                                 }`}
                               >
                                 <span className="text-sm">{category.name}</span>
@@ -595,7 +595,7 @@ function SearchContent() {
                                           setSelectedSubCategory('');
                                         }}
                                         className={`flex-1 cursor-pointer py-1.5 px-2 rounded-lg transition-colors ${
-                                          selectedType === type.id ? 'bg-red-50 text-red-600 font-medium' : 'text-gray-700 hover:bg-gray-50'
+                                          selectedType === type.id ? 'bg-pink-50 text-pink-600 font-medium' : 'text-gray-700 hover:bg-gray-50'
                                         }`}
                                       >
                                         <span className="text-sm">{type.name}</span>
@@ -614,7 +614,7 @@ function SearchContent() {
                                               setSelectedSubCategory(subCategory.id);
                                             }}
                                             className={`cursor-pointer py-1.5 px-2 rounded-lg transition-colors ${
-                                              selectedSubCategory === subCategory.id ? 'bg-red-50 text-red-600 font-medium' : 'text-gray-700 hover:bg-gray-50'
+                                              selectedSubCategory === subCategory.id ? 'bg-pink-50 text-pink-600 font-medium' : 'text-gray-700 hover:bg-gray-50'
                                             }`}
                                           >
                                             <span className="text-sm">{subCategory.name}</span>
@@ -638,7 +638,7 @@ function SearchContent() {
                         <div
                           onClick={() => setSelectedBrand('')}
                           className={`cursor-pointer py-2 px-3 rounded-lg transition-colors ${
-                            selectedBrand === '' ? 'bg-red-50 text-red-600 font-medium' : 'text-gray-700 hover:bg-gray-50'
+                            selectedBrand === '' ? 'bg-pink-50 text-pink-600 font-medium' : 'text-gray-700 hover:bg-gray-50'
                           }`}
                         >
                           <span className="text-sm">All Brands</span>
@@ -648,7 +648,7 @@ function SearchContent() {
                             key={brand.id}
                             onClick={() => setSelectedBrand(brand.id)}
                             className={`cursor-pointer py-2 px-3 rounded-lg transition-colors ${
-                              selectedBrand === brand.id ? 'bg-red-50 text-red-600 font-medium' : 'text-gray-700 hover:bg-gray-50'
+                              selectedBrand === brand.id ? 'bg-pink-50 text-pink-600 font-medium' : 'text-gray-700 hover:bg-gray-50'
                             }`}
                           >
                             <span className="text-sm">{brand.name}</span>
@@ -677,7 +677,7 @@ function SearchContent() {
                                   const newMin = Math.max(0, Math.min(parseInt(e.target.value) || 0, priceRange[1]));
                                   setPriceRange([newMin, priceRange[1]]);
                                 }}
-                                className="w-full pl-7 pr-2 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                                className="w-full pl-7 pr-2 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
                               />
                             </div>
                           </div>
@@ -695,7 +695,7 @@ function SearchContent() {
                                   const newMax = Math.max(priceRange[0], Math.min(parseInt(e.target.value) || 1000000, 1000000));
                                   setPriceRange([priceRange[0], newMax]);
                                 }}
-                                className="w-full pl-7 pr-2 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                                className="w-full pl-7 pr-2 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
                               />
                             </div>
                           </div>
@@ -705,7 +705,7 @@ function SearchContent() {
                         <div className="relative h-2">
                           <div className="absolute w-full h-2 bg-gray-200 rounded-lg" />
                           <div
-                            className="absolute h-2 bg-red-600 rounded-lg"
+                            className="absolute h-2 bg-pink-600 rounded-lg"
                             style={{
                               left: `${(priceRange[0] / 1000000) * 100}%`,
                               right: `${100 - (priceRange[1] / 1000000) * 100}%`
@@ -721,7 +721,7 @@ function SearchContent() {
                               const newMin = parseInt(e.target.value);
                               setPriceRange([Math.min(newMin, priceRange[1]), priceRange[1]]);
                             }}
-                            className="absolute top-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-red-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-red-600 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:shadow-md"
+                            className="absolute top-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-pink-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-pink-600 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:shadow-md"
                             style={{ height: '8px' }}
                             aria-label="Minimum price"
                           />
@@ -735,7 +735,7 @@ function SearchContent() {
                               const newMax = parseInt(e.target.value);
                               setPriceRange([priceRange[0], Math.max(newMax, priceRange[0])]);
                             }}
-                            className="absolute top-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-red-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-red-600 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:shadow-md"
+                            className="absolute top-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-pink-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-pink-600 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:shadow-md"
                             style={{ height: '8px' }}
                             aria-label="Maximum price"
                           />
@@ -764,7 +764,7 @@ function SearchContent() {
                             setSortBy(sort as 'createdAt' | 'price' | 'name');
                             setSortOrder(order as 'asc' | 'desc');
                           }}
-                          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
                         >
                           <option value="createdAt-desc">Newest First</option>
                           <option value="createdAt-asc">Oldest First</option>
@@ -839,7 +839,7 @@ function SearchContent() {
                                 onClick={() => setCurrentPage(pageNum)}
                                 className={`px-3 py-2 rounded-lg text-sm font-medium ${
                                   currentPage === pageNum
-                                    ? 'bg-red-600 text-white'
+                                    ? 'bg-pink-600 text-white'
                                     : 'text-gray-700 hover:bg-gray-100'
                                 }`}
                               >
@@ -869,7 +869,7 @@ function SearchContent() {
                     {(selectedCategory || selectedBrand || priceRange[0] > 0 || priceRange[1] < 1000000) && (
                       <button
                         onClick={clearFilters}
-                        className="text-red-600 hover:text-red-700 font-medium text-sm"
+                        className="text-pink-600 hover:text-pink-700 font-medium text-sm"
                       >
                         Clear all filters
                       </button>
@@ -891,7 +891,7 @@ function SearchContent() {
             </p>
             <Link
               href="/products"
-              className="inline-block bg-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors"
+              className="inline-block bg-pink-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-pink-700 transition-colors"
             >
               Browse All Products
             </Link>

@@ -34,9 +34,9 @@ export default function CategoryOfferCard({ offer }: CategoryOfferCardProps) {
   };
 
   // Default colors if not provided
-  const bgColor = offer.backgroundColor || 'from-red-400 via-red-500 to-rose-600';
+  const bgColor = offer.backgroundColor || 'from-pink-400 via-pink-500 to-rose-600';
   const textColor = offer.textColor || 'text-white';
-  const badgeColor = offer.badgeColor || 'bg-white/90 backdrop-blur-sm text-red-600';
+  const badgeColor = offer.badgeColor || 'bg-white/90 backdrop-blur-sm text-pink-600';
   const borderStyle = offer.borderStyle || 'wavy';
 
   // Border style classes

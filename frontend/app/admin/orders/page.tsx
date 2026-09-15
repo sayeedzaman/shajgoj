@@ -164,7 +164,7 @@ export default function OrderManagementPage() {
       PROCESSING: 'bg-blue-100 text-blue-800 border-blue-200',
       SHIPPED: 'bg-purple-100 text-purple-800 border-purple-200',
       DELIVERED: 'bg-green-100 text-green-800 border-green-200',
-      CANCELLED: 'bg-red-100 text-red-800 border-red-200',
+      CANCELLED: 'bg-pink-100 text-pink-800 border-pink-200',
     };
 
     return (
@@ -189,7 +189,7 @@ export default function OrderManagementPage() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-          <ShoppingBag className="w-8 h-8 text-red-600" />
+          <ShoppingBag className="w-8 h-8 text-pink-600" />
           Order Management
         </h1>
         <p className="text-gray-600 mt-2">Manage customer orders and fulfillment</p>
@@ -202,7 +202,7 @@ export default function OrderManagementPage() {
         </div>
       )}
       {errorMessage && (
-        <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
+        <div className="bg-pink-50 border border-pink-200 text-pink-800 px-4 py-3 rounded-lg">
           {errorMessage}
         </div>
       )}
@@ -210,7 +210,7 @@ export default function OrderManagementPage() {
       {/* Delivery Charges */}
       <div className="bg-white rounded-lg border border-gray-200 p-4">
         <div className="flex items-center gap-2 mb-4">
-          <Truck className="w-5 h-5 text-red-600" />
+          <Truck className="w-5 h-5 text-pink-600" />
           <h2 className="text-lg font-semibold text-gray-900">Delivery Charges</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
@@ -222,7 +222,7 @@ export default function OrderManagementPage() {
               value={shippingFees.dhakaShippingFee}
               onChange={(e) => setShippingFees({ ...shippingFees, dhakaShippingFee: Number(e.target.value) })}
               disabled={shippingFeesLoading}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 disabled:opacity-50"
             />
           </div>
           <div>
@@ -233,13 +233,13 @@ export default function OrderManagementPage() {
               value={shippingFees.outsideDhakaShippingFee}
               onChange={(e) => setShippingFees({ ...shippingFees, outsideDhakaShippingFee: Number(e.target.value) })}
               disabled={shippingFeesLoading}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 disabled:opacity-50"
             />
           </div>
           <button
             onClick={handleShippingFeesSave}
             disabled={shippingFeesLoading || shippingFeesSaving}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 bg-pink-600 text-white rounded-lg font-medium hover:bg-pink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {shippingFeesSaving ? 'Saving...' : 'Save Charges'}
           </button>
@@ -263,7 +263,7 @@ export default function OrderManagementPage() {
                 setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
             />
           </div>
 
@@ -276,7 +276,7 @@ export default function OrderManagementPage() {
                 setStatusFilter(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 appearance-none bg-white"
+              className="w-full pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 appearance-none bg-white"
               aria-label='status'
             >
               <option value="">All Status</option>
@@ -295,7 +295,7 @@ export default function OrderManagementPage() {
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
         {loading ? (
           <div className="p-12 text-center">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600"></div>
             <p className="text-gray-600 mt-4">Loading orders...</p>
           </div>
         ) : orders.length === 0 ? (
@@ -345,7 +345,7 @@ export default function OrderManagementPage() {
                         <div className="text-sm text-gray-900">{formatDate(order.createdAt)}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-bold text-red-600">৳{order.total.toFixed(2)}</div>
+                        <div className="text-sm font-bold text-pink-600">৳{order.total.toFixed(2)}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         {getStatusBadge(order.status)}
@@ -364,7 +364,7 @@ export default function OrderManagementPage() {
                               value={order.status}
                               onChange={(e) => handleStatusUpdate(order.id, e.target.value as Order['status'])}
                               disabled={updatingOrderId === order.id}
-                              className="text-xs border border-gray-300 rounded px-2 py-1 pr-6 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="text-xs border border-gray-300 rounded px-2 py-1 pr-6 focus:outline-none focus:ring-2 focus:ring-pink-500 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               <option value="PENDING">Pending</option>
                               <option value="PROCESSING">Processing</option>
@@ -373,7 +373,7 @@ export default function OrderManagementPage() {
                               <option value="CANCELLED">Cancelled</option>
                             </select>
                             {updatingOrderId === order.id && (
-                              <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+                              <div className="w-4 h-4 border-2 border-pink-600 border-t-transparent rounded-full animate-spin"></div>
                             )}
                           </div>
                         </div>
@@ -424,7 +424,7 @@ export default function OrderManagementPage() {
                 onClick={() => setShowModal(false)}
                 className="text-gray-400 hover:text-gray-600"
               >
-                ✕
+                <X className="w-6 h-6" />
               </button>
             </div>
 
@@ -516,7 +516,7 @@ export default function OrderManagementPage() {
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-900">৳{item.price.toFixed(2)}</td>
                           <td className="px-4 py-3 text-sm text-gray-900">{item.quantity}</td>
-                          <td className="px-4 py-3 text-sm font-bold text-red-600">
+                          <td className="px-4 py-3 text-sm font-bold text-pink-600">
                             ৳{(item.price * item.quantity).toFixed(2)}
                           </td>
                         </tr>
@@ -543,7 +543,7 @@ export default function OrderManagementPage() {
                           value={shippingInput}
                           onChange={(e) => setShippingInput(e.target.value)}
                           autoFocus
-                          className="w-24 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500 text-right"
+                          className="w-24 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-pink-500 text-right"
                         />
                         <button
                           onClick={() => handleShippingCostUpdate(selectedOrder.id)}
@@ -577,7 +577,7 @@ export default function OrderManagementPage() {
                   </div>
                   <div className="flex justify-between text-base font-bold pt-2 border-t border-gray-200">
                     <span className="text-gray-900">Total:</span>
-                    <span className="text-red-600">৳{selectedOrder.total.toFixed(2)}</span>
+                    <span className="text-pink-600">৳{selectedOrder.total.toFixed(2)}</span>
                   </div>
                 </div>
               </div>
@@ -593,7 +593,7 @@ export default function OrderManagementPage() {
                       disabled={selectedOrder.status === status || updatingOrderId === selectedOrder.id}
                       className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
                         selectedOrder.status === status
-                          ? 'bg-red-600 text-white cursor-not-allowed'
+                          ? 'bg-pink-600 text-white cursor-not-allowed'
                           : updatingOrderId === selectedOrder.id
                           ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                           : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'

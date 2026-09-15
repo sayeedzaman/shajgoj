@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Save, ChevronLeft, Settings as SettingsIcon, Bell, Store, Globe, Shield, CreditCard } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { brand } from '@/src/config/brand';
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -13,10 +14,10 @@ export default function SettingsPage() {
   const [errorMessage, setErrorMessage] = useState('');
 
   const [settings, setSettings] = useState({
-    storeName: 'Khali\'s Beauty Store',
-    storeEmail: 'admin@khalisbeauty.com',
-    storePhone: '+880 1712-345678',
-    storeAddress: 'Dhaka, Bangladesh',
+    storeName: brand.name as string,
+    storeEmail: brand.email || '',
+    storePhone: brand.phone as string,
+    storeAddress: brand.address || '',
     currency: 'BDT',
     timezone: 'Asia/Dhaka',
     emailNotifications: true,
@@ -110,7 +111,7 @@ export default function SettingsPage() {
         <div className="mb-8">
           <Link
             href="/admin"
-            className="inline-flex items-center gap-2 text-red-600 hover:text-red-700 font-medium mb-4"
+            className="inline-flex items-center gap-2 text-pink-600 hover:text-pink-700 font-medium mb-4"
           >
             <ChevronLeft className="w-5 h-5" />
             Back to Dashboard
@@ -118,7 +119,7 @@ export default function SettingsPage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                <SettingsIcon className="w-8 h-8 text-red-600" />
+                <SettingsIcon className="w-8 h-8 text-pink-600" />
                 Store Settings
               </h1>
               <p className="text-gray-600 mt-2">Manage your store configuration and preferences</p>
@@ -127,7 +128,7 @@ export default function SettingsPage() {
               type="button"
               onClick={handleSaveSettings}
               disabled={saving}
-              className="flex items-center gap-2 px-6 py-3 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors disabled:opacity-50"
+              className="flex items-center gap-2 px-6 py-3 text-sm font-medium text-white bg-pink-600 hover:bg-pink-700 rounded-lg transition-colors disabled:opacity-50"
             >
               <Save className="w-4 h-4" />
               {saving ? 'Saving...' : 'Save All Settings'}
@@ -142,14 +143,14 @@ export default function SettingsPage() {
           </div>
         )}
         {errorMessage && (
-          <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg mb-6">
+          <div className="bg-pink-50 border border-pink-200 text-pink-800 px-4 py-3 rounded-lg mb-6">
             {errorMessage}
           </div>
         )}
 
         {loading ? (
           <div className="bg-white rounded-lg p-12 text-center">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600"></div>
             <p className="text-gray-600 mt-4">Loading settings...</p>
           </div>
         ) : (
@@ -158,7 +159,7 @@ export default function SettingsPage() {
             <div className="bg-white rounded-lg border border-gray-200 p-6">
               <div className="mb-6">
                 <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                  <Store className="w-5 h-5 text-red-600" />
+                  <Store className="w-5 h-5 text-pink-600" />
                   Store Information
                 </h3>
                 <p className="text-sm text-gray-600 mt-1">Configure your store details</p>
@@ -171,7 +172,7 @@ export default function SettingsPage() {
                     type="text"
                     value={settings.storeName}
                     onChange={(e) => setSettings({ ...settings, storeName: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
                   />
                 </div>
                 <div>
@@ -180,7 +181,7 @@ export default function SettingsPage() {
                     type="email"
                     value={settings.storeEmail}
                     onChange={(e) => setSettings({ ...settings, storeEmail: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
                   />
                 </div>
                 <div>
@@ -189,7 +190,7 @@ export default function SettingsPage() {
                     type="tel"
                     value={settings.storePhone}
                     onChange={(e) => setSettings({ ...settings, storePhone: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
                   />
                 </div>
                 <div>
@@ -197,7 +198,7 @@ export default function SettingsPage() {
                   <select
                     value={settings.currency}
                     onChange={(e) => setSettings({ ...settings, currency: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
                   >
                     <option value="BDT">BDT - Bangladeshi Taka</option>
                     <option value="USD">USD - US Dollar</option>
@@ -211,7 +212,7 @@ export default function SettingsPage() {
                   value={settings.storeAddress}
                   onChange={(e) => setSettings({ ...settings, storeAddress: e.target.value })}
                   rows={3}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
                 />
               </div>
               <div className="mt-4">
@@ -219,7 +220,7 @@ export default function SettingsPage() {
                 <select
                   value={settings.timezone}
                   onChange={(e) => setSettings({ ...settings, timezone: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
                 >
                   <option value="Asia/Dhaka">Asia/Dhaka (GMT+6)</option>
                   <option value="UTC">UTC (GMT+0)</option>
@@ -232,7 +233,7 @@ export default function SettingsPage() {
             <div className="bg-white rounded-lg border border-gray-200 p-6">
               <div className="mb-6">
                 <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                  <Bell className="w-5 h-5 text-red-600" />
+                  <Bell className="w-5 h-5 text-pink-600" />
                   Notification Preferences
                 </h3>
                 <p className="text-sm text-gray-600 mt-1">Control how you receive notifications</p>
@@ -250,7 +251,7 @@ export default function SettingsPage() {
                       onChange={(e) => setSettings({ ...settings, emailNotifications: e.target.checked })}
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-600"></div>
                   </label>
                 </div>
                 <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
@@ -265,7 +266,7 @@ export default function SettingsPage() {
                       onChange={(e) => setSettings({ ...settings, orderNotifications: e.target.checked })}
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-600"></div>
                   </label>
                 </div>
                 <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
@@ -280,7 +281,7 @@ export default function SettingsPage() {
                       onChange={(e) => setSettings({ ...settings, stockAlerts: e.target.checked })}
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-600"></div>
                   </label>
                 </div>
               </div>
@@ -290,7 +291,7 @@ export default function SettingsPage() {
             <div className="bg-white rounded-lg border border-gray-200 p-6">
               <div className="mb-6">
                 <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                  <Shield className="w-5 h-5 text-red-600" />
+                  <Shield className="w-5 h-5 text-pink-600" />
                   Security Settings
                 </h3>
                 <p className="text-sm text-gray-600 mt-1">Manage security and access controls</p>
@@ -308,7 +309,7 @@ export default function SettingsPage() {
                       onChange={(e) => setSettings({ ...settings, twoFactorAuth: e.target.checked })}
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-600"></div>
                   </label>
                 </div>
                 <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
@@ -323,7 +324,7 @@ export default function SettingsPage() {
                       onChange={(e) => setSettings({ ...settings, loginAlerts: e.target.checked })}
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-600"></div>
                   </label>
                 </div>
                 <div>
@@ -331,7 +332,7 @@ export default function SettingsPage() {
                   <select
                     value={settings.sessionTimeout}
                     onChange={(e) => setSettings({ ...settings, sessionTimeout: Number(e.target.value) })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
                   >
                     <option value={15}>15 minutes</option>
                     <option value={30}>30 minutes</option>
@@ -346,7 +347,7 @@ export default function SettingsPage() {
             <div className="bg-white rounded-lg border border-gray-200 p-6">
               <div className="mb-6">
                 <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                  <Globe className="w-5 h-5 text-red-600" />
+                  <Globe className="w-5 h-5 text-pink-600" />
                   Shipping Settings
                 </h3>
                 <p className="text-sm text-gray-600 mt-1">Configure shipping fees and options</p>
@@ -358,7 +359,7 @@ export default function SettingsPage() {
                     type="number"
                     value={settings.freeShippingThreshold}
                     onChange={(e) => setSettings({ ...settings, freeShippingThreshold: Number(e.target.value) })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
                   />
                   <p className="text-sm text-gray-500 mt-1">Orders above this amount get free shipping</p>
                 </div>
@@ -368,7 +369,7 @@ export default function SettingsPage() {
                     type="number"
                     value={settings.dhakaShippingFee}
                     onChange={(e) => setSettings({ ...settings, dhakaShippingFee: Number(e.target.value) })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
                   />
                 </div>
                 <div>
@@ -377,7 +378,7 @@ export default function SettingsPage() {
                     type="number"
                     value={settings.outsideDhakaShippingFee}
                     onChange={(e) => setSettings({ ...settings, outsideDhakaShippingFee: Number(e.target.value) })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
                   />
                 </div>
               </div>
@@ -387,7 +388,7 @@ export default function SettingsPage() {
             <div className="bg-white rounded-lg border border-gray-200 p-6">
               <div className="mb-6">
                 <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                  <CreditCard className="w-5 h-5 text-red-600" />
+                  <CreditCard className="w-5 h-5 text-pink-600" />
                   Payment Methods
                 </h3>
                 <p className="text-sm text-gray-600 mt-1">Enable or disable payment options</p>
@@ -405,7 +406,7 @@ export default function SettingsPage() {
                       onChange={(e) => setSettings({ ...settings, cashOnDelivery: e.target.checked })}
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-600"></div>
                   </label>
                 </div>
                 <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
@@ -420,7 +421,7 @@ export default function SettingsPage() {
                       onChange={(e) => setSettings({ ...settings, bkashEnabled: e.target.checked })}
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-600"></div>
                   </label>
                 </div>
                 <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
@@ -435,7 +436,7 @@ export default function SettingsPage() {
                       onChange={(e) => setSettings({ ...settings, nagadEnabled: e.target.checked })}
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-600"></div>
                   </label>
                 </div>
                 <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
@@ -450,7 +451,7 @@ export default function SettingsPage() {
                       onChange={(e) => setSettings({ ...settings, cardPaymentEnabled: e.target.checked })}
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-600"></div>
                   </label>
                 </div>
               </div>

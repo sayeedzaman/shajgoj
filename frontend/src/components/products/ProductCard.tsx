@@ -75,12 +75,12 @@ export default function ProductCard({
       <div className="relative aspect-square bg-gray-50 overflow-hidden">
         {/* Badges */}
         {hasDiscount && (
-          <div className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded z-10">
+          <div className="absolute top-2 left-2 bg-pink-500 text-white text-xs font-bold px-2 py-1 rounded z-10">
             -{discountPercent}%
           </div>
         )}
         {product.featured && (
-          <div className="absolute top-2 right-2 bg-linear-to-r from-red-500 to-pink-500 text-white text-xs font-semibold px-2 py-1 rounded z-10">
+          <div className="absolute top-2 right-2 bg-linear-to-r from-pink-500 to-pink-500 text-white text-xs font-semibold px-2 py-1 rounded z-10">
             Featured
           </div>
         )}
@@ -92,7 +92,7 @@ export default function ProductCard({
           aria-label="Add to wishlist"
         >
           <Heart
-            className={`w-4 h-4 ${isWishlisted ? 'fill-red-500 text-red-500' : 'text-gray-600'} group-hover/wishlist:scale-110 transition-transform`}
+            className={`w-4 h-4 ${isWishlisted ? 'fill-pink-500 text-pink-500' : 'text-gray-600'} group-hover/wishlist:scale-110 transition-transform`}
           />
         </button>
 
@@ -130,7 +130,7 @@ export default function ProductCard({
             <button
               onClick={handleAddToCart}
               disabled={isAddingToCart}
-              className="w-full bg-white text-red-600 py-2 px-4 rounded-md hover:bg-red-600 hover:text-white transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full bg-white text-pink-600 py-2 px-4 rounded-md hover:bg-pink-600 hover:text-white transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isAddingToCart ? (
                 <>
@@ -186,7 +186,7 @@ export default function ProductCard({
         )}
 
         {/* Product Name */}
-        <h3 className="text-sm font-medium text-gray-900 mb-2 line-clamp-2 min-h-10 group-hover:text-red-600 transition-colors">
+        <h3 className="text-sm font-medium text-gray-900 mb-2 line-clamp-2 min-h-10 group-hover:text-pink-600 transition-colors">
           {product.name}
         </h3>
 
@@ -217,7 +217,7 @@ export default function ProductCard({
 
         {/* Price Section */}
         <div className="flex items-center gap-2 mb-2 mt-auto">
-          <span className="text-lg font-bold text-red-600">
+          <span className="text-lg font-bold text-pink-600">
             ৳{displayPrice.toFixed(0)}
           </span>
           {hasDiscount && (
@@ -238,7 +238,7 @@ export default function ProductCard({
               <span className="text-green-600">In Stock</span>
             )
           ) : (
-            <span className="text-red-600 font-medium">Out of Stock</span>
+            <span className="text-pink-600 font-medium">Out of Stock</span>
           )}
         </div>
       </div>

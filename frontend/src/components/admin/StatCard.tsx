@@ -33,11 +33,11 @@ export default function StatCard({
               {trend.isPositive ? (
                 <TrendingUp className="w-4 h-4 text-green-500" />
               ) : (
-                <TrendingDown className="w-4 h-4 text-red-500" />
+                <TrendingDown className="w-4 h-4 text-pink-500" />
               )}
               <span
                 className={`text-sm font-medium ${
-                  trend.isPositive ? 'text-green-600' : 'text-red-600'
+                  trend.isPositive ? 'text-green-600' : 'text-pink-600'
                 }`}
               >
                 {trend.isPositive ? '+' : ''}

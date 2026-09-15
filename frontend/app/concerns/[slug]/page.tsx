@@ -113,7 +113,7 @@ export default function ConcernPage() {
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Concern not found</h1>
-          <Link href="/shop-by-concern" className="text-red-600 hover:text-red-700 font-medium">
+          <Link href="/shop-by-concern" className="text-pink-600 hover:text-pink-700 font-medium">
             Browse all concerns
           </Link>
         </div>
@@ -126,9 +126,9 @@ export default function ConcernPage() {
       <div className="max-w-7xl mx-auto px-4 py-6">
         {/* Breadcrumbs */}
         <nav className="flex items-center gap-2 text-sm text-gray-600 mb-6">
-          <Link href="/" className="hover:text-red-600">Home</Link>
+          <Link href="/" className="hover:text-pink-600">Home</Link>
           <ChevronRight className="w-4 h-4" />
-          <Link href="/shop-by-concern" className="hover:text-red-600">Shop by Concern</Link>
+          <Link href="/shop-by-concern" className="hover:text-pink-600">Shop by Concern</Link>
           <ChevronRight className="w-4 h-4" />
           <span className="text-gray-900 font-medium">{concern?.name}</span>
         </nav>
@@ -165,7 +165,7 @@ export default function ConcernPage() {
                 {(selectedBrand || priceRange[0] > 0 || priceRange[1] < 1000000) && (
                   <button
                     onClick={clearFilters}
-                    className="text-sm text-red-600 hover:text-red-700 font-medium"
+                    className="text-sm text-pink-600 hover:text-pink-700 font-medium"
                   >
                     Clear
                   </button>
@@ -184,7 +184,7 @@ export default function ConcernPage() {
                           name="concern"
                           checked={c.id === concern?.id}
                           onChange={() => router.push(`/concerns/${c.slug}`)}
-                          className="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500"
+                          className="w-4 h-4 text-pink-600 border-gray-300 focus:ring-pink-500"
                         />
                         <span className="ml-2 text-sm text-gray-700">{c.name}</span>
                       </label>
@@ -202,7 +202,7 @@ export default function ConcernPage() {
                         name="brand"
                         checked={selectedBrand === ''}
                         onChange={() => setSelectedBrand('')}
-                        className="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500"
+                        className="w-4 h-4 text-pink-600 border-gray-300 focus:ring-pink-500"
                       />
                       <span className="ml-2 text-sm text-gray-700">All Brands</span>
                     </label>
@@ -213,7 +213,7 @@ export default function ConcernPage() {
                           name="brand"
                           checked={selectedBrand === brand.id}
                           onChange={() => setSelectedBrand(brand.id)}
-                          className="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500"
+                          className="w-4 h-4 text-pink-600 border-gray-300 focus:ring-pink-500"
                         />
                         <span className="ml-2 text-sm text-gray-700">{brand.name}</span>
                       </label>
@@ -241,7 +241,7 @@ export default function ConcernPage() {
                               const newMin = Math.max(0, Math.min(parseInt(e.target.value) || 0, priceRange[1]));
                               setPriceRange([newMin, priceRange[1]]);
                             }}
-                            className="w-full pl-7 pr-2 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                            className="w-full pl-7 pr-2 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
                           />
                         </div>
                       </div>
@@ -259,7 +259,7 @@ export default function ConcernPage() {
                               const newMax = Math.max(priceRange[0], Math.min(parseInt(e.target.value) || 1000000, 1000000));
                               setPriceRange([priceRange[0], newMax]);
                             }}
-                            className="w-full pl-7 pr-2 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                            className="w-full pl-7 pr-2 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
                           />
                         </div>
                       </div>
@@ -269,7 +269,7 @@ export default function ConcernPage() {
                     <div className="relative h-2">
                       <div className="absolute w-full h-2 bg-gray-200 rounded-lg" />
                       <div
-                        className="absolute h-2 bg-red-600 rounded-lg"
+                        className="absolute h-2 bg-pink-600 rounded-lg"
                         style={{
                           left: `${(priceRange[0] / 1000000) * 100}%`,
                           right: `${100 - (priceRange[1] / 1000000) * 100}%`
@@ -285,7 +285,7 @@ export default function ConcernPage() {
                           const newMin = parseInt(e.target.value);
                           setPriceRange([Math.min(newMin, priceRange[1]), priceRange[1]]);
                         }}
-                        className="absolute top-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-red-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-red-600 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:shadow-md"
+                        className="absolute top-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-pink-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-pink-600 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:shadow-md"
                         style={{ height: '8px' }}
                         aria-label="Minimum price"
                       />
@@ -299,7 +299,7 @@ export default function ConcernPage() {
                           const newMax = parseInt(e.target.value);
                           setPriceRange([priceRange[0], Math.max(newMax, priceRange[0])]);
                         }}
-                        className="absolute top-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-red-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-red-600 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:shadow-md"
+                        className="absolute top-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-pink-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-pink-600 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:shadow-md"
                         style={{ height: '8px' }}
                         aria-label="Maximum price"
                       />
@@ -328,7 +328,7 @@ export default function ConcernPage() {
                       setSortBy(sort as 'createdAt' | 'price' | 'name');
                       setSortOrder(order as 'asc' | 'desc');
                     }}
-                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                    className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
                   >
                     <option value="createdAt-desc">Newest First</option>
                     <option value="createdAt-asc">Oldest First</option>
@@ -347,7 +347,7 @@ export default function ConcernPage() {
                 <p className="text-gray-600">{error}</p>
                 <button
                   onClick={fetchProducts}
-                  className="mt-4 px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                  className="mt-4 px-6 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors"
                 >
                   Try Again
                 </button>
@@ -412,7 +412,7 @@ export default function ConcernPage() {
                             onClick={() => setCurrentPage(pageNum)}
                             className={`px-3 py-2 rounded-lg text-sm font-medium ${
                               currentPage === pageNum
-                                ? 'bg-red-600 text-white'
+                                ? 'bg-pink-600 text-white'
                                 : 'text-gray-700 hover:bg-gray-100'
                             }`}
                           >
@@ -440,7 +440,7 @@ export default function ConcernPage() {
                 </p>
                 <button
                   onClick={clearFilters}
-                  className="text-red-600 hover:text-red-700 font-medium text-sm"
+                  className="text-pink-600 hover:text-pink-700 font-medium text-sm"
                 >
                   Clear all filters
                 </button>

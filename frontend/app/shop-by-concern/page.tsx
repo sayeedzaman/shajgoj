@@ -34,7 +34,7 @@ export default function ShopByConcernPage() {
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Breadcrumbs */}
         <nav className="flex items-center gap-2 text-sm text-gray-600 mb-6">
-          <Link href="/" className="hover:text-red-600">Home</Link>
+          <Link href="/" className="hover:text-pink-600">Home</Link>
           <ChevronRight className="w-4 h-4" />
           <span className="text-gray-900 font-medium">Shop by Concern</span>
         </nav>
@@ -53,7 +53,7 @@ export default function ShopByConcernPage() {
             <p className="text-gray-600 mb-4">{error}</p>
             <button
               onClick={fetchConcerns}
-              className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              className="px-6 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors"
             >
               Try Again
             </button>
@@ -78,14 +78,14 @@ export default function ShopByConcernPage() {
                 <Link
                   key={concern.id}
                   href={`/concerns/${concern.slug}`}
-                  className="group bg-white rounded-xl border-2 border-gray-200 hover:border-red-500 p-6 transition-all duration-200 hover:shadow-lg"
+                  className="group bg-white rounded-xl border-2 border-gray-200 hover:border-pink-500 p-6 transition-all duration-200 hover:shadow-lg"
                 >
                   <div className="text-center">
                     {/* Icon based on concern name */}
-                    <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-red-100 to-purple-100 rounded-full flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                    <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-pink-100 to-purple-100 rounded-full flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
                       {getConcernEmoji(concern.name)}
                     </div>
-                    <h3 className="font-bold text-gray-900 mb-1 group-hover:text-red-600 transition-colors">
+                    <h3 className="font-bold text-gray-900 mb-1 group-hover:text-pink-600 transition-colors">
                       {concern.name}
                     </h3>
                     <p className="text-sm text-gray-500 group-hover:text-gray-700 transition-colors">
@@ -103,14 +103,14 @@ export default function ShopByConcernPage() {
               </h2>
               <div className="grid md:grid-cols-3 gap-6 text-center">
                 <div>
-                  <div className="text-3xl mb-3">🎯</div>
+                  <div className="text-3xl mb-3">ðŸŽ¯</div>
                   <h3 className="font-semibold text-gray-900 mb-2">Targeted Solutions</h3>
                   <p className="text-sm text-gray-600">
                     Find products specifically designed to address your unique concerns
                   </p>
                 </div>
                 <div>
-                  <div className="text-3xl mb-3">⏱️</div>
+                  <div className="text-3xl mb-3">â±ï¸</div>
                   <h3 className="font-semibold text-gray-900 mb-2">Save Time</h3>
                   <p className="text-sm text-gray-600">
                     No more browsing through hundreds of products - get exactly what you need
@@ -139,16 +139,16 @@ export default function ShopByConcernPage() {
 // Helper function to get emoji for each concern
 function getConcernEmoji(concernName: string): string {
   const emojiMap: Record<string, string> = {
-    'Acne': '💊',
-    'Anti-Aging': '⏰',
-    'Dandruff': '❄️',
-    'Dry Skin': '💧',
-    'Hair Fall': '🍃',
-    'Oil Control': '🧴',
-    'Pore Care': '🔬',
-    'Hyperpigmentation': '☀️',
-    'Hair Thinning': '💆',
-    'Sun Protection': '🌞',
+    'Acne': 'ðŸ’Š',
+    'Anti-Aging': 'â°',
+    'Dandruff': 'â„ï¸',
+    'Dry Skin': 'ðŸ’§',
+    'Hair Fall': 'ðŸƒ',
+    'Oil Control': 'ðŸ§´',
+    'Pore Care': 'ðŸ”¬',
+    'Hyperpigmentation': 'â˜€ï¸',
+    'Hair Thinning': 'ðŸ’†',
+    'Sun Protection': 'ðŸŒž',
   };
   return emojiMap[concernName] || '✨';
 }

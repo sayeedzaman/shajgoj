@@ -21,8 +21,8 @@ export default function Error({
       <div className="max-w-md w-full text-center">
         {/* Error Icon */}
         <div className="mb-8">
-          <div className="inline-flex items-center justify-center w-24 h-24 bg-red-100 rounded-full">
-            <AlertCircle className="w-12 h-12 text-red-600" />
+          <div className="inline-flex items-center justify-center w-24 h-24 bg-pink-100 rounded-full">
+            <AlertCircle className="w-12 h-12 text-pink-600" />
           </div>
         </div>
 
@@ -36,8 +36,8 @@ export default function Error({
 
         {/* Error Details (only in development) */}
         {process.env.NODE_ENV === 'development' && (
-          <div className="mt-4 p-4 bg-red-50 rounded-lg text-left">
-            <p className="text-xs font-mono text-red-800 break-all">
+          <div className="mt-4 p-4 bg-pink-50 rounded-lg text-left">
+            <p className="text-xs font-mono text-pink-800 break-all">
               {error.message}
             </p>
           </div>
@@ -47,14 +47,14 @@ export default function Error({
         <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
           <button
             onClick={reset}
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-colors"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-pink-600 text-white rounded-lg font-semibold hover:bg-pink-700 transition-colors"
           >
             <RefreshCcw className="w-5 h-5" />
             Try Again
           </button>
           <Link
             href="/"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-gray-700 rounded-lg font-semibold border-2 border-gray-300 hover:border-red-500 hover:text-red-500 transition-colors"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-gray-700 rounded-lg font-semibold border-2 border-gray-300 hover:border-pink-500 hover:text-pink-500 transition-colors"
           >
             <Home className="w-5 h-5" />
             Go to Homepage
@@ -64,7 +64,7 @@ export default function Error({
         {/* Help Text */}
         <p className="mt-8 text-sm text-gray-500">
           If the problem persists, please{' '}
-          <Link href="/contact" className="text-red-600 hover:text-red-700 font-medium">
+          <Link href="/contact" className="text-pink-600 hover:text-pink-700 font-medium">
             contact our support team
           </Link>
         </p>

@@ -236,7 +236,7 @@ export default function OrdersPage() {
       PROCESSING: 'bg-blue-100 text-blue-800 border-blue-200',
       SHIPPED: 'bg-purple-100 text-purple-800 border-purple-200',
       DELIVERED: 'bg-green-100 text-green-800 border-green-200',
-      CANCELLED: 'bg-red-100 text-red-800 border-red-200',
+      CANCELLED: 'bg-pink-100 text-pink-800 border-pink-200',
     };
 
     return (
@@ -263,13 +263,13 @@ export default function OrdersPage() {
         <div className="mb-8">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-red-600 hover:text-red-700 font-medium mb-4"
+            className="inline-flex items-center gap-2 text-pink-600 hover:text-pink-700 font-medium mb-4"
           >
             <ChevronLeft className="w-5 h-5" />
             Back to Home
           </Link>
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <ShoppingBag className="w-8 h-8 text-red-600" />
+            <ShoppingBag className="w-8 h-8 text-pink-600" />
             My Orders
           </h1>
           <p className="text-gray-600 mt-2">Track and manage your orders</p>
@@ -277,7 +277,7 @@ export default function OrdersPage() {
 
         {/* Error Message */}
         {errorMessage && (
-          <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg mb-6">
+          <div className="bg-pink-50 border border-pink-200 text-pink-800 px-4 py-3 rounded-lg mb-6">
             {errorMessage}
           </div>
         )}
@@ -286,7 +286,7 @@ export default function OrdersPage() {
         <div className="space-y-4">
           {loading ? (
             <div className="bg-white rounded-lg p-12 text-center">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600"></div>
               <p className="text-gray-600 mt-4">Loading your orders...</p>
             </div>
           ) : orders.length === 0 ? (
@@ -296,7 +296,7 @@ export default function OrdersPage() {
               <p className="text-gray-600 mb-6">Start shopping to see your orders here</p>
               <Link
                 href="/products"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors"
               >
                 <ShoppingBag className="w-5 h-5" />
                 Browse Products
@@ -322,7 +322,7 @@ export default function OrdersPage() {
                       </div>
                       <div>
                         <p className="text-xs text-gray-600 uppercase">Total</p>
-                        <p className="text-sm font-bold text-red-600">৳{order.total.toFixed(2)}</p>
+                        <p className="text-sm font-bold text-pink-600">৳{order.total.toFixed(2)}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
@@ -376,7 +376,7 @@ export default function OrdersPage() {
                   <div className="px-6 pb-4">
                     <button
                       onClick={() => handleCancelOrder(order.id)}
-                      className="text-sm text-red-600 hover:text-red-700 font-medium"
+                      className="text-sm text-pink-600 hover:text-pink-700 font-medium"
                     >
                       Cancel Order
                     </button>
@@ -465,14 +465,14 @@ export default function OrdersPage() {
                                 <div className="flex-1">
                                   <Link
                                     href={`/products/${item.Product.slug}`}
-                                    className="text-sm font-medium text-gray-900 hover:text-red-600 block"
+                                    className="text-sm font-medium text-gray-900 hover:text-pink-600 block"
                                   >
                                     {item.Product.name}
                                   </Link>
                                   <div className="flex items-center gap-4 mt-1 text-xs text-gray-600">
                                     <span>Price: ৳{item.price.toFixed(2)}</span>
                                     <span>Qty: {item.quantity}</span>
-                                    <span className="font-bold text-red-600">Total: ৳{(item.price * item.quantity).toFixed(2)}</span>
+                                    <span className="font-bold text-pink-600">Total: ৳{(item.price * item.quantity).toFixed(2)}</span>
                                   </div>
                                 </div>
                               </div>
@@ -523,7 +523,7 @@ export default function OrdersPage() {
                                       value={currentReview?.comment || ''}
                                       onChange={(e) => handleCommentChange(item.Product.id, e.target.value)}
                                       placeholder="Write your review (optional)..."
-                                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none text-sm"
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent resize-none text-sm"
                                       rows={3}
                                       disabled={isSubmitting}
                                     />
@@ -533,7 +533,7 @@ export default function OrdersPage() {
                                   <button
                                     onClick={() => handleSubmitReview(item.Product.id)}
                                     disabled={!currentReview?.rating || isSubmitting}
-                                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium disabled:bg-gray-300 disabled:cursor-not-allowed"
+                                    className="px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors text-sm font-medium disabled:bg-gray-300 disabled:cursor-not-allowed"
                                   >
                                     {isSubmitting ? 'Submitting...' : 'Submit Review'}
                                   </button>
@@ -552,7 +552,7 @@ export default function OrdersPage() {
                   <div className="space-y-2">
                     <div className="flex justify-between text-base font-bold pt-2 border-t border-gray-200">
                       <span className="text-gray-900">Total:</span>
-                      <span className="text-red-600">৳{selectedOrder.total.toFixed(2)}</span>
+                      <span className="text-pink-600">৳{selectedOrder.total.toFixed(2)}</span>
                     </div>
                   </div>
                 </div>
@@ -565,7 +565,7 @@ export default function OrdersPage() {
                     </p>
                     <button
                       onClick={() => handleCancelOrder(selectedOrder.id)}
-                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+                      className="px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors text-sm font-medium"
                     >
                       Cancel Order
                     </button>

@@ -53,7 +53,7 @@ function LoginContent() {
         <h1 className="text-2xl font-semibold text-gray-800 mb-4">Login</h1>
 
         {error && (
-          <div className="mb-4 text-sm text-red-600 bg-red-50 p-3 rounded">{error}</div>
+          <div className="mb-4 text-sm text-pink-600 bg-pink-50 p-3 rounded">{error}</div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -65,7 +65,7 @@ function LoginContent() {
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={loading}
-              className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-pink-500 disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
 
@@ -77,18 +77,18 @@ function LoginContent() {
               onChange={(e) => setPassword(e.target.value)}
               required
               disabled={loading}
-              className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-pink-500 disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
 
           <div className="flex items-center justify-between">
-            <Link href="/signup" className="text-sm text-red-500 hover:underline">
+            <Link href="/signup" className="text-sm text-pink-500 hover:underline">
               Create an account
             </Link>
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              className="px-4 py-2 bg-pink-500 text-white rounded hover:bg-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
             >
               {loading ? 'Signing in...' : 'Login'}
             </button>
