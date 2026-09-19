@@ -237,10 +237,20 @@ export interface CreateAddressRequest {
 }
 
 // Order Types
+export type OrderStatusValue = 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
+
+export interface OrderStatusHistoryEntry {
+  id: string;
+  status: OrderStatusValue;
+  note: string | null;
+  createdAt: string;
+  orderId: string;
+}
+
 export interface Order {
   id: string;
   orderNumber: string;
-  status: 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
+  status: OrderStatusValue;
   subtotal: number;
   shippingCost: number;
   total: number;
@@ -250,6 +260,7 @@ export interface Order {
   addressId: string;
   Address?: Address;
   OrderItem: OrderItem[];
+  OrderStatusHistory?: OrderStatusHistoryEntry[];
 }
 
 export interface OrderItem {

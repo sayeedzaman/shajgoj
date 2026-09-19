@@ -23,6 +23,14 @@ export interface OrderItem {
   };
 }
 
+export interface OrderStatusHistoryEntry {
+  id: string;
+  status: 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
+  note: string | null;
+  createdAt: string;
+  orderId: string;
+}
+
 export interface Order {
   id: string;
   orderNumber: string;
@@ -32,6 +40,7 @@ export interface Order {
   total: number;
   createdAt: string;
   updatedAt: string;
+  OrderStatusHistory?: OrderStatusHistoryEntry[];
   User: {
     id: string;
     firstName: string | null;

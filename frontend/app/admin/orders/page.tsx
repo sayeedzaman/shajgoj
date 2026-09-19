@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { ShoppingBag, Search, Filter, ChevronDown, Eye, Package, Truck, Pencil, Check, X } from 'lucide-react';
 import { adminAPI, type Order } from '@/src/lib/adminApi';
+import OrderTracker from '@/src/components/orders/OrderTracker';
 
 export default function OrderManagementPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -474,6 +475,20 @@ export default function OrderManagementPage() {
                 <div className="bg-gray-50 rounded-lg p-4">
                   <h3 className="text-sm font-semibold text-gray-700 mb-2">Last Updated</h3>
                   <p className="text-sm text-gray-900">{formatDate(selectedOrder.updatedAt)}</p>
+                </div>
+              </div>
+
+              {/* Order Tracking Preview (what the customer sees) */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h3 className="text-sm font-semibold text-gray-700 mb-3">Tracking Preview</h3>
+                <div className="overflow-x-auto">
+                  <div className="min-w-[420px]">
+                    <OrderTracker
+                      status={selectedOrder.status}
+                      history={selectedOrder.OrderStatusHistory}
+                      createdAt={selectedOrder.createdAt}
+                    />
+                  </div>
                 </div>
               </div>
 

@@ -162,19 +162,33 @@ model OfferProduct {
 }
 
 model Order {
-  id           String      @id @default(uuid())
-  orderNumber  String      @unique
-  status       OrderStatus @default(PENDING)
-  subtotal     Float       @default(0)
-  shippingCost Float       @default(0)
-  total        Float
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
-  userId       String
-  addressId    String
-  Address      Address     @relation(fields: [addressId], references: [id])
-  User         User        @relation(fields: [userId], references: [id])
-  OrderItem    OrderItem[]
+  id                 String               @id @default(uuid())
+  orderNumber        String               @unique
+  status             OrderStatus          @default(PENDING)
+  subtotal           Float                @default(0)
+  shippingCost       Float                @default(0)
+  total              Float
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  userId             String
+  addressId          String
+  Address            Address              @relation(fields: [addressId], references: [id])
+  User               User                 @relation(fields: [userId], references: [id])
+  OrderItem          OrderItem[]
+  OrderStatusHistory OrderStatusHistory[]
+}
+
+// Records every status transition so the user-facing order tracker can show
+// a real timeline (when each step actually happened), not just the current status.
+model OrderStatusHistory {
+  id        String      @id @default(uuid())
+  status    OrderStatus
+  note      String?
+  createdAt DateTime    @default(now())
+  orderId   String
+  Order     Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
 }
 
 model OrderItem {

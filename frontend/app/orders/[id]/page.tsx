@@ -5,6 +5,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ordersAPI } from '@/src/lib/api';
 import { Order } from '@/src/types/index';
+import OrderTracker from '@/src/components/orders/OrderTracker';
 import {
   CheckCircle,
   Package,
@@ -18,6 +19,14 @@ import {
   ShoppingBag,
   Download,
 } from 'lucide-react';
+
+const TIMELINE_META: Record<string, { label: string; icon: typeof CheckCircle; bg: string; text: string }> = {
+  PENDING: { label: 'Order Placed', icon: CheckCircle, bg: 'bg-green-100', text: 'text-green-600' },
+  PROCESSING: { label: 'Processing', icon: Package, bg: 'bg-blue-100', text: 'text-blue-600' },
+  SHIPPED: { label: 'Shipped', icon: Truck, bg: 'bg-purple-100', text: 'text-purple-600' },
+  DELIVERED: { label: 'Delivered', icon: CheckCircle, bg: 'bg-green-100', text: 'text-green-600' },
+  CANCELLED: { label: 'Cancelled', icon: AlertCircle, bg: 'bg-red-100', text: 'text-red-600' },
+};
 
 export default function OrderDetailPage() {
   const params = useParams();
@@ -36,16 +45,27 @@ export default function OrderDetailPage() {
     }
   }, [orderId]);
 
-  const fetchOrder = async () => {
+  // Poll for status changes made by the admin so the tracker stays up to date
+  // without requiring a manual refresh, matching the polling pattern used
+  // elsewhere in the app (e.g. chat unread counts).
+  useEffect(() => {
+    if (!orderId || !order) return;
+    if (order.status === 'DELIVERED' || order.status === 'CANCELLED') return;
+
+    const interval = setInterval(() => fetchOrder(true), 15000);
+    return () => clearInterval(interval);
+  }, [orderId, order?.status]);
+
+  const fetchOrder = async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const data = await ordersAPI.getById(orderId);
       setOrder(data);
     } catch (error) {
       console.error('Error fetching order:', error);
-      setError(error instanceof Error ? error.message : 'Failed to load order');
+      if (!silent) setError(error instanceof Error ? error.message : 'Failed to load order');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -175,6 +195,15 @@ export default function OrderDetailPage() {
             </div>
           </div>
 
+          {/* Order Tracking */}
+          <div className="pt-2 pb-4 border-t border-gray-200">
+            <div className="pt-6 overflow-x-auto">
+              <div className="min-w-[420px]">
+                <OrderTracker status={order.status} history={order.OrderStatusHistory} createdAt={order.createdAt} />
+              </div>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 gap-4 pt-6 border-t border-gray-200">
             <div>
               <p className="text-sm text-gray-600 mb-1">Order Number</p>
@@ -252,77 +281,26 @@ export default function OrderDetailPage() {
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h2 className="text-lg font-bold text-gray-900 mb-4">Order Timeline</h2>
               <div className="space-y-4">
-                <div className="flex gap-4">
-                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <CheckCircle className="w-5 h-5 text-green-600" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-semibold text-gray-900">Order Placed</p>
-                    <p className="text-sm text-gray-600">
-                      {new Date(order.createdAt).toLocaleString()}
-                    </p>
-                  </div>
-                </div>
-
-                {order.status === 'PROCESSING' && (
-                  <div className="flex gap-4">
-                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <Package className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-semibold text-gray-900">Processing</p>
-                      <p className="text-sm text-gray-600">Your order is being prepared</p>
-                    </div>
-                  </div>
-                )}
-
-                {(order.status === 'SHIPPED' || order.status === 'DELIVERED') && (
-                  <>
-                    <div className="flex gap-4">
-                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                        <Package className="w-5 h-5 text-blue-600" />
+                {(order.OrderStatusHistory && order.OrderStatusHistory.length > 0
+                  ? order.OrderStatusHistory
+                  : [{ id: 'placed', status: 'PENDING' as const, note: null, createdAt: order.createdAt, orderId: order.id }]
+                ).map((entry) => {
+                  const meta = TIMELINE_META[entry.status];
+                  const Icon = meta.icon;
+                  return (
+                    <div key={entry.id} className="flex gap-4">
+                      <div className={`w-10 h-10 ${meta.bg} rounded-full flex items-center justify-center flex-shrink-0`}>
+                        <Icon className={`w-5 h-5 ${meta.text}`} />
                       </div>
                       <div className="flex-1">
-                        <p className="font-semibold text-gray-900">Processing</p>
-                        <p className="text-sm text-gray-600">Completed</p>
+                        <p className="font-semibold text-gray-900">{meta.label}</p>
+                        <p className="text-sm text-gray-600">
+                          {entry.note || new Date(entry.createdAt).toLocaleString()}
+                        </p>
                       </div>
                     </div>
-
-                    <div className="flex gap-4">
-                      <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
-                        <Truck className="w-5 h-5 text-purple-600" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="font-semibold text-gray-900">Shipped</p>
-                        <p className="text-sm text-gray-600">On the way to you</p>
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                {order.status === 'DELIVERED' && (
-                  <div className="flex gap-4">
-                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <CheckCircle className="w-5 h-5 text-green-600" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-semibold text-gray-900">Delivered</p>
-                      <p className="text-sm text-gray-600">Order delivered successfully</p>
-                    </div>
-                  </div>
-                )}
-
-                {order.status === 'CANCELLED' && (
-                  <div className="flex gap-4">
-                    <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <AlertCircle className="w-5 h-5 text-red-600" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-semibold text-gray-900">Cancelled</p>
-                      <p className="text-sm text-gray-600">This order has been cancelled</p>
-                    </div>
-                  </div>
-                )}
+                  );
+                })}
               </div>
             </div>
           </div>

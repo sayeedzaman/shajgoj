@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { ShoppingBag, Package, X, ChevronLeft, Star } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import OrderTracker from '@/src/components/orders/OrderTracker';
+import type { OrderStatusHistoryEntry } from '@/src/types/index';
 
 interface OrderItem {
   id: string;
@@ -33,6 +35,7 @@ interface Order {
   total: number;
   createdAt: string;
   updatedAt: string;
+  OrderStatusHistory?: OrderStatusHistoryEntry[];
   Address: {
     id: string;
     fullName: string;
@@ -61,9 +64,19 @@ export default function OrdersPage() {
     fetchUserReviews();
   }, []);
 
-  const fetchOrders = async () => {
+  // Poll while any order is still in progress so status updates made by the
+  // admin show up without a manual refresh.
+  useEffect(() => {
+    const hasActiveOrder = orders.some((o) => o.status !== 'DELIVERED' && o.status !== 'CANCELLED');
+    if (!hasActiveOrder) return;
+
+    const interval = setInterval(() => fetchOrders(true), 20000);
+    return () => clearInterval(interval);
+  }, [orders]);
+
+  const fetchOrders = async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const token = localStorage.getItem('token');
 
       if (!token) {
@@ -89,9 +102,9 @@ export default function OrdersPage() {
       setOrders(data.orders);
     } catch (error) {
       console.error('Error fetching orders:', error);
-      setErrorMessage('Failed to load orders. Please try again.');
+      if (!silent) setErrorMessage('Failed to load orders. Please try again.');
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -337,6 +350,18 @@ export default function OrdersPage() {
                   </div>
                 </div>
 
+                {/* Order Tracking */}
+                <div className="px-6 pt-4 overflow-x-auto">
+                  <div className="min-w-[280px] max-w-md">
+                    <OrderTracker
+                      status={order.status}
+                      history={order.OrderStatusHistory}
+                      createdAt={order.createdAt}
+                      compact
+                    />
+                  </div>
+                </div>
+
                 {/* Order Items Preview */}
                 <div className="p-6">
                   <div className="flex flex-wrap gap-4">
@@ -417,6 +442,17 @@ export default function OrdersPage() {
                   <div className="bg-gray-50 rounded-lg p-4">
                     <p className="text-sm text-gray-600 mb-1">Status</p>
                     {getStatusBadge(selectedOrder.status)}
+                  </div>
+                </div>
+
+                {/* Order Tracking */}
+                <div className="overflow-x-auto">
+                  <div className="min-w-[420px]">
+                    <OrderTracker
+                      status={selectedOrder.status}
+                      history={selectedOrder.OrderStatusHistory}
+                      createdAt={selectedOrder.createdAt}
+                    />
                   </div>
                 </div>
 

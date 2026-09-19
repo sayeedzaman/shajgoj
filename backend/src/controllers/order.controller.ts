@@ -107,6 +107,9 @@ export const createOrder = async (req: AuthRequest, res: Response): Promise<any>
         OrderItem: {
           create: orderItems,
         },
+        OrderStatusHistory: {
+          create: { status: 'PENDING' },
+        },
       } as Prisma.OrderUncheckedCreateInput,
       include: {
         OrderItem: {
@@ -115,6 +118,9 @@ export const createOrder = async (req: AuthRequest, res: Response): Promise<any>
           },
         },
         Address: true,
+        OrderStatusHistory: {
+          orderBy: { createdAt: 'asc' },
+        },
       },
     });
 
@@ -175,6 +181,9 @@ export const getUserOrders = async (req: AuthRequest, res: Response): Promise<an
           },
         },
         Address: true,
+        OrderStatusHistory: {
+          orderBy: { createdAt: 'asc' },
+        },
       },
       orderBy: {
         createdAt: 'desc',
@@ -228,6 +237,9 @@ export const getOrderById = async (req: AuthRequest, res: Response): Promise<any
             phone: true,
           },
         },
+        OrderStatusHistory: {
+          orderBy: { createdAt: 'asc' },
+        },
       },
     });
 
@@ -279,7 +291,12 @@ export const cancelOrder = async (req: AuthRequest, res: Response): Promise<any>
     // Update order status and get updated order with relations
     const updatedOrder = await prisma.order.update({
       where: { id: id },
-      data: { status: 'CANCELLED' },
+      data: {
+        status: 'CANCELLED',
+        OrderStatusHistory: {
+          create: { status: 'CANCELLED', note: 'Cancelled by customer' },
+        },
+      },
       include: {
         OrderItem: {
           include: {
@@ -287,6 +304,9 @@ export const cancelOrder = async (req: AuthRequest, res: Response): Promise<any>
           },
         },
         Address: true,
+        OrderStatusHistory: {
+          orderBy: { createdAt: 'asc' },
+        },
       },
     });
 
@@ -350,6 +370,9 @@ export const getAllOrders = async (req: AuthRequest, res: Response): Promise<any
               phone: true,
             },
           },
+          OrderStatusHistory: {
+            orderBy: { createdAt: 'asc' },
+          },
         },
         orderBy: {
           createdAt: 'desc',
@@ -403,7 +426,14 @@ export const updateOrderStatus = async (req: AuthRequest, res: Response): Promis
 
     const updatedOrder = await prisma.order.update({
       where: { id: id },
-      data: { status: status as any },
+      data: {
+        status: status as any,
+        ...(status !== order.status && {
+          OrderStatusHistory: {
+            create: { status: status as any },
+          },
+        }),
+      },
       include: {
         OrderItem: {
           include: {
@@ -419,6 +449,9 @@ export const updateOrderStatus = async (req: AuthRequest, res: Response): Promis
             lastName: true,
             phone: true,
           },
+        },
+        OrderStatusHistory: {
+          orderBy: { createdAt: 'asc' },
         },
       },
     });
@@ -476,6 +509,9 @@ export const updateOrderShipping = async (req: AuthRequest, res: Response): Prom
             lastName: true,
             phone: true,
           },
+        },
+        OrderStatusHistory: {
+          orderBy: { createdAt: 'asc' },
         },
       },
     });
