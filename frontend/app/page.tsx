@@ -8,7 +8,7 @@ import StrikingOfferCard from '@/src/components/offers/StrikingOfferCard';
 import ProductCard from '@/src/components/products/ProductCard';
 import ProductCardSkeleton from '@/src/components/products/ProductCardSkeleton';
 import { brand } from '@/src/config/brand';
-import { Product } from '@/src/types/index';
+import { Product, Category } from '@/src/types/index';
 
 interface OfferProductItem {
   id: string;
@@ -66,6 +66,7 @@ export default function Home() {
   const [limitedOffers, setLimitedOffers] = useState<Offer[]>([]);
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [topSellingProducts, setTopSellingProducts] = useState<Product[]>([]);
+  const [shopCategories, setShopCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [productsLoading, setProductsLoading] = useState(true);
 
@@ -76,11 +77,20 @@ export default function Home() {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
         // Fetch all data in parallel for faster loading
-        const [offersRes, featuredRes, topSellingRes] = await Promise.all([
+        const [offersRes, featuredRes, topSellingRes, categoriesRes] = await Promise.all([
           fetch(`${apiUrl}/api/offers/active`),
           fetch(`${apiUrl}/api/products/featured?limit=8`),
-          fetch(`${apiUrl}/api/products/top-selling?limit=12`)
+          fetch(`${apiUrl}/api/products/top-selling?limit=12`),
+          fetch(`${apiUrl}/api/categories`),
         ]);
+
+        if (categoriesRes.ok) {
+          const categoriesData = await categoriesRes.json();
+          const list: Category[] = categoriesData.categories || [];
+          setShopCategories(
+            [...list].sort((a, b) => a.name.localeCompare(b.name))
+          );
+        }
 
         // Process offers
         let activeOffers: Offer[] = [];
@@ -348,21 +358,9 @@ export default function Home() {
       }
     }
     // Fallback to offers page
-    console.log('âš ï¸ Using fallback link: /offers');
+    console.log('Using fallback link: /offers');
     return '/offers';
   };
-
-  // Categories
-  const categories = [
-    { name: 'Makeup', icon: '\uD83D\uDC84', link: '/category/makeup' },
-    { name: 'K-beauty', icon: '\uD83C\uDDF0\uD83C\uDDF7', link: '/category/k-beauty' },
-    { name: 'Hair Care', icon: '\uD83D\uDCA7', link: '/category/hair-care' },
-    { name: 'Mom & Baby', icon: '\uD83D\uDC76', link: '/category/mom-baby' },
-    { name: 'Skin Care', icon: '\u2728', link: '/category/skin-care' },
-    { name: 'Tools & Accessories', icon: '\uD83D\uDD27', link: '/category/tools' },
-    { name: 'Undergarments', icon: '\uD83D\uDC59', link: '/category/undergarments' },
-    { name: 'Fragrance', icon: '\uD83C\uDF38', link: '/category/fragrance' },
-  ];
 
   // Shop by concern
   const concerns = [
@@ -512,7 +510,7 @@ export default function Home() {
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
-                          <span className="text-4xl">ðŸŽ</span>
+                          <span className="text-4xl">{'\u{1F381}'}</span>
                         </div>
                       )}
                       <div className="absolute top-2 left-2">
@@ -579,7 +577,7 @@ export default function Home() {
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
-                          <span className="text-6xl">ðŸŽ</span>
+                          <span className="text-6xl">{'\u{1F381}'}</span>
                         </div>
                       )}
                       <div className="absolute top-3 left-3">
@@ -683,20 +681,38 @@ export default function Home() {
         <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6 text-center">
           Shop Beauty Products by Category
         </h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
-          {categories.map((category, index) => (
-            <Link
-              key={index}
-              href={category.link}
-              className="group flex flex-col items-center p-4 bg-white rounded-lg border border-gray-200 hover:border-pink-300 hover:shadow-lg transition-all"
-            >
-              <div className="text-4xl mb-3">{category.icon}</div>
-              <h3 className="text-sm font-medium text-gray-800 text-center group-hover:text-pink-500 transition-colors">
-                {category.name}
-              </h3>
-            </Link>
-          ))}
-        </div>
+        {shopCategories.length > 0 ? (
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+            {shopCategories.map((category) => (
+              <Link
+                key={category.id}
+                href={`/category/${category.slug}`}
+                className="group flex flex-col items-center p-4 bg-white rounded-lg border border-gray-200 hover:border-pink-300 hover:shadow-lg transition-all"
+              >
+                <div className="relative w-16 h-16 mb-3 rounded-full overflow-hidden bg-pink-50 flex items-center justify-center">
+                  {category.image ? (
+                    <Image
+                      src={category.image}
+                      alt={category.name}
+                      fill
+                      sizes="64px"
+                      className="object-cover"
+                    />
+                  ) : (
+                    <span className="text-xl font-semibold text-pink-500">
+                      {category.name.charAt(0).toUpperCase()}
+                    </span>
+                  )}
+                </div>
+                <h3 className="text-sm font-medium text-gray-800 text-center group-hover:text-pink-500 transition-colors">
+                  {category.name}
+                </h3>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <p className="text-center text-gray-500 py-6">No categories available</p>
+        )}
       </section>
 
       {/* Shop by Concern */}

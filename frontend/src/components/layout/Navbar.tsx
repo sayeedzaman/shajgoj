@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/src/lib/AuthContext';
 import { useCart } from '@/src/lib/CartContext';
 import { useWishlist } from '@/src/lib/WishlistContext';
@@ -34,6 +34,7 @@ export default function Navbar() {
   const { cartCount, openCart, addToCart } = useCart();
   const { wishlistCount, wishlist, removeFromWishlist } = useWishlist();
   const router = useRouter();
+  const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -53,6 +54,57 @@ export default function Navbar() {
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const mobileSearchContainerRef = useRef<HTMLDivElement>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const hoverCloseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const openCategoryMenu = (categoryId: string) => {
+    if (hoverCloseTimeoutRef.current) {
+      clearTimeout(hoverCloseTimeoutRef.current);
+      hoverCloseTimeoutRef.current = null;
+    }
+    if (!isSearchFocused) {
+      setHoveredCategoryId(categoryId);
+    }
+  };
+
+  const scheduleCloseCategoryMenu = () => {
+    if (hoverCloseTimeoutRef.current) {
+      clearTimeout(hoverCloseTimeoutRef.current);
+    }
+    hoverCloseTimeoutRef.current = setTimeout(() => {
+      setHoveredCategoryId(null);
+      hoverCloseTimeoutRef.current = null;
+    }, 180);
+  };
+
+  const closeCategoryMenu = () => {
+    if (hoverCloseTimeoutRef.current) {
+      clearTimeout(hoverCloseTimeoutRef.current);
+      hoverCloseTimeoutRef.current = null;
+    }
+    setHoveredCategoryId(null);
+  };
+
+  const getCategoryDisplayName = (category: CategoryWithHierarchy) => {
+    const name = category.name.toLowerCase();
+    if (name === 'men') return 'MEN';
+    if (name === 'jewellery' || name === 'jewelry') return 'JEWELLERY';
+    return category.name;
+  };
+
+  const getCategoryLinkClass = (category: CategoryWithHierarchy) => {
+    const name = category.name.toLowerCase();
+    if (name === 'men') {
+      return 'text-sm text-white bg-gray-600 hover:bg-gray-700 transition-all duration-200 whitespace-nowrap flex items-center px-4 py-2 rounded-full shadow-md font-medium';
+    }
+    if (name === 'jewellery' || name === 'jewelry') {
+      return 'text-sm text-white bg-yellow-600 hover:bg-yellow-700 transition-all duration-200 whitespace-nowrap flex items-center px-4 py-2 rounded-full shadow-md font-medium';
+    }
+    return 'text-sm text-gray-700 hover:text-pink-500 transition-all duration-200 whitespace-nowrap flex items-center px-3 py-2 rounded-md hover:bg-pink-50 relative';
+  };
+
+  // Alternate categories around centered GIGA DEALS: 1st left, 2nd right, 3rd left...
+  const leftNavCategories = categories.filter((_, index) => index % 2 === 0);
+  const rightNavCategories = categories.filter((_, index) => index % 2 === 1);
 
   const fetchCategories = async () => {
     try {
@@ -144,6 +196,20 @@ export default function Navbar() {
   useEffect(() => {
     fetchCategories();
     fetchBrands();
+  }, []);
+
+  // Close mega menu on route change (e.g. after clicking a subcategory/product link)
+  useEffect(() => {
+    closeCategoryMenu();
+    setIsBrandsHovered(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    return () => {
+      if (hoverCloseTimeoutRef.current) {
+        clearTimeout(hoverCloseTimeoutRef.current);
+      }
+    };
   }, []);
 
   // Instant search with debouncing
@@ -241,7 +307,7 @@ export default function Navbar() {
       <nav className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
         {/* Top Banner */}
         {/* <div className="bg-linear-to-r from-pink-500 to-purple-600 text-white text-center py-2 text-sm">
-          <p>Free Shipping on orders over ৳500! ðŸŽ‰</p>
+          <p>Free Shipping on orders over ৳500! {'\u{1F389}'}</p>
         </div> */}
 
         {/* Main Navbar */}
@@ -1080,94 +1146,97 @@ export default function Navbar() {
         </>
 
         {/* Categories Navigation - Desktop with Mega Menu */}
-        <div className="hidden md:block border-t border-gray-200 bg-white relative">
-          {/* Category Links Bar */}
+        <div
+          className="hidden md:block border-t border-gray-200 bg-white relative"
+          onMouseLeave={scheduleCloseCategoryMenu}
+        >
+          {/* Category Links Bar — GIGA DEALS always centered; categories alternate L/R */}
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-center flex-wrap gap-x-8 gap-y-2 min-h-12 py-2 relative z-50">
-              {categories
-                .filter(category =>
-                  category.name.toLowerCase() !== 'men' &&
-                  category.name.toLowerCase() !== 'jewellery' &&
-                  category.name.toLowerCase() !== 'jewelry'
-                )
-                .slice(0, 7)
-                .map((category) => (
-                <div
-                  key={category.id}
-                  className="relative group"
-                  onMouseEnter={() => !isSearchFocused && setHoveredCategoryId(category.id)}
-                  onMouseLeave={() => setHoveredCategoryId(null)}
-                >
-                  <Link
-                    href={`/category/${category.slug}`}
-                    className="text-sm text-gray-700 hover:text-pink-500 transition-all duration-200 whitespace-nowrap flex items-center px-3 py-2 rounded-md hover:bg-pink-50 relative"
-                  >
-                    {category.name}
-                    {/* Active indicator */}
-                    <span className={`absolute bottom-0 left-0 right-0 h-0.5 bg-pink-500 transform origin-left transition-transform duration-200 ${
-                      hoveredCategoryId === category.id ? 'scale-x-100' : 'scale-x-0'
-                    }`} />
-                  </Link>
-                </div>
-              ))}
-              {/* <Link
-                href="/products"
-                className="text-sm text-gray-700 hover:text-pink-500 transition-all duration-200 whitespace-nowrap flex items-center px-3 py-2 rounded-md hover:bg-pink-50"
-              >
-                All Products
-              </Link> */}
+            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-x-3 min-h-12 py-2 relative z-50">
+              {/* Left side: 1st, 3rd, 5th... */}
+              <div className="flex items-center justify-end flex-wrap gap-x-4 gap-y-2">
+                {leftNavCategories.map((category) => {
+                  const isSpecial =
+                    category.name.toLowerCase() === 'men' ||
+                    category.name.toLowerCase() === 'jewellery' ||
+                    category.name.toLowerCase() === 'jewelry';
+                  return (
+                    <div
+                      key={category.id}
+                      className="relative group"
+                      onMouseEnter={() => openCategoryMenu(category.id)}
+                    >
+                      <Link
+                        href={`/category/${category.slug}`}
+                        className={getCategoryLinkClass(category)}
+                        onClick={closeCategoryMenu}
+                      >
+                        {getCategoryDisplayName(category)}
+                        {!isSpecial && (
+                          <span
+                            className={`absolute bottom-0 left-0 right-0 h-0.5 bg-pink-500 transform origin-left transition-transform duration-200 ${
+                              hoveredCategoryId === category.id ? 'scale-x-100' : 'scale-x-0'
+                            }`}
+                          />
+                        )}
+                      </Link>
+                    </div>
+                  );
+                })}
+              </div>
 
-              {/* Men Category - Only show if it exists */}
-              {categories.find(cat => cat.name.toLowerCase() === 'men') && (
-                <div
-                  className="relative group"
-                  onMouseEnter={() => !isSearchFocused && setHoveredCategoryId(categories.find(cat => cat.name.toLowerCase() === 'men')!.id)}
-                  onMouseLeave={() => setHoveredCategoryId(null)}
-                >
-                  <Link
-                    href={`/category/${categories.find(cat => cat.name.toLowerCase() === 'men')?.slug}`}
-                    className="text-sm text-white bg-gray-600 hover:bg-gray-700 transition-all duration-200 whitespace-nowrap flex items-center px-4 py-2 rounded-full shadow-md font-medium"
-                  >
-                    MEN
-                  </Link>
-                </div>
-              )}
-
-              {/* Jewellery Category - Only show if it exists */}
-              {categories.find(cat => cat.name.toLowerCase() === 'jewellery' || cat.name.toLowerCase() === 'jewelry') && (
-                <div
-                  className="relative group"
-                  onMouseEnter={() => !isSearchFocused && setHoveredCategoryId(categories.find(cat => cat.name.toLowerCase() === 'jewellery' || cat.name.toLowerCase() === 'jewelry')!.id)}
-                  onMouseLeave={() => setHoveredCategoryId(null)}
-                >
-                  <Link
-                    href={`/category/${categories.find(cat => cat.name.toLowerCase() === 'jewellery' || cat.name.toLowerCase() === 'jewelry')?.slug}`}
-                    className="text-sm text-white bg-yellow-600 hover:bg-yellow-700 transition-all duration-200 whitespace-nowrap flex items-center px-4 py-2 rounded-full shadow-md font-medium"
-                  >
-                    JEWELLERY
-                  </Link>
-                </div>
-              )}
-
+              {/* Center: GIGA DEALS always stays in the middle */}
               <Link
                 href="/offers"
-                className="text-sm text-white bg-pink-600 hover:bg-pink-700 transition-all duration-200 whitespace-nowrap flex items-center px-4 py-2 rounded-full shadow-md font-medium"
+                className="text-sm text-white bg-pink-600 hover:bg-pink-700 transition-all duration-200 whitespace-nowrap flex items-center px-4 py-2 rounded-full shadow-md font-medium justify-self-center"
+                onClick={closeCategoryMenu}
               >
                 GIGA DEALS
               </Link>
+
+              {/* Right side: 2nd, 4th, 6th... */}
+              <div className="flex items-center justify-start flex-wrap gap-x-4 gap-y-2">
+                {rightNavCategories.map((category) => {
+                  const isSpecial =
+                    category.name.toLowerCase() === 'men' ||
+                    category.name.toLowerCase() === 'jewellery' ||
+                    category.name.toLowerCase() === 'jewelry';
+                  return (
+                    <div
+                      key={category.id}
+                      className="relative group"
+                      onMouseEnter={() => openCategoryMenu(category.id)}
+                    >
+                      <Link
+                        href={`/category/${category.slug}`}
+                        className={getCategoryLinkClass(category)}
+                        onClick={closeCategoryMenu}
+                      >
+                        {getCategoryDisplayName(category)}
+                        {!isSpecial && (
+                          <span
+                            className={`absolute bottom-0 left-0 right-0 h-0.5 bg-pink-500 transform origin-left transition-transform duration-200 ${
+                              hoveredCategoryId === category.id ? 'scale-x-100' : 'scale-x-0'
+                            }`}
+                          />
+                        )}
+                      </Link>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
-          {/* Mega Menu Dropdown - Single instance rendered outside */}
+          {/* Mega Menu Dropdown — pt bridge so hover doesn't drop between bar and panel */}
           {!isSearchFocused && hoveredCategoryId && categories.find(cat => cat.id === hoveredCategoryId)?.Type && categories.find(cat => cat.id === hoveredCategoryId)!.Type!.length > 0 && (
             <div
-              className="absolute left-0 right-0 top-full z-50 flex justify-center animate-fadeIn"
-              onMouseEnter={() => setHoveredCategoryId(hoveredCategoryId)}
-              onMouseLeave={() => setHoveredCategoryId(null)}
+              className="absolute left-0 right-0 top-full z-50 flex justify-center pt-1"
+              onMouseEnter={() => openCategoryMenu(hoveredCategoryId)}
+              onMouseLeave={scheduleCloseCategoryMenu}
             >
               <div className="bg-white border border-gray-200 shadow-2xl rounded-b-lg mx-4 sm:mx-8 md:mx-16 w-full max-w-6xl overflow-hidden">
                 <div className="px-6 py-6">
-                  {/* Category Title */}
                   <div className="flex items-center justify-between mb-4 pb-3 border-b-2 border-pink-100">
                     <h3 className="text-lg text-gray-900">
                       {categories.find(cat => cat.id === hoveredCategoryId)?.name}
@@ -1175,18 +1244,19 @@ export default function Navbar() {
                     <Link
                       href={`/category/${categories.find(cat => cat.id === hoveredCategoryId)?.slug}`}
                       className="text-xs text-pink-500 hover:text-pink-600 hover:underline transition-colors"
+                      onClick={closeCategoryMenu}
                     >
                       View All →
                     </Link>
                   </div>
 
-                  {/* Types and SubCategories Grid */}
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-8 gap-y-6">
                     {categories.find(cat => cat.id === hoveredCategoryId)?.Type?.map((type) => (
                       <div key={type.id} className="space-y-3 group/type">
                         <Link
                           href={`/type/${type.slug}`}
                           className="text-sm text-gray-900 hover:text-pink-500 block uppercase tracking-wide transition-colors relative inline-block"
+                          onClick={closeCategoryMenu}
                         >
                           {type.name}
                           <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-pink-500 group-hover/type:w-full transition-all duration-200" />
@@ -1198,8 +1268,9 @@ export default function Navbar() {
                                 key={subCat.id}
                                 href={`/subcategory/${subCat.slug}`}
                                 className="text-xs text-gray-600 hover:text-pink-500 hover:translate-x-1 block transition-all duration-150 py-0.5"
+                                onClick={closeCategoryMenu}
                               >
-                                â€¢ {subCat.name}
+                                {'\u2022'} {subCat.name}
                               </Link>
                             ))}
                           </div>
@@ -1216,9 +1287,8 @@ export default function Navbar() {
         {/* Backdrop overlay for dropdown */}
         {!isSearchFocused && hoveredCategoryId && (
           <div
-            className="fixed left-0 right-0 bottom-0 bg-black/20 backdrop-blur-sm z-40 transition-opacity duration-200"
+            className="fixed left-0 right-0 bottom-0 bg-black/20 backdrop-blur-sm z-40 transition-opacity duration-200 pointer-events-none"
             style={{ top: '113px' }}
-            onMouseEnter={() => setHoveredCategoryId(null)}
           />
         )}
       </nav>

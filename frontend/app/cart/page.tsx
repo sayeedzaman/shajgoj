@@ -237,7 +237,7 @@ export default function CartPage() {
                   </p>
                 ) : (
                   <p className="text-xs sm:text-sm text-green-600 bg-green-50 p-2.5 sm:p-3 rounded-lg">
-                    ðŸŽ‰ You qualify for FREE shipping!
+                    {'\u{1F389}'} You qualify for FREE shipping!
                   </p>
                 )}
 

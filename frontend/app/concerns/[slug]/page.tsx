@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { concernsAPI, brandsAPI } from '@/src/lib/api';
 import { Product, Concern, Brand } from '@/src/types/index';
 import ProductCard from '@/src/components/products/ProductCard';
+import PriceRangeFilter from '@/src/components/filters/PriceRangeFilter';
 import { ChevronRight, SlidersHorizontal } from 'lucide-react';
 
 export default function ConcernPage() {
@@ -221,91 +222,14 @@ export default function ConcernPage() {
                   </div>
                 </div>
 
-                {/* Price Range */}
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-3">Price Range</h3>
-                  <div className="space-y-4">
-                    {/* Input Fields */}
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="text-xs text-gray-600 mb-1 block">Min</label>
-                        <div className="relative">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">৳</span>
-                          <input
-                            type="number"
-                            min="0"
-                            max={priceRange[1]}
-                            step="100"
-                            value={priceRange[0]}
-                            onChange={(e) => {
-                              const newMin = Math.max(0, Math.min(parseInt(e.target.value) || 0, priceRange[1]));
-                              setPriceRange([newMin, priceRange[1]]);
-                            }}
-                            className="w-full pl-7 pr-2 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="text-xs text-gray-600 mb-1 block">Max</label>
-                        <div className="relative">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">৳</span>
-                          <input
-                            type="number"
-                            min={priceRange[0]}
-                            max="1000000"
-                            step="100"
-                            value={priceRange[1]}
-                            onChange={(e) => {
-                              const newMax = Math.max(priceRange[0], Math.min(parseInt(e.target.value) || 1000000, 1000000));
-                              setPriceRange([priceRange[0], newMax]);
-                            }}
-                            className="w-full pl-7 pr-2 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
-                          />
-                        </div>
-                      </div>
-                    </div>
 
-                    {/* Range Slider */}
-                    <div className="relative h-2">
-                      <div className="absolute w-full h-2 bg-gray-200 rounded-lg" />
-                      <div
-                        className="absolute h-2 bg-pink-600 rounded-lg"
-                        style={{
-                          left: `${(priceRange[0] / 1000000) * 100}%`,
-                          right: `${100 - (priceRange[1] / 1000000) * 100}%`
-                        }}
-                      />
-                      <input
-                        type="range"
-                        min="0"
-                        max="1000000"
-                        step="1000"
-                        value={priceRange[0]}
-                        onChange={(e) => {
-                          const newMin = parseInt(e.target.value);
-                          setPriceRange([Math.min(newMin, priceRange[1]), priceRange[1]]);
-                        }}
-                        className="absolute top-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-pink-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-pink-600 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:shadow-md"
-                        style={{ height: '8px' }}
-                        aria-label="Minimum price"
-                      />
-                      <input
-                        type="range"
-                        min="0"
-                        max="1000000"
-                        step="1000"
-                        value={priceRange[1]}
-                        onChange={(e) => {
-                          const newMax = parseInt(e.target.value);
-                          setPriceRange([priceRange[0], Math.max(newMax, priceRange[0])]);
-                        }}
-                        className="absolute top-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-pink-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:bg-pink-600 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:shadow-md"
-                        style={{ height: '8px' }}
-                        aria-label="Maximum price"
-                      />
-                    </div>
-                  </div>
-                </div>
+                <PriceRangeFilter
+                  value={priceRange}
+                  onChange={(range) => {
+                    setPriceRange(range);
+                    setCurrentPage(1);
+                  }}
+                />
               </div>
             </div>
           </aside>
