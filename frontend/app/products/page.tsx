@@ -6,7 +6,7 @@ import { productsAPI, categoriesAPI, brandsAPI, typesAPI, subCategoriesAPI } fro
 import { Product, Category, Brand, Type, SubCategory } from '@/src/types/index';
 import ProductCard from '@/src/components/products/ProductCard';
 import EmptyState from '@/src/components/common/EmptyState';
-import PriceRangeFilter from '@/src/components/filters/PriceRangeFilter';
+import PriceRangeFilter, { PRICE_FILTER_MAX } from '@/src/components/filters/PriceRangeFilter';
 import { Filter, SlidersHorizontal, ChevronDown, ChevronRight, X } from 'lucide-react';
 
 function ProductsContent() {
@@ -30,7 +30,7 @@ function ProductsContent() {
   const [selectedType, setSelectedType] = useState<string>('');
   const [selectedSubCategory, setSelectedSubCategory] = useState<string>('');
   const [selectedBrand, setSelectedBrand] = useState<string>('');
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000000]);
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, PRICE_FILTER_MAX]);
   const [sortBy, setSortBy] = useState<'createdAt' | 'price' | 'name'>('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [currentPage, setCurrentPage] = useState(1);
@@ -53,7 +53,7 @@ function ProductsContent() {
         subCategoryId: selectedSubCategory || undefined,
         brandId: selectedBrand || undefined,
         minPrice: priceRange[0],
-        maxPrice: priceRange[1],
+        maxPrice: priceRange[1] < PRICE_FILTER_MAX ? priceRange[1] : undefined,
         sortBy,
         order: sortOrder,
         page: currentPage,
@@ -227,7 +227,7 @@ function ProductsContent() {
     setSelectedType('');
     setSelectedSubCategory('');
     setSelectedBrand('');
-    setPriceRange([0, 1000000]);
+    setPriceRange([0, PRICE_FILTER_MAX]);
     setSortBy('createdAt');
     setSortOrder('desc');
     setCurrentPage(1);
@@ -254,7 +254,7 @@ function ProductsContent() {
           </p>
 
           {/* Active Filters Display */}
-          {(selectedCategory || selectedType || selectedSubCategory || selectedBrand || priceRange[0] > 0 || priceRange[1] < 1000000) && (
+          {(selectedCategory || selectedType || selectedSubCategory || selectedBrand || priceRange[0] > 0 || priceRange[1] < PRICE_FILTER_MAX) && (
             <div className="mt-4 flex flex-wrap items-center gap-2">
               <span className="text-sm text-gray-600 font-medium">Active Filters:</span>
               {selectedCategory && (
@@ -316,12 +316,12 @@ function ProductsContent() {
                   </button>
                 </span>
               )}
-              {(priceRange[0] > 0 || priceRange[1] < 1000000) && (
+              {(priceRange[0] > 0 || priceRange[1] < PRICE_FILTER_MAX) && (
                 <span className="inline-flex items-center gap-1 bg-pink-100 text-pink-700 px-3 py-1 rounded-full text-sm font-medium">
                   ৳{priceRange[0].toLocaleString()} - ৳{priceRange[1].toLocaleString()}
                   <button
                     type="button"
-                    onClick={() => setPriceRange([0, 1000000])}
+                    onClick={() => setPriceRange([0, PRICE_FILTER_MAX])}
                     className="hover:bg-pink-200 rounded-full p-0.5"
                     aria-label="Remove price range filter"
                   >
@@ -364,7 +364,7 @@ function ProductsContent() {
                   <Filter className="w-5 h-5" />
                   Filters
                 </h2>
-                {(selectedCategory || selectedType || selectedSubCategory || selectedBrand || priceRange[0] > 0 || priceRange[1] < 1000000) && (
+                {(selectedCategory || selectedType || selectedSubCategory || selectedBrand || priceRange[0] > 0 || priceRange[1] < PRICE_FILTER_MAX) && (
                   <button
                     onClick={clearFilters}
                     className="text-sm text-pink-600 hover:text-pink-700 font-medium"

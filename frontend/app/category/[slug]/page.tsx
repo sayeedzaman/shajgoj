@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { productsAPI, categoriesAPI, brandsAPI } from '@/src/lib/api';
 import { Product, Category, Brand } from '@/src/types/index';
 import ProductCard from '@/src/components/products/ProductCard';
-import PriceRangeFilter from '@/src/components/filters/PriceRangeFilter';
+import PriceRangeFilter, { PRICE_FILTER_MAX } from '@/src/components/filters/PriceRangeFilter';
 import { ChevronRight, SlidersHorizontal } from 'lucide-react';
 
 export default function CategoryPage() {
@@ -22,7 +22,7 @@ export default function CategoryPage() {
 
   // Filter states
   const [selectedBrand, setSelectedBrand] = useState<string>('');
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000000]);
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, PRICE_FILTER_MAX]);
   const [sortBy, setSortBy] = useState<'createdAt' | 'price' | 'name'>('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [currentPage, setCurrentPage] = useState(1);
@@ -64,7 +64,7 @@ export default function CategoryPage() {
         categoryId: category.id,
         brandId: selectedBrand || undefined,
         minPrice: priceRange[0],
-        maxPrice: priceRange[1],
+        maxPrice: priceRange[1] < PRICE_FILTER_MAX ? priceRange[1] : undefined,
         sortBy,
         order: sortOrder,
         page: currentPage,
@@ -92,7 +92,7 @@ export default function CategoryPage() {
 
   const clearFilters = () => {
     setSelectedBrand('');
-    setPriceRange([0, 1000000]);
+    setPriceRange([0, PRICE_FILTER_MAX]);
     setSortBy('createdAt');
     setSortOrder('desc');
     setCurrentPage(1);
@@ -174,7 +174,7 @@ export default function CategoryPage() {
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 sticky top-20 max-h-[calc(100vh-6rem)] flex flex-col">
               <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-100">
                 <h2 className="text-lg font-bold text-gray-900">Filters</h2>
-                {(selectedBrand || priceRange[0] > 0 || priceRange[1] < 1000000) && (
+                {(selectedBrand || priceRange[0] > 0 || priceRange[1] < PRICE_FILTER_MAX) && (
                   <button
                     onClick={clearFilters}
                     className="text-sm text-pink-600 hover:text-pink-700 font-medium"

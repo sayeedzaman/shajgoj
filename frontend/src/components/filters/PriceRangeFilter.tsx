@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-const DEFAULT_MAX = 1_000_000;
+export const PRICE_FILTER_MAX = 100_000;
 const SLIDER_STEP = 1000;
 /** Fetch shortly after user pauses typing (no need to blur). */
 const INPUT_DEBOUNCE_MS = 400;
@@ -26,7 +26,7 @@ interface PriceRangeFilterProps {
 export default function PriceRangeFilter({
   value,
   onChange,
-  max = DEFAULT_MAX,
+  max = PRICE_FILTER_MAX,
   title = 'Price Range',
 }: PriceRangeFilterProps) {
   const [draft, setDraft] = useState<PriceRangeValue>(value);
