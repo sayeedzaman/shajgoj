@@ -1,7 +1,16 @@
 import type { Response } from 'express';
 import { Prisma } from '@prisma/client';
+import type { PaymentMethod, PaymentStatus } from '@prisma/client';
 import type { AuthRequest } from '../middleware/auth.middleware.js';
 import { prisma } from '../lib/prisma.js';
+import {
+  PAYMENT_METHODS,
+  PAYMENT_STATUSES,
+  PAYMENT_SETTING_FIELD,
+  isMobilePayment,
+  normalizeBdMobile,
+  normalizeTrxId,
+} from '../lib/payments.js';
 
 // Generate unique order number
 const generateOrderNumber = (): string => {
@@ -25,11 +34,42 @@ const getShippingFees = async () => {
   };
 };
 
+const isPaymentMethodEnabled = async (method: PaymentMethod): Promise<boolean> => {
+  const settings = await prisma.storeSettings.findUnique({ where: { id: SETTINGS_ID } });
+  // No settings row yet means schema defaults apply (all methods enabled)
+  if (!settings) return true;
+  return settings[PAYMENT_SETTING_FIELD[method]];
+};
+
+/**
+ * Validates mobile banking details (sender number + TrxID) for an order.
+ * Returns the normalized values or an error message.
+ */
+const validateMobilePaymentDetails = (
+  sender: unknown,
+  trxId: unknown
+): { sender: string; trxId: string } | { error: string } => {
+  const normalizedSender = normalizeBdMobile(sender);
+  if (!normalizedSender) {
+    return { error: 'Please enter the valid mobile number you sent the payment from (e.g. 01XXXXXXXXX)' };
+  }
+  const normalizedTrxId = normalizeTrxId(trxId);
+  if (!normalizedTrxId) {
+    return { error: 'Please enter a valid Transaction ID (6-30 letters/numbers)' };
+  }
+  return { sender: normalizedSender, trxId: normalizedTrxId };
+};
+
+const isDuplicateTrxIdError = (error: unknown) =>
+  error instanceof Prisma.PrismaClientKnownRequestError &&
+  error.code === 'P2002' &&
+  String(error.meta?.target ?? '').includes('paymentTrxId');
+
 // Create new order
 export const createOrder = async (req: AuthRequest, res: Response): Promise<any> => {
   try {
     const userId = req.user?.userId;
-    const { addressId, items } = req.body;
+    const { addressId, items, paymentMethod: rawPaymentMethod = 'COD', paymentSender, paymentTrxId } = req.body;
 
     if (!userId) {
       return res.status(401).json({ error: 'User not authenticated' });
@@ -37,6 +77,24 @@ export const createOrder = async (req: AuthRequest, res: Response): Promise<any>
 
     if (!addressId || !items || items.length === 0) {
       return res.status(400).json({ error: 'Address and items are required' });
+    }
+
+    if (!PAYMENT_METHODS.includes(rawPaymentMethod)) {
+      return res.status(400).json({ error: 'Invalid payment method' });
+    }
+    const paymentMethod = rawPaymentMethod as PaymentMethod;
+
+    if (!(await isPaymentMethodEnabled(paymentMethod))) {
+      return res.status(400).json({ error: 'This payment method is currently unavailable' });
+    }
+
+    let mobilePayment: { sender: string; trxId: string } | null = null;
+    if (isMobilePayment(paymentMethod)) {
+      const result = validateMobilePaymentDetails(paymentSender, paymentTrxId);
+      if ('error' in result) {
+        return res.status(400).json({ error: result.error });
+      }
+      mobilePayment = result;
     }
 
     // Verify address belongs to user
@@ -104,6 +162,11 @@ export const createOrder = async (req: AuthRequest, res: Response): Promise<any>
         shippingCost: parseFloat(shippingCost.toFixed(2)),
         total: parseFloat(total.toFixed(2)),
         status: 'PENDING',
+        paymentMethod,
+        // Mobile payments wait for admin to confirm the TrxID; COD is collected on delivery
+        paymentStatus: mobilePayment ? 'PENDING_VERIFICATION' : 'UNPAID',
+        paymentSender: mobilePayment?.sender ?? null,
+        paymentTrxId: mobilePayment?.trxId ?? null,
         OrderItem: {
           create: orderItems,
         },
@@ -149,6 +212,9 @@ export const createOrder = async (req: AuthRequest, res: Response): Promise<any>
 
     res.status(201).json(order);
   } catch (error) {
+    if (isDuplicateTrxIdError(error)) {
+      return res.status(409).json({ error: 'This Transaction ID has already been used for another order' });
+    }
     console.error('Create order error:', error);
     res.status(500).json({ error: 'Failed to create order' });
   }
@@ -332,7 +398,7 @@ export const cancelOrder = async (req: AuthRequest, res: Response): Promise<any>
 // Get all orders (Admin only)
 export const getAllOrders = async (req: AuthRequest, res: Response): Promise<any> => {
   try {
-    const { status, page = '1', limit = '20' } = req.query;
+    const { status, paymentStatus, paymentMethod, page = '1', limit = '20' } = req.query;
 
     const pageNum = parseInt(page as string, 10);
     const limitNum = parseInt(limit as string, 10);
@@ -342,6 +408,14 @@ export const getAllOrders = async (req: AuthRequest, res: Response): Promise<any
     
     if (status && typeof status === 'string') {
       where.status = status as any;
+    }
+
+    if (typeof paymentStatus === 'string' && PAYMENT_STATUSES.includes(paymentStatus as PaymentStatus)) {
+      where.paymentStatus = paymentStatus as PaymentStatus;
+    }
+
+    if (typeof paymentMethod === 'string' && PAYMENT_METHODS.includes(paymentMethod as PaymentMethod)) {
+      where.paymentMethod = paymentMethod as PaymentMethod;
     }
 
     const [orders, total] = await Promise.all([
@@ -424,10 +498,14 @@ export const updateOrderStatus = async (req: AuthRequest, res: Response): Promis
       return res.status(404).json({ error: 'Order not found' });
     }
 
+    // Cash on delivery is collected when the parcel is handed over
+    const codCollected = status === 'DELIVERED' && order.paymentMethod === 'COD' && order.paymentStatus === 'UNPAID';
+
     const updatedOrder = await prisma.order.update({
       where: { id: id },
       data: {
         status: status as any,
+        ...(codCollected && { paymentStatus: 'PAID', paidAt: new Date() }),
         ...(status !== order.status && {
           OrderStatusHistory: {
             create: { status: status as any },
@@ -523,5 +601,143 @@ export const updateOrderShipping = async (req: AuthRequest, res: Response): Prom
   } catch (error) {
     console.error('Update order shipping error:', error);
     res.status(500).json({ error: 'Failed to update order shipping cost' });
+  }
+};
+const ORDER_DETAIL_INCLUDE = {
+  OrderItem: {
+    include: {
+      Product: true,
+    },
+  },
+  Address: true,
+  User: {
+    select: {
+      id: true,
+      email: true,
+      firstName: true,
+      lastName: true,
+      phone: true,
+    },
+  },
+  OrderStatusHistory: {
+    orderBy: { createdAt: 'asc' },
+  },
+} satisfies Prisma.OrderInclude;
+
+// Resubmit mobile payment details (customer) - e.g. after a typo or a rejected TrxID
+export const resubmitOrderPayment = async (req: AuthRequest, res: Response): Promise<any> => {
+  try {
+    const userId = req.user?.userId;
+    const { id } = req.params;
+    const { paymentMethod: rawPaymentMethod, paymentSender, paymentTrxId } = req.body;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    if (!id) {
+      return res.status(400).json({ error: 'Order ID is required' });
+    }
+
+    const order = await prisma.order.findFirst({ where: { id, userId } });
+
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    if (order.status === 'CANCELLED') {
+      return res.status(400).json({ error: 'This order has been cancelled' });
+    }
+
+    if (!isMobilePayment(order.paymentMethod)) {
+      return res.status(400).json({ error: 'This order is paid by cash on delivery' });
+    }
+
+    if (order.paymentStatus !== 'PENDING_VERIFICATION' && order.paymentStatus !== 'FAILED') {
+      return res.status(400).json({ error: 'Payment details can no longer be changed for this order' });
+    }
+
+    // Customers may switch between mobile wallets (e.g. paid with Nagad instead of bKash)
+    const paymentMethod = (rawPaymentMethod ?? order.paymentMethod) as PaymentMethod;
+    if (!PAYMENT_METHODS.includes(paymentMethod) || !isMobilePayment(paymentMethod)) {
+      return res.status(400).json({ error: 'Invalid payment method' });
+    }
+
+    if (paymentMethod !== order.paymentMethod && !(await isPaymentMethodEnabled(paymentMethod))) {
+      return res.status(400).json({ error: 'This payment method is currently unavailable' });
+    }
+
+    const result = validateMobilePaymentDetails(paymentSender, paymentTrxId);
+    if ('error' in result) {
+      return res.status(400).json({ error: result.error });
+    }
+
+    const updatedOrder = await prisma.order.update({
+      where: { id },
+      data: {
+        paymentMethod,
+        paymentStatus: 'PENDING_VERIFICATION',
+        paymentSender: result.sender,
+        paymentTrxId: result.trxId,
+      },
+      include: ORDER_DETAIL_INCLUDE,
+    });
+
+    res.json(updatedOrder);
+  } catch (error) {
+    if (isDuplicateTrxIdError(error)) {
+      return res.status(409).json({ error: 'This Transaction ID has already been used for another order' });
+    }
+    console.error('Resubmit order payment error:', error);
+    res.status(500).json({ error: 'Failed to update payment details' });
+  }
+};
+
+// Update payment status (Admin only) - verify / reject a mobile payment, mark COD paid, or refund
+export const updateOrderPaymentStatus = async (req: AuthRequest, res: Response): Promise<any> => {
+  try {
+    const { id } = req.params;
+    const { paymentStatus } = req.body as { paymentStatus?: PaymentStatus };
+
+    if (!id) {
+      return res.status(400).json({ error: 'Order ID is required' });
+    }
+
+    if (!paymentStatus || !PAYMENT_STATUSES.includes(paymentStatus)) {
+      return res.status(400).json({
+        error: 'Invalid payment status. Must be one of: ' + PAYMENT_STATUSES.join(', '),
+      });
+    }
+
+    const order = await prisma.order.findUnique({ where: { id } });
+
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+
+    if (paymentStatus === 'PENDING_VERIFICATION' && !isMobilePayment(order.paymentMethod)) {
+      return res.status(400).json({ error: 'Cash on delivery orders have no payment to verify' });
+    }
+
+    if (paymentStatus === 'REFUNDED' && order.paymentStatus !== 'PAID') {
+      return res.status(400).json({ error: 'Only paid orders can be refunded' });
+    }
+
+    const updatedOrder = await prisma.order.update({
+      where: { id },
+      data: {
+        paymentStatus,
+        paidAt: paymentStatus === 'PAID' ? order.paidAt ?? new Date() : paymentStatus === 'REFUNDED' ? order.paidAt : null,
+      },
+      include: ORDER_DETAIL_INCLUDE,
+    });
+
+    res.json({
+      message: 'Payment status updated successfully',
+      order: updatedOrder,
+    });
+  } catch (error) {
+    console.error('Update payment status error:', error);
+    res.status(500).json({ error: 'Failed to update payment status' });
   }
 };

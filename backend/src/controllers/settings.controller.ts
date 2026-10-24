@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { normalizeBdMobile } from '../lib/payments.js';
 
 const prisma = new PrismaClient();
 
@@ -64,10 +65,54 @@ export const getPublicShippingSettings = async (req: Request, res: Response): Pr
   }
 };
 
+// Get public payment options (no auth required) so checkout knows which
+// methods are enabled and which number customers should send money to
+export const getPublicPaymentSettings = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const select = {
+      cashOnDelivery: true,
+      bkashEnabled: true,
+      nagadEnabled: true,
+      upayEnabled: true,
+      rocketEnabled: true,
+      mobilePaymentNumber: true,
+    } as const;
+
+    let settings = await prisma.storeSettings.findUnique({
+      where: { id: SETTINGS_ID },
+      select,
+    });
+
+    if (!settings) {
+      settings = await prisma.storeSettings.create({
+        data: {
+          id: SETTINGS_ID,
+          updatedAt: new Date(),
+        },
+        select,
+      });
+    }
+
+    res.json(settings);
+  } catch (error) {
+    console.error('Error fetching payment settings:', error);
+    res.status(500).json({ error: 'Failed to fetch payment settings' });
+  }
+};
+
 // Update store settings
 export const updateSettings = async (req: Request, res: Response): Promise<void> => {
   try {
     const settingsData = req.body;
+
+    if (settingsData.mobilePaymentNumber !== undefined) {
+      const number = normalizeBdMobile(settingsData.mobilePaymentNumber);
+      if (!number) {
+        res.status(400).json({ error: 'Please enter a valid Bangladeshi mobile number for payments' });
+        return;
+      }
+      settingsData.mobilePaymentNumber = `+88${number}`;
+    }
 
     // Ensure settings exist first
     let settings = await prisma.storeSettings.findUnique({

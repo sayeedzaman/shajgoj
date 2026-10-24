@@ -31,8 +31,11 @@ export default function SettingsPage() {
     dhakaShippingFee: 60,
     outsideDhakaShippingFee: 120,
     cashOnDelivery: true,
-    bkashEnabled: false,
-    nagadEnabled: false,
+    bkashEnabled: true,
+    nagadEnabled: true,
+    upayEnabled: true,
+    rocketEnabled: true,
+    mobilePaymentNumber: '+8801835286271',
     cardPaymentEnabled: false,
   });
 
@@ -88,6 +91,7 @@ export default function SettingsPage() {
       });
 
       if (response.ok) {
+        setSettings(await response.json());
         setSuccessMessage('Settings saved successfully!');
         setTimeout(() => setSuccessMessage(''), 3000);
       } else {
@@ -393,6 +397,22 @@ export default function SettingsPage() {
                 </h3>
                 <p className="text-sm text-gray-600 mt-1">Enable or disable payment options</p>
               </div>
+              <div className="mb-4">
+                <label htmlFor="mobilePaymentNumber" className="block text-sm font-medium text-gray-700 mb-2">
+                  Mobile Banking Number
+                </label>
+                <input
+                  id="mobilePaymentNumber"
+                  type="tel"
+                  value={settings.mobilePaymentNumber}
+                  onChange={(e) => setSettings({ ...settings, mobilePaymentNumber: e.target.value })}
+                  placeholder="+8801XXXXXXXXX"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Customers send bKash, Nagad, Upay and Rocket payments to this number. It&apos;s shown at checkout with a QR code.
+                </p>
+              </div>
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                   <div>
@@ -434,6 +454,36 @@ export default function SettingsPage() {
                       type="checkbox"
                       checked={settings.nagadEnabled}
                       onChange={(e) => setSettings({ ...settings, nagadEnabled: e.target.checked })}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-600"></div>
+                  </label>
+                </div>
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div>
+                    <h4 className="font-semibold text-gray-900">Upay Payment</h4>
+                    <p className="text-sm text-gray-600">Enable Upay mobile payment</p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={settings.upayEnabled}
+                      onChange={(e) => setSettings({ ...settings, upayEnabled: e.target.checked })}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-600"></div>
+                  </label>
+                </div>
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div>
+                    <h4 className="font-semibold text-gray-900">Rocket Payment</h4>
+                    <p className="text-sm text-gray-600">Enable Rocket mobile payment</p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={settings.rocketEnabled}
+                      onChange={(e) => setSettings({ ...settings, rocketEnabled: e.target.checked })}
                       className="sr-only peer"
                     />
                     <div className="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-600"></div>

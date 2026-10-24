@@ -1,3 +1,5 @@
+import type { PaymentMethod, PaymentStatus } from '@/src/lib/payments';
+
 // API Response Types
 export interface User {
   id: string;
@@ -254,6 +256,11 @@ export interface Order {
   subtotal: number;
   shippingCost: number;
   total: number;
+  paymentMethod: PaymentMethod;
+  paymentStatus: PaymentStatus;
+  paymentSender: string | null;
+  paymentTrxId: string | null;
+  paidAt: string | null;
   createdAt: string;
   updatedAt: string;
   userId: string;
@@ -278,4 +285,7 @@ export interface CreateOrderRequest {
     productId: string;
     quantity: number;
   }[];
+  paymentMethod: PaymentMethod;
+  paymentSender?: string;
+  paymentTrxId?: string;
 }

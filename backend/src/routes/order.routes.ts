@@ -7,6 +7,8 @@ import {
   getAllOrders,
   updateOrderStatus,
   updateOrderShipping,
+  resubmitOrderPayment,
+  updateOrderPaymentStatus,
 } from '../controllers/order.controller.js';
 import { authenticate, authorize } from '../middleware/auth.middleware.js';
 
@@ -45,6 +47,13 @@ router.get('/:id', authenticate, getOrderById);
 router.put('/:id/cancel', authenticate, cancelOrder);
 
 /**
+ * @route   PUT /api/orders/:id/payment
+ * @desc    Resubmit mobile payment details (sender number + TrxID) while unverified or rejected
+ * @access  Private (User)
+ */
+router.put('/:id/payment', authenticate, resubmitOrderPayment);
+
+/**
  * Admin Routes (Require Admin Authentication)
  */
 
@@ -68,5 +77,12 @@ router.put('/admin/:id', authenticate, authorize('ADMIN'), updateOrderStatus);
  * @access  Private (Admin only)
  */
 router.patch('/admin/:id/shipping', authenticate, authorize('ADMIN'), updateOrderShipping);
+
+/**
+ * @route   PATCH /api/orders/admin/:id/payment
+ * @desc    Verify / reject a mobile payment, mark paid, or refund
+ * @access  Private (Admin only)
+ */
+router.patch('/admin/:id/payment', authenticate, authorize('ADMIN'), updateOrderPaymentStatus);
 
 export default router;

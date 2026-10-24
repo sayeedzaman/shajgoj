@@ -1,15 +1,19 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ShoppingBag, Search, Filter, ChevronDown, Eye, Package, Truck, Pencil, Check, X } from 'lucide-react';
+import { ShoppingBag, Search, Filter, ChevronDown, Eye, Package, Truck, Pencil, Check, X, Wallet, AlertCircle } from 'lucide-react';
 import { adminAPI, type Order } from '@/src/lib/adminApi';
 import OrderTracker from '@/src/components/orders/OrderTracker';
+import { PaymentMethodBadge, PaymentStatusBadge } from '@/src/components/payments/PaymentBadges';
+import { PAYMENT_METHOD_INFO, PAYMENT_STATUS_INFO, isMobilePayment, type PaymentStatus } from '@/src/lib/payments';
 
 export default function OrderManagementPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState('');
+  const [updatingPaymentId, setUpdatingPaymentId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [successMessage, setSuccessMessage] = useState('');
@@ -30,7 +34,7 @@ export default function OrderManagementPage() {
 
   useEffect(() => {
     fetchOrders();
-  }, [currentPage, searchQuery, statusFilter]);
+  }, [currentPage, searchQuery, statusFilter, paymentStatusFilter]);
 
   useEffect(() => {
     fetchShippingFees();
@@ -105,6 +109,7 @@ export default function OrderManagementPage() {
         limit: 10,
         search: searchQuery || undefined,
         status: statusFilter || undefined,
+        paymentStatus: paymentStatusFilter || undefined,
       });
       setOrders(response.orders);
       setTotalPages(response.pagination.totalPages);
@@ -150,6 +155,30 @@ export default function OrderManagementPage() {
       }
     } finally {
       setUpdatingOrderId(null);
+    }
+  };
+
+  const handlePaymentStatusUpdate = async (order: Order, paymentStatus: PaymentStatus) => {
+    const confirmations: Partial<Record<PaymentStatus, string>> = {
+      FAILED: `Reject this payment? The customer will be asked to resubmit their ${PAYMENT_METHOD_INFO[order.paymentMethod].label} Transaction ID.`,
+      REFUNDED: `Mark ৳${order.total.toFixed(2)} as refunded to the customer?`,
+    };
+    const message = confirmations[paymentStatus];
+    if (message && !confirm(message)) return;
+
+    try {
+      setUpdatingPaymentId(order.id);
+      const response = await adminAPI.orders.updatePaymentStatus(order.id, paymentStatus);
+      showSuccess(`Payment marked as ${PAYMENT_STATUS_INFO[paymentStatus].label.toLowerCase()}`);
+      setOrders(orders.map(o => (o.id === order.id ? response.order : o)));
+      if (selectedOrder?.id === order.id) {
+        setSelectedOrder(response.order);
+      }
+    } catch (error: unknown) {
+      console.error('Payment status update error:', error);
+      showError(error instanceof Error ? error.message : 'Failed to update payment status');
+    } finally {
+      setUpdatingPaymentId(null);
     }
   };
 
@@ -252,7 +281,7 @@ export default function OrderManagementPage() {
 
       {/* Filters */}
       <div className="bg-white rounded-lg border border-gray-200 p-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -286,6 +315,26 @@ export default function OrderManagementPage() {
               <option value="SHIPPED">Shipped</option>
               <option value="DELIVERED">Delivered</option>
               <option value="CANCELLED">Cancelled</option>
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+          </div>
+
+          {/* Payment Status Filter */}
+          <div className="relative">
+            <Wallet className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <select
+              value={paymentStatusFilter}
+              onChange={(e) => {
+                setPaymentStatusFilter(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 appearance-none bg-white"
+              aria-label="payment status"
+            >
+              <option value="">All Payments</option>
+              {(Object.keys(PAYMENT_STATUS_INFO) as PaymentStatus[]).map((status) => (
+                <option key={status} value={status}>{PAYMENT_STATUS_INFO[status].label}</option>
+              ))}
             </select>
             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
           </div>
@@ -323,6 +372,9 @@ export default function OrderManagementPage() {
                       Total
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Payment
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -347,6 +399,12 @@ export default function OrderManagementPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-bold text-pink-600">৳{order.total.toFixed(2)}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex flex-col items-start gap-1">
+                          <PaymentMethodBadge method={order.paymentMethod} />
+                          <PaymentStatusBadge status={order.paymentStatus} />
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         {getStatusBadge(order.status)}
@@ -475,6 +533,81 @@ export default function OrderManagementPage() {
                 <div className="bg-gray-50 rounded-lg p-4">
                   <h3 className="text-sm font-semibold text-gray-700 mb-2">Last Updated</h3>
                   <p className="text-sm text-gray-900">{formatDate(selectedOrder.updatedAt)}</p>
+                </div>
+              </div>
+
+              {/* Payment */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h3 className="text-sm font-semibold text-gray-700 mb-3">Payment</h3>
+                <div className="flex flex-wrap items-center gap-2 mb-3">
+                  <PaymentMethodBadge method={selectedOrder.paymentMethod} />
+                  <PaymentStatusBadge status={selectedOrder.paymentStatus} />
+                  {selectedOrder.paidAt && (
+                    <span className="text-xs text-gray-500">Paid {formatDate(selectedOrder.paidAt)}</span>
+                  )}
+                </div>
+
+                {isMobilePayment(selectedOrder.paymentMethod) && (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm mb-3">
+                    <div>
+                      <span className="text-gray-600 block">Sent from</span>
+                      <span className="font-medium text-gray-900">{selectedOrder.paymentSender || '—'}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600 block">Transaction ID</span>
+                      <span className="font-mono font-medium text-gray-900 select-all">{selectedOrder.paymentTrxId || '—'}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600 block">Amount due</span>
+                      <span className="font-medium text-gray-900">৳{selectedOrder.total.toFixed(2)}</span>
+                    </div>
+                  </div>
+                )}
+
+                {selectedOrder.paymentStatus === 'PENDING_VERIFICATION' && (
+                  <p className="text-xs text-yellow-800 bg-yellow-50 border border-yellow-200 rounded p-2 mb-3">
+                    Check your {PAYMENT_METHOD_INFO[selectedOrder.paymentMethod].label} account for a payment of ৳{selectedOrder.total.toFixed(2)} from {selectedOrder.paymentSender} with this TrxID before processing the order.
+                  </p>
+                )}
+                {selectedOrder.status === 'CANCELLED' && selectedOrder.paymentStatus === 'PAID' && (
+                  <p className="text-xs text-pink-800 bg-pink-50 border border-pink-200 rounded p-2 mb-3 flex items-center gap-1.5">
+                    <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                    This order was cancelled after payment. Refund the customer and mark it refunded.
+                  </p>
+                )}
+
+                <div className="flex flex-wrap gap-2">
+                  {(selectedOrder.paymentStatus === 'PENDING_VERIFICATION' || selectedOrder.paymentStatus === 'FAILED'
+                    || (selectedOrder.paymentMethod === 'COD' && selectedOrder.paymentStatus === 'UNPAID')) && (
+                    <button
+                      onClick={() => handlePaymentStatusUpdate(selectedOrder, 'PAID')}
+                      disabled={updatingPaymentId === selectedOrder.id}
+                      className="px-4 py-2 rounded-lg text-sm font-medium bg-green-600 text-white hover:bg-green-700 disabled:opacity-50"
+                    >
+                      {isMobilePayment(selectedOrder.paymentMethod) ? 'Verify Payment' : 'Mark Cash Received'}
+                    </button>
+                  )}
+                  {selectedOrder.paymentStatus === 'PENDING_VERIFICATION' && (
+                    <button
+                      onClick={() => handlePaymentStatusUpdate(selectedOrder, 'FAILED')}
+                      disabled={updatingPaymentId === selectedOrder.id}
+                      className="px-4 py-2 rounded-lg text-sm font-medium bg-white border border-pink-300 text-pink-700 hover:bg-pink-50 disabled:opacity-50"
+                    >
+                      Reject Payment
+                    </button>
+                  )}
+                  {selectedOrder.paymentStatus === 'PAID' && (
+                    <button
+                      onClick={() => handlePaymentStatusUpdate(selectedOrder, 'REFUNDED')}
+                      disabled={updatingPaymentId === selectedOrder.id}
+                      className="px-4 py-2 rounded-lg text-sm font-medium bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+                    >
+                      Mark Refunded
+                    </button>
+                  )}
+                  {updatingPaymentId === selectedOrder.id && (
+                    <div className="w-5 h-5 border-2 border-pink-600 border-t-transparent rounded-full animate-spin self-center"></div>
+                  )}
                 </div>
               </div>
 

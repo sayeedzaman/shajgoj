@@ -3,7 +3,21 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { ordersAPI } from '@/src/lib/api';
+import { ordersAPI, settingsAPI } from '@/src/lib/api';
+import MobilePaymentPanel from '@/src/components/payments/MobilePaymentPanel';
+import PaymentMethodOption from '@/src/components/payments/PaymentMethodOption';
+import { PaymentMethodBadge, PaymentStatusBadge } from '@/src/components/payments/PaymentBadges';
+import {
+  DEFAULT_PAYMENT_NUMBER,
+  MOBILE_PAYMENT_METHODS,
+  PAYMENT_METHOD_INFO,
+  PAYMENT_SETTING_FIELD,
+  isMobilePayment,
+  isValidBdMobile,
+  isValidTrxId,
+  type MobilePaymentMethod,
+  type PaymentSettings,
+} from '@/src/lib/payments';
 import { Order } from '@/src/types/index';
 import OrderTracker from '@/src/components/orders/OrderTracker';
 import {
@@ -39,6 +53,21 @@ export default function OrderDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Resubmitting mobile payment details (typo or rejected TrxID)
+  const [paymentSettings, setPaymentSettings] = useState<PaymentSettings | null>(null);
+  const [editingPayment, setEditingPayment] = useState(false);
+  const [paymentMethodInput, setPaymentMethodInput] = useState<MobilePaymentMethod>('BKASH');
+  const [paymentSenderInput, setPaymentSenderInput] = useState('');
+  const [paymentTrxIdInput, setPaymentTrxIdInput] = useState('');
+  const [savingPayment, setSavingPayment] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+
+  useEffect(() => {
+    settingsAPI.getPayment()
+      .then(setPaymentSettings)
+      .catch((err) => console.error('Error fetching payment settings:', err));
+  }, []);
+
   useEffect(() => {
     if (orderId) {
       fetchOrder();
@@ -66,6 +95,55 @@ export default function OrderDetailPage() {
       if (!silent) setError(error instanceof Error ? error.message : 'Failed to load order');
     } finally {
       if (!silent) setLoading(false);
+    }
+  };
+
+  const canEditPayment = !!order
+    && order.status !== 'CANCELLED'
+    && isMobilePayment(order.paymentMethod)
+    && (order.paymentStatus === 'PENDING_VERIFICATION' || order.paymentStatus === 'FAILED');
+
+  // The order's own method stays selectable even if it was disabled after the order was placed
+  const resubmitMethods = MOBILE_PAYMENT_METHODS.filter((m) =>
+    m === order?.paymentMethod || (paymentSettings ? paymentSettings[PAYMENT_SETTING_FIELD[m]] : false)
+  );
+
+  const startEditingPayment = () => {
+    if (!order || !isMobilePayment(order.paymentMethod)) return;
+    setPaymentMethodInput(order.paymentMethod);
+    setPaymentSenderInput(order.paymentSender || '');
+    // A rejected TrxID must be replaced; an unverified one can be corrected
+    setPaymentTrxIdInput(order.paymentStatus === 'FAILED' ? '' : order.paymentTrxId || '');
+    setPaymentError(null);
+    setEditingPayment(true);
+  };
+
+  const handlePaymentResubmit = async () => {
+    if (!order) return;
+    const label = PAYMENT_METHOD_INFO[paymentMethodInput].label;
+    if (!isValidBdMobile(paymentSenderInput)) {
+      setPaymentError(`Please enter the ${label} number you sent the money from (e.g. 01XXXXXXXXX)`);
+      return;
+    }
+    if (!isValidTrxId(paymentTrxIdInput)) {
+      setPaymentError(`Please enter the ${label} Transaction ID (TrxID) from your confirmation SMS`);
+      return;
+    }
+
+    try {
+      setSavingPayment(true);
+      setPaymentError(null);
+      const updated = await ordersAPI.resubmitPayment(order.id, {
+        paymentMethod: paymentMethodInput,
+        paymentSender: paymentSenderInput.trim(),
+        paymentTrxId: paymentTrxIdInput.trim().toUpperCase(),
+      });
+      setOrder(updated);
+      setEditingPayment(false);
+    } catch (err) {
+      setPaymentError(err instanceof Error ? err.message.replace(/^\d{3}: /, '') : 'Failed to update payment details');
+    } finally {
+      setSavingPayment(false);
     }
   };
 
@@ -148,7 +226,9 @@ export default function OrderDetailPage() {
                   Order Placed Successfully!
                 </h2>
                 <p className="text-green-700 mb-4">
-                  Thank you for your order. We&apos;ve received your order and will start processing it soon.
+                  {isMobilePayment(order.paymentMethod)
+                    ? <>Thank you for your order. We&apos;ll verify your {PAYMENT_METHOD_INFO[order.paymentMethod].label} payment and then start processing it.</>
+                    : <>Thank you for your order. We&apos;ve received your order and will start processing it soon.</>}
                 </p>
                 <div className="flex items-center gap-2 text-sm text-green-700">
                   <span className="font-semibold">Order Number:</span>
@@ -210,8 +290,17 @@ export default function OrderDetailPage() {
               <p className="font-semibold text-gray-900 font-mono">{order.orderNumber}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600 mb-1">Payment Method</p>
-              <p className="font-semibold text-gray-900">Cash on Delivery</p>
+              <p className="text-sm text-gray-600 mb-1">Payment</p>
+              <div className="flex flex-wrap items-center gap-2">
+                <PaymentMethodBadge method={order.paymentMethod} />
+                <PaymentStatusBadge status={order.paymentStatus} />
+              </div>
+              {isMobilePayment(order.paymentMethod) && order.paymentTrxId && (
+                <p className="text-sm text-gray-600 mt-2">
+                  From <span className="font-medium text-gray-900">{order.paymentSender}</span>
+                  {' · '}TrxID <span className="font-mono font-medium text-gray-900">{order.paymentTrxId}</span>
+                </p>
+              )}
             </div>
             <div>
               <p className="text-sm text-gray-600 mb-1">Total Amount</p>
@@ -219,6 +308,83 @@ export default function OrderDetailPage() {
             </div>
           </div>
         </div>
+
+        {canEditPayment && (
+          <div className={`rounded-lg border p-5 mb-6 ${
+            order.paymentStatus === 'FAILED' ? 'bg-pink-50 border-pink-200' : 'bg-yellow-50 border-yellow-200'
+          }`}>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="flex items-start gap-3">
+                <AlertCircle className={`w-5 h-5 flex-shrink-0 mt-0.5 ${order.paymentStatus === 'FAILED' ? 'text-pink-600' : 'text-yellow-600'}`} />
+                <div>
+                  <p className="font-semibold text-gray-900">
+                    {order.paymentStatus === 'FAILED' ? 'We couldn’t verify your payment' : 'Your payment is being verified'}
+                  </p>
+                  <p className="text-sm text-gray-700">
+                    {order.paymentStatus === 'FAILED'
+                      ? 'Please check the Transaction ID and the number you paid from, then submit them again.'
+                      : 'Entered something wrong? You can correct your payment details until they are verified.'}
+                  </p>
+                </div>
+              </div>
+              {!editingPayment && (
+                <button
+                  onClick={startEditingPayment}
+                  className="px-4 py-2 bg-pink-600 text-white rounded-lg text-sm font-semibold hover:bg-pink-700 transition-colors whitespace-nowrap"
+                >
+                  {order.paymentStatus === 'FAILED' ? 'Resubmit Payment' : 'Edit Payment Details'}
+                </button>
+              )}
+            </div>
+
+            {editingPayment && (
+              <div className="mt-4">
+                {resubmitMethods.length > 1 && (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {resubmitMethods.map((method) => (
+                      <PaymentMethodOption
+                        key={method}
+                        method={method}
+                        name="resubmitPayment"
+                        selected={paymentMethodInput === method}
+                        onSelect={() => setPaymentMethodInput(method)}
+                      />
+                    ))}
+                  </div>
+                )}
+                <div className="bg-white rounded-lg">
+                  <MobilePaymentPanel
+                    method={paymentMethodInput}
+                    amount={order.total}
+                    paymentNumber={paymentSettings?.mobilePaymentNumber || DEFAULT_PAYMENT_NUMBER}
+                    sender={paymentSenderInput}
+                    trxId={paymentTrxIdInput}
+                    onSenderChange={setPaymentSenderInput}
+                    onTrxIdChange={setPaymentTrxIdInput}
+                  />
+                </div>
+                {paymentError && <p className="text-sm text-pink-700 mt-3">{paymentError}</p>}
+                <div className="flex gap-3 mt-4">
+                  <button
+                    onClick={handlePaymentResubmit}
+                    disabled={savingPayment}
+                    className="px-5 py-2 bg-pink-600 text-white rounded-lg font-semibold hover:bg-pink-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                  >
+                    {savingPayment && <Loader2 className="w-4 h-4 animate-spin" />}
+                    Submit Payment Details
+                  </button>
+                  <button
+                    onClick={() => setEditingPayment(false)}
+                    disabled={savingPayment}
+                    className="px-5 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Order Items */}

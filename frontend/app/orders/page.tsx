@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import OrderTracker from '@/src/components/orders/OrderTracker';
 import type { OrderStatusHistoryEntry } from '@/src/types/index';
+import { PaymentMethodBadge, PaymentStatusBadge } from '@/src/components/payments/PaymentBadges';
+import { isMobilePayment, type PaymentMethod, type PaymentStatus } from '@/src/lib/payments';
 
 interface OrderItem {
   id: string;
@@ -33,6 +35,10 @@ interface Order {
   orderNumber: string;
   status: 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
   total: number;
+  paymentMethod: PaymentMethod;
+  paymentStatus: PaymentStatus;
+  paymentSender: string | null;
+  paymentTrxId: string | null;
   createdAt: string;
   updatedAt: string;
   OrderStatusHistory?: OrderStatusHistoryEntry[];
@@ -337,6 +343,13 @@ export default function OrdersPage() {
                         <p className="text-xs text-gray-600 uppercase">Total</p>
                         <p className="text-sm font-bold text-pink-600">৳{order.total.toFixed(2)}</p>
                       </div>
+                      <div>
+                        <p className="text-xs text-gray-600 uppercase">Payment</p>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          <PaymentMethodBadge method={order.paymentMethod} />
+                          {order.paymentStatus !== 'UNPAID' && <PaymentStatusBadge status={order.paymentStatus} />}
+                        </div>
+                      </div>
                     </div>
                     <div className="flex items-center gap-3">
                       {getStatusBadge(order.status)}
@@ -442,6 +455,24 @@ export default function OrdersPage() {
                   <div className="bg-gray-50 rounded-lg p-4">
                     <p className="text-sm text-gray-600 mb-1">Status</p>
                     {getStatusBadge(selectedOrder.status)}
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-4 col-span-full">
+                    <p className="text-sm text-gray-600 mb-1">Payment</p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <PaymentMethodBadge method={selectedOrder.paymentMethod} />
+                      <PaymentStatusBadge status={selectedOrder.paymentStatus} />
+                    </div>
+                    {isMobilePayment(selectedOrder.paymentMethod) && selectedOrder.paymentTrxId && (
+                      <p className="text-sm text-gray-600 mt-2">
+                        From <span className="font-medium text-gray-900">{selectedOrder.paymentSender}</span>
+                        {' · '}TrxID <span className="font-mono font-medium text-gray-900">{selectedOrder.paymentTrxId}</span>
+                      </p>
+                    )}
+                    {(selectedOrder.paymentStatus === 'FAILED' || selectedOrder.paymentStatus === 'PENDING_VERIFICATION') && selectedOrder.status !== 'CANCELLED' && (
+                      <Link href={`/orders/${selectedOrder.id}`} className="inline-block text-sm font-medium text-pink-600 hover:text-pink-700 mt-2">
+                        {selectedOrder.paymentStatus === 'FAILED' ? 'Resubmit payment →' : 'Edit payment details →'}
+                      </Link>
+                    )}
                   </div>
                 </div>
 

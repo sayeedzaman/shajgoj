@@ -53,7 +53,8 @@ class APICache {
     { pattern: /\/cart/, ttl: 1 * 60 * 1000 },
     { pattern: /\/wishlist/, ttl: 1 * 60 * 1000 },
     { pattern: /\/addresses/, ttl: 2 * 60 * 1000 },
-    { pattern: /\/orders/, ttl: 2 * 60 * 1000 },
+    // Short TTL so order/payment status polling picks up admin changes
+    { pattern: /\/orders/, ttl: 10 * 1000 },
     { pattern: /\/auth\/profile/, ttl: 5 * 60 * 1000 },
   ];
 

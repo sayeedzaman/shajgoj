@@ -7,6 +7,19 @@ import { useCart } from '@/src/lib/CartContext';
 import { useAuth } from '@/src/lib/AuthContext';
 import { addressesAPI, ordersAPI, settingsAPI } from '@/src/lib/api';
 import { Address, CreateAddressRequest } from '@/src/types/index';
+import MobilePaymentPanel from '@/src/components/payments/MobilePaymentPanel';
+import PaymentMethodOption from '@/src/components/payments/PaymentMethodOption';
+import {
+  DEFAULT_PAYMENT_NUMBER,
+  MOBILE_PAYMENT_METHODS,
+  PAYMENT_METHOD_INFO,
+  PAYMENT_SETTING_FIELD,
+  isMobilePayment,
+  isValidBdMobile,
+  isValidTrxId,
+  type PaymentMethod,
+  type PaymentSettings,
+} from '@/src/lib/payments';
 import {
   MapPin,
   Plus,
@@ -17,6 +30,7 @@ import {
   AlertCircle,
   ShoppingBag,
   Loader2,
+  Smartphone,
 } from 'lucide-react';
 
 export default function CheckoutPage() {
@@ -30,7 +44,10 @@ export default function CheckoutPage() {
   const [loading, setLoading] = useState(true);
   const [placingOrder, setPlacingOrder] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [paymentMethod, setPaymentMethod] = useState<'COD' | 'CARD'>('COD');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('COD');
+  const [paymentSettings, setPaymentSettings] = useState<PaymentSettings | null>(null);
+  const [paymentSender, setPaymentSender] = useState('');
+  const [paymentTrxId, setPaymentTrxId] = useState('');
   const [shippingFees, setShippingFees] = useState({ dhakaShippingFee: 60, outsideDhakaShippingFee: 120 });
 
   // Address form state
@@ -69,7 +86,25 @@ export default function CheckoutPage() {
     settingsAPI.getShipping()
       .then((fees) => setShippingFees(fees))
       .catch((error) => console.error('Error fetching shipping fees:', error));
+
+    settingsAPI.getPayment()
+      .then((settings) => setPaymentSettings(settings))
+      .catch((error) => console.error('Error fetching payment settings:', error));
   }, []);
+
+  // Before settings load, only COD is shown; afterwards follow the admin's toggles
+  const isMethodEnabled = (method: PaymentMethod) =>
+    paymentSettings ? paymentSettings[PAYMENT_SETTING_FIELD[method]] : method === 'COD';
+  const enabledMobileMethods = MOBILE_PAYMENT_METHODS.filter(isMethodEnabled);
+  const noPaymentMethods = !!paymentSettings && !isMethodEnabled('COD') && enabledMobileMethods.length === 0;
+  const paymentNumber = paymentSettings?.mobilePaymentNumber || DEFAULT_PAYMENT_NUMBER;
+
+  // If the selected method gets disabled (e.g. COD turned off), switch to an available one
+  useEffect(() => {
+    if (!paymentSettings || isMethodEnabled(paymentMethod)) return;
+    const fallback = (['COD', ...MOBILE_PAYMENT_METHODS] as PaymentMethod[]).find(isMethodEnabled);
+    if (fallback) setPaymentMethod(fallback);
+  }, [paymentSettings]);
 
   useEffect(() => {
     if (cartItems.length === 0 && !cartLoading) {
@@ -133,6 +168,23 @@ export default function CheckoutPage() {
       return;
     }
 
+    if (!isMethodEnabled(paymentMethod)) {
+      setError('Please choose a payment method');
+      return;
+    }
+
+    if (isMobilePayment(paymentMethod)) {
+      const label = PAYMENT_METHOD_INFO[paymentMethod].label;
+      if (!isValidBdMobile(paymentSender)) {
+        setError(`Please enter the ${label} number you sent the money from (e.g. 01XXXXXXXXX)`);
+        return;
+      }
+      if (!isValidTrxId(paymentTrxId)) {
+        setError(`Please enter the ${label} Transaction ID (TrxID) from your confirmation SMS`);
+        return;
+      }
+    }
+
     try {
       setPlacingOrder(true);
       setError(null);
@@ -143,6 +195,11 @@ export default function CheckoutPage() {
           productId: item.productId,
           quantity: item.quantity,
         })),
+        paymentMethod,
+        ...(isMobilePayment(paymentMethod) && {
+          paymentSender: paymentSender.trim(),
+          paymentTrxId: paymentTrxId.trim().toUpperCase(),
+        }),
       };
 
       const order = await ordersAPI.create(orderData);
@@ -399,58 +456,74 @@ export default function CheckoutPage() {
                 <h2 className="text-xl font-bold text-gray-900">Payment Method</h2>
               </div>
 
-              <div className="space-y-3">
-                <label className={`flex items-start gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                  paymentMethod === 'COD'
-                    ? 'border-pink-500 bg-pink-50'
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}>
-                  <input
-                    type="radio"
-                    name="payment"
-                    value="COD"
-                    checked={paymentMethod === 'COD'}
-                    onChange={() => setPaymentMethod('COD')}
-                    className="mt-1 w-4 h-4 text-pink-600 focus:ring-pink-500"
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Truck className="w-5 h-5 text-gray-600" />
-                      <span className="font-semibold text-gray-900">Cash on Delivery</span>
-                    </div>
-                    <p className="text-sm text-gray-600">
-                      Pay with cash when your order is delivered
-                    </p>
-                  </div>
-                </label>
+              {noPaymentMethods && (
+                <p className="text-sm text-pink-700 bg-pink-50 border border-pink-200 rounded-lg p-3 mb-3">
+                  Online ordering is temporarily unavailable. Please contact us to place your order.
+                </p>
+              )}
 
-                <label className={`flex items-start gap-3 p-4 border-2 rounded-lg cursor-not-allowed opacity-50 ${
-                  paymentMethod === 'CARD'
-                    ? 'border-pink-500 bg-pink-50'
-                    : 'border-gray-200'
-                }`}>
-                  <input
-                    type="radio"
-                    name="payment"
-                    value="CARD"
-                    disabled
-                    checked={paymentMethod === 'CARD'}
-                    onChange={() => setPaymentMethod('CARD')}
-                    className="mt-1 w-4 h-4 text-pink-600 focus:ring-pink-500"
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <CreditCard className="w-5 h-5 text-gray-600" />
-                      <span className="font-semibold text-gray-900">Card Payment</span>
-                      <span className="text-xs bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full font-medium">
-                        Coming Soon
-                      </span>
+              <div className="space-y-3">
+                {isMethodEnabled('COD') && (
+                  <label className={`flex items-start gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                    paymentMethod === 'COD'
+                      ? 'border-pink-500 bg-pink-50'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}>
+                    <input
+                      type="radio"
+                      name="payment"
+                      value="COD"
+                      checked={paymentMethod === 'COD'}
+                      onChange={() => setPaymentMethod('COD')}
+                      className="mt-1 w-4 h-4 text-pink-600 focus:ring-pink-500"
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Truck className="w-5 h-5 text-gray-600" />
+                        <span className="font-semibold text-gray-900">Cash on Delivery</span>
+                      </div>
+                      <p className="text-sm text-gray-600">
+                        Pay with cash when your order is delivered
+                      </p>
                     </div>
-                    <p className="text-sm text-gray-600">
-                      Pay securely with your credit or debit card
+                  </label>
+                )}
+
+                {enabledMobileMethods.length > 0 && (
+                  <div className={`p-4 border-2 rounded-lg transition-all ${
+                    isMobilePayment(paymentMethod) ? 'border-pink-500 bg-pink-50/40' : 'border-gray-200'
+                  }`}>
+                    <div className="flex items-center gap-2 mb-1">
+                      <Smartphone className="w-5 h-5 text-gray-600" />
+                      <span className="font-semibold text-gray-900">Mobile Banking</span>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-3">
+                      Pay now with {enabledMobileMethods.map((m) => PAYMENT_METHOD_INFO[m].label).join(', ')}
                     </p>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      {enabledMobileMethods.map((method) => (
+                        <PaymentMethodOption
+                          key={method}
+                          method={method}
+                          selected={paymentMethod === method}
+                          onSelect={() => setPaymentMethod(method)}
+                        />
+                      ))}
+                    </div>
+
+                    {isMobilePayment(paymentMethod) && (
+                      <MobilePaymentPanel
+                        method={paymentMethod}
+                        amount={total}
+                        paymentNumber={paymentNumber}
+                        sender={paymentSender}
+                        trxId={paymentTrxId}
+                        onSenderChange={setPaymentSender}
+                        onTrxIdChange={setPaymentTrxId}
+                      />
+                    )}
                   </div>
-                </label>
+                )}
               </div>
             </div>
           </div>
@@ -534,7 +607,7 @@ export default function CheckoutPage() {
               {/* Place Order Button */}
               <button
                 onClick={handlePlaceOrder}
-                disabled={placingOrder || !selectedAddressId || cartItems.length === 0}
+                disabled={placingOrder || !selectedAddressId || cartItems.length === 0 || noPaymentMethods}
                 className="w-full py-3 bg-pink-600 text-white rounded-lg font-semibold hover:bg-pink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {placingOrder ? (
@@ -545,7 +618,7 @@ export default function CheckoutPage() {
                 ) : (
                   <>
                     <CheckCircle className="w-5 h-5" />
-                    Place Order
+                    {isMobilePayment(paymentMethod) ? 'Confirm Payment & Place Order' : 'Place Order'}
                   </>
                 )}
               </button>

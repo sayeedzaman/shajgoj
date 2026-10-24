@@ -6,6 +6,7 @@ import type {
   Review,
 } from '@/src/types/index';
 import { cachedFetch, apiCache } from './apiCache';
+import type { PaymentMethod, PaymentStatus } from './payments';
 
 // Order Types for Admin
 export interface OrderItem {
@@ -38,6 +39,11 @@ export interface Order {
   subtotal: number;
   shippingCost: number;
   total: number;
+  paymentMethod: PaymentMethod;
+  paymentStatus: PaymentStatus;
+  paymentSender: string | null;
+  paymentTrxId: string | null;
+  paidAt: string | null;
   createdAt: string;
   updatedAt: string;
   OrderStatusHistory?: OrderStatusHistoryEntry[];
@@ -551,6 +557,8 @@ export const adminOrdersAPI = {
     page?: number;
     limit?: number;
     status?: string;
+    paymentStatus?: string;
+    paymentMethod?: string;
     search?: string;
   }): Promise<{ orders: Order[]; pagination: PaginationResponse }> => {
     const searchParams = new URLSearchParams();
@@ -586,6 +594,20 @@ export const adminOrdersAPI = {
       method: 'PUT',
       headers: createHeaders(),
       body: JSON.stringify({ status }),
+    });
+    // Invalidate orders cache
+    apiCache.invalidate(/\/orders/);
+    return handleResponse<{ message: string; order: Order }>(response);
+  },
+
+  updatePaymentStatus: async (
+    id: string,
+    paymentStatus: PaymentStatus
+  ): Promise<{ message: string; order: Order }> => {
+    const response = await fetch(`${API_URL}/api/orders/admin/${id}/payment`, {
+      method: 'PATCH',
+      headers: createHeaders(),
+      body: JSON.stringify({ paymentStatus }),
     });
     // Invalidate orders cache
     apiCache.invalidate(/\/orders/);

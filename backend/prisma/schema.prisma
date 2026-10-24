@@ -28,7 +28,7 @@ model Brand {
   slug      String    @unique
   logo      String?
   createdAt DateTime  @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime  @updatedAt
   Product   Product[]
 }
 
@@ -51,13 +51,13 @@ model CartItem {
 }
 
 model Category {
-  id          String        @id @default(uuid())
-  name        String        @unique
-  slug        String        @unique
+  id          String    @id @default(uuid())
+  name        String    @unique
+  slug        String    @unique
   description String?
   image       String?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   image2      String?
   image3      String?
   Product     Product[]
@@ -168,6 +168,12 @@ model Order {
   subtotal           Float                @default(0)
   shippingCost       Float                @default(0)
   total              Float
+  paymentMethod      PaymentMethod        @default(COD)
+  paymentStatus      PaymentStatus        @default(UNPAID)
+  // Mobile banking (bKash/Nagad/Upay/Rocket): customer's wallet number and TrxID, verified by admin
+  paymentSender      String?
+  paymentTrxId       String?
+  paidAt             DateTime?
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt
   userId             String
@@ -176,6 +182,9 @@ model Order {
   User               User                 @relation(fields: [userId], references: [id])
   OrderItem          OrderItem[]
   OrderStatusHistory OrderStatusHistory[]
+
+  // A transaction ID can only be claimed by one order per provider
+  @@unique([paymentMethod, paymentTrxId])
 }
 
 // Records every status transition so the user-facing order tracker can show
@@ -252,48 +261,51 @@ model Review {
 }
 
 model StoreSettings {
-  id                    String   @id @default(uuid())
-  storeName             String   @default("Beautiland by Rakhi")
-  storeEmail            String   @default("")
-  storePhone            String   @default("+8801883096484")
-  storeAddress          String   @default("")
-  currency              String   @default("BDT")
-  timezone              String   @default("Asia/Dhaka")
-  emailNotifications    Boolean  @default(true)
-  orderNotifications    Boolean  @default(true)
-  stockAlerts           Boolean  @default(true)
-  promotionalEmails     Boolean  @default(false)
-  twoFactorAuth         Boolean  @default(false)
-  loginAlerts           Boolean  @default(true)
-  sessionTimeout        Int      @default(30)
-  freeShippingThreshold    Float @default(500)
-  dhakaShippingFee         Float @default(60)
-  outsideDhakaShippingFee  Float @default(120)
-  cashOnDelivery        Boolean  @default(true)
-  bkashEnabled          Boolean  @default(false)
-  nagadEnabled          Boolean  @default(false)
-  cardPaymentEnabled    Boolean  @default(false)
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  id                      String   @id @default(uuid())
+  storeName               String   @default("Beautiland by Rakhi")
+  storeEmail              String   @default("")
+  storePhone              String   @default("+8801883096484")
+  storeAddress            String   @default("")
+  currency                String   @default("BDT")
+  timezone                String   @default("Asia/Dhaka")
+  emailNotifications      Boolean  @default(true)
+  orderNotifications      Boolean  @default(true)
+  stockAlerts             Boolean  @default(true)
+  promotionalEmails       Boolean  @default(false)
+  twoFactorAuth           Boolean  @default(false)
+  loginAlerts             Boolean  @default(true)
+  sessionTimeout          Int      @default(30)
+  freeShippingThreshold   Float    @default(500)
+  dhakaShippingFee        Float    @default(60)
+  outsideDhakaShippingFee Float    @default(120)
+  cashOnDelivery          Boolean  @default(true)
+  bkashEnabled            Boolean  @default(true)
+  nagadEnabled            Boolean  @default(true)
+  upayEnabled             Boolean  @default(true)
+  rocketEnabled           Boolean  @default(true)
+  mobilePaymentNumber     String   @default("+8801835286271")
+  cardPaymentEnabled      Boolean  @default(false)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
 }
 
 model User {
-  id        String    @id @default(uuid())
-  email     String    @unique
-  password  String
-  firstName String?
-  lastName  String?
-  phone     String?
-  role      Role      @default(USER)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime @updatedAt
-  Address   Address[]
-  Cart      Cart?
-  Order     Order[]
-  Review    Review[]
-  Wishlist  Wishlist?
+  id           String         @id @default(uuid())
+  email        String         @unique
+  password     String
+  firstName    String?
+  lastName     String?
+  phone        String?
+  role         Role           @default(USER)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  Address      Address[]
+  Cart         Cart?
+  Order        Order[]
+  Review       Review[]
+  Wishlist     Wishlist?
   Conversation Conversation[]
-  Message   Message[]
+  Message      Message[]
 }
 
 model Wishlist {
@@ -317,15 +329,15 @@ model WishlistItem {
 }
 
 model Conversation {
-  id              String    @id @default(uuid())
-  userId          String
-  User            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  lastMessageAt   DateTime  @default(now())
-  unreadCount     Int       @default(0) // Unread admin messages (for USER)
-  adminUnreadCount Int      @default(0) // Unread user messages (for ADMIN)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  Message         Message[]
+  id               String    @id @default(uuid())
+  userId           String
+  User             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lastMessageAt    DateTime  @default(now())
+  unreadCount      Int       @default(0) // Unread admin messages (for USER)
+  adminUnreadCount Int       @default(0) // Unread user messages (for ADMIN)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  Message          Message[]
 
   @@index([userId])
   @@index([lastMessageAt])
@@ -354,6 +366,22 @@ enum OrderStatus {
   SHIPPED
   DELIVERED
   CANCELLED
+}
+
+enum PaymentMethod {
+  COD
+  BKASH
+  NAGAD
+  UPAY
+  ROCKET
+}
+
+enum PaymentStatus {
+  UNPAID
+  PENDING_VERIFICATION
+  PAID
+  FAILED
+  REFUNDED
 }
 
 enum Role {

@@ -20,6 +20,7 @@ import type {
   SubCategory,
 } from '@/src/types/index';
 import { cachedFetch, apiCache } from './apiCache';
+import type { MobilePaymentMethod, PaymentSettings } from './payments';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
@@ -336,6 +337,20 @@ export const ordersAPI = {
     });
   },
 
+  resubmitPayment: async (
+    id: string,
+    data: { paymentMethod: MobilePaymentMethod; paymentSender: string; paymentTrxId: string }
+  ): Promise<Order> => {
+    const response = await fetch(`${API_URL}/api/orders/${id}/payment`, {
+      method: 'PUT',
+      headers: createHeaders(true),
+      body: JSON.stringify(data),
+    });
+    const order = await handleResponse<Order>(response);
+    apiCache.invalidate(/\/orders/);
+    return order;
+  },
+
   cancel: async (id: string): Promise<Order> => {
     const response = await fetch(`${API_URL}/api/orders/${id}/cancel`, {
       method: 'PUT',
@@ -353,6 +368,13 @@ export const settingsAPI = {
     freeShippingThreshold: number;
   }> => {
     return cachedFetch(`${API_URL}/api/settings/shipping`, {
+      method: 'GET',
+      headers: createHeaders(),
+    });
+  },
+
+  getPayment: async (): Promise<PaymentSettings> => {
+    return cachedFetch(`${API_URL}/api/settings/payment`, {
       method: 'GET',
       headers: createHeaders(),
     });
