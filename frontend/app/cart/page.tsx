@@ -1,6 +1,14 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useCart } from '@/src/lib/CartContext';
+import { settingsAPI } from '@/src/lib/api';
+import {
+  DEFAULT_SHIPPING_SETTINGS,
+  freeShippingHint,
+  qualifiesForFreeShipping,
+  type ShippingSettings,
+} from '@/src/lib/shipping';
 import { Trash2, Plus, Minus, ShoppingBag, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -9,6 +17,13 @@ import EmptyState from '@/src/components/common/EmptyState';
 export default function CartPage() {
   const router = useRouter();
   const { cart, updateCartItem, removeFromCart, isLoading } = useCart();
+  const [shippingSettings, setShippingSettings] = useState<ShippingSettings>(DEFAULT_SHIPPING_SETTINGS);
+
+  useEffect(() => {
+    settingsAPI.getShipping()
+      .then(setShippingSettings)
+      .catch((error) => console.error('Error fetching shipping settings:', error));
+  }, []);
 
   const cartItems = cart?.items || [];
   const subtotal = cartItems.reduce((sum, item) => {
@@ -17,9 +32,10 @@ export default function CartPage() {
   }, 0);
   const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
-  // Shipping estimate (actual cost determined at checkout based on city)
-  const isFreeShipping = subtotal >= 2000 || totalQuantity >= 20;
-  const shipping = isFreeShipping ? 0 : 60; // Base estimate
+  // Shipping estimate using the Dhaka rate (actual cost determined at checkout based on city)
+  const isFreeShipping = qualifiesForFreeShipping(subtotal, totalQuantity, shippingSettings);
+  const shipping = isFreeShipping ? 0 : shippingSettings.dhakaShippingFee;
+  const shippingHint = freeShippingHint(subtotal, totalQuantity, shippingSettings);
   const total = subtotal + shipping;
 
   if (cartItems.length === 0) {
@@ -223,17 +239,15 @@ export default function CartPage() {
 
                 {!isFreeShipping ? (
                   <p className="text-xs sm:text-sm text-gray-500 bg-gray-50 p-2.5 sm:p-3 rounded-lg">
-                    {subtotal < 2000 && totalQuantity < 20 && (
-                      <>Add ৳{(2000 - subtotal).toFixed(0)} more or {20 - totalQuantity} more items for FREE shipping!</>
+                    {shippingHint && (
+                      <>
+                        {shippingHint}
+                        <br />
+                      </>
                     )}
-                    {subtotal < 2000 && totalQuantity >= 20 && (
-                      <>Add ৳{(2000 - subtotal).toFixed(0)} more for FREE shipping!</>
-                    )}
-                    {subtotal >= 2000 && totalQuantity < 20 && (
-                      <>Add {20 - totalQuantity} more items for FREE shipping!</>
-                    )}
-                    <br />
-                    <span className="text-xs text-gray-400">Note: ৳60 (Dhaka), ৳120 (Outside Dhaka)</span>
+                    <span className="text-xs text-gray-400">
+                      Note: ৳{shippingSettings.dhakaShippingFee} (Dhaka), ৳{shippingSettings.outsideDhakaShippingFee} (Outside Dhaka)
+                    </span>
                   </p>
                 ) : (
                   <p className="text-xs sm:text-sm text-green-600 bg-green-50 p-2.5 sm:p-3 rounded-lg">

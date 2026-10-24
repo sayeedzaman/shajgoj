@@ -21,6 +21,7 @@ import type {
 } from '@/src/types/index';
 import { cachedFetch, apiCache } from './apiCache';
 import type { MobilePaymentMethod, PaymentSettings } from './payments';
+import type { ShippingSettings } from './shipping';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
@@ -362,11 +363,7 @@ export const ordersAPI = {
 
 // Public Settings API
 export const settingsAPI = {
-  getShipping: async (): Promise<{
-    dhakaShippingFee: number;
-    outsideDhakaShippingFee: number;
-    freeShippingThreshold: number;
-  }> => {
+  getShipping: async (): Promise<ShippingSettings> => {
     return cachedFetch(`${API_URL}/api/settings/shipping`, {
       method: 'GET',
       headers: createHeaders(),

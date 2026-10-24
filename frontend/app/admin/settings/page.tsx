@@ -27,7 +27,9 @@ export default function SettingsPage() {
     twoFactorAuth: false,
     loginAlerts: true,
     sessionTimeout: 30,
-    freeShippingThreshold: 500,
+    freeShippingEnabled: true,
+    freeShippingThreshold: 2000,
+    freeShippingMinItems: 20,
     dhakaShippingFee: 60,
     outsideDhakaShippingFee: 120,
     cashOnDelivery: true,
@@ -357,15 +359,47 @@ export default function SettingsPage() {
                 <p className="text-sm text-gray-600 mt-1">Configure shipping fees and options</p>
               </div>
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Free Shipping Threshold (৳)</label>
-                  <input
-                    type="number"
-                    value={settings.freeShippingThreshold}
-                    onChange={(e) => setSettings({ ...settings, freeShippingThreshold: Number(e.target.value) })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
-                  />
-                  <p className="text-sm text-gray-500 mt-1">Orders above this amount get free shipping</p>
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div>
+                    <h4 className="font-semibold text-gray-900">Free Shipping</h4>
+                    <p className="text-sm text-gray-600">Waive the delivery charge when an order meets a rule below</p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={settings.freeShippingEnabled}
+                      onChange={(e) => setSettings({ ...settings, freeShippingEnabled: e.target.checked })}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:ring-4 peer-focus:ring-pink-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-600"></div>
+                  </label>
+                </div>
+                <div className={`grid grid-cols-1 md:grid-cols-2 gap-4 ${settings.freeShippingEnabled ? '' : 'opacity-50'}`}>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Free Shipping From Order Amount (৳)</label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={settings.freeShippingThreshold}
+                      disabled={!settings.freeShippingEnabled}
+                      onChange={(e) => setSettings({ ...settings, freeShippingThreshold: Number(e.target.value) })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 disabled:cursor-not-allowed"
+                    />
+                    <p className="text-sm text-gray-500 mt-1">Subtotal of this amount or more ships free. 0 = no amount rule</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Free Shipping From Item Count</label>
+                    <input
+                      type="number"
+                      min={0}
+                      step={1}
+                      value={settings.freeShippingMinItems}
+                      disabled={!settings.freeShippingEnabled}
+                      onChange={(e) => setSettings({ ...settings, freeShippingMinItems: Number(e.target.value) })}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 disabled:cursor-not-allowed"
+                    />
+                    <p className="text-sm text-gray-500 mt-1">This many items or more ships free. 0 = no item rule</p>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Dhaka Delivery Charge (৳)</label>

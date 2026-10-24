@@ -8,6 +8,12 @@ import { useAuth } from '@/src/lib/AuthContext';
 import { addressesAPI, ordersAPI, settingsAPI } from '@/src/lib/api';
 import { Address, CreateAddressRequest } from '@/src/types/index';
 import MobilePaymentPanel from '@/src/components/payments/MobilePaymentPanel';
+import {
+  DEFAULT_SHIPPING_SETTINGS,
+  freeShippingHint,
+  qualifiesForFreeShipping,
+  type ShippingSettings,
+} from '@/src/lib/shipping';
 import PaymentMethodOption from '@/src/components/payments/PaymentMethodOption';
 import {
   DEFAULT_PAYMENT_NUMBER,
@@ -48,7 +54,7 @@ export default function CheckoutPage() {
   const [paymentSettings, setPaymentSettings] = useState<PaymentSettings | null>(null);
   const [paymentSender, setPaymentSender] = useState('');
   const [paymentTrxId, setPaymentTrxId] = useState('');
-  const [shippingFees, setShippingFees] = useState({ dhakaShippingFee: 60, outsideDhakaShippingFee: 120 });
+  const [shippingSettings, setShippingSettings] = useState<ShippingSettings>(DEFAULT_SHIPPING_SETTINGS);
 
   // Address form state
   const [addressForm, setAddressForm] = useState<CreateAddressRequest>({
@@ -68,9 +74,10 @@ export default function CheckoutPage() {
   // Calculate shipping based on selected address city and order amount/quantity
   const selectedAddress = addresses.find(addr => addr.id === selectedAddressId);
   const isDhaka = selectedAddress?.city.toLowerCase().includes('dhaka');
-  const baseShipping = isDhaka ? shippingFees.dhakaShippingFee : shippingFees.outsideDhakaShippingFee;
-  const isFreeShipping = subtotal >= 2000 || totalQuantity >= 20;
+  const baseShipping = isDhaka ? shippingSettings.dhakaShippingFee : shippingSettings.outsideDhakaShippingFee;
+  const isFreeShipping = qualifiesForFreeShipping(subtotal, totalQuantity, shippingSettings);
   const shipping = isFreeShipping ? 0 : baseShipping;
+  const shippingHint = freeShippingHint(subtotal, totalQuantity, shippingSettings);
   const total = subtotal + shipping;
 
   useEffect(() => {
@@ -84,7 +91,7 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     settingsAPI.getShipping()
-      .then((fees) => setShippingFees(fees))
+      .then((settings) => setShippingSettings(settings))
       .catch((error) => console.error('Error fetching shipping fees:', error));
 
     settingsAPI.getPayment()
@@ -585,18 +592,8 @@ export default function CheckoutPage() {
                     )}
                   </span>
                 </div>
-                {!isFreeShipping && (
-                  <p className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
-                    {subtotal < 2000 && totalQuantity < 20 && (
-                      <>Add ৳{(2000 - subtotal).toFixed(0)} more or {20 - totalQuantity} more items for FREE shipping!</>
-                    )}
-                    {subtotal < 2000 && totalQuantity >= 20 && (
-                      <>Add ৳{(2000 - subtotal).toFixed(0)} more for FREE shipping!</>
-                    )}
-                    {subtotal >= 2000 && totalQuantity < 20 && (
-                      <>Add {20 - totalQuantity} more items for FREE shipping!</>
-                    )}
-                  </p>
+                {shippingHint && (
+                  <p className="text-xs text-gray-500 bg-gray-50 p-2 rounded">{shippingHint}</p>
                 )}
                 <div className="flex justify-between text-lg font-bold pt-3 border-t border-gray-200">
                   <span className="text-gray-900">Total</span>

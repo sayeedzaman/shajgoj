@@ -11,6 +11,12 @@ import {
   normalizeBdMobile,
   normalizeTrxId,
 } from '../lib/payments.js';
+import {
+  DEFAULT_SHIPPING_SETTINGS,
+  SHIPPING_SETTINGS_SELECT,
+  calculateShippingCost,
+  type ShippingSettings,
+} from '../lib/shipping.js';
 
 // Generate unique order number
 const generateOrderNumber = (): string => {
@@ -22,16 +28,13 @@ const generateOrderNumber = (): string => {
 // Fixed settings ID for the StoreSettings singleton (see settings.controller.ts)
 const SETTINGS_ID = '00000000-0000-0000-0000-000000000001';
 
-const getShippingFees = async () => {
+const getShippingSettings = async (): Promise<ShippingSettings> => {
   const settings = await prisma.storeSettings.findUnique({
     where: { id: SETTINGS_ID },
-    select: { dhakaShippingFee: true, outsideDhakaShippingFee: true },
+    select: SHIPPING_SETTINGS_SELECT,
   });
 
-  return {
-    dhakaShippingFee: settings?.dhakaShippingFee ?? 60,
-    outsideDhakaShippingFee: settings?.outsideDhakaShippingFee ?? 120,
-  };
+  return settings ?? DEFAULT_SHIPPING_SETTINGS;
 };
 
 const isPaymentMethodEnabled = async (method: PaymentMethod): Promise<boolean> => {
@@ -150,12 +153,9 @@ export const createOrder = async (req: AuthRequest, res: Response): Promise<any>
       });
     }
 
-    // Calculate shipping cost based on city and order criteria
-    const { dhakaShippingFee, outsideDhakaShippingFee } = await getShippingFees();
-    const isDhaka = address.city.toLowerCase().includes('dhaka');
-    const baseShipping = isDhaka ? dhakaShippingFee : outsideDhakaShippingFee;
-    const isFreeShipping = subtotal >= 2000 || totalQuantity >= 20;
-    const shippingCost = isFreeShipping ? 0 : baseShipping;
+    // Calculate shipping cost from the city and the admin's free-shipping rules
+    const shippingSettings = await getShippingSettings();
+    const shippingCost = calculateShippingCost(subtotal, totalQuantity, address.city, shippingSettings);
     const total = subtotal + shippingCost;
 
     // Create order with items

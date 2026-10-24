@@ -275,7 +275,10 @@ model StoreSettings {
   twoFactorAuth           Boolean  @default(false)
   loginAlerts             Boolean  @default(true)
   sessionTimeout          Int      @default(30)
-  freeShippingThreshold   Float    @default(500)
+  // Free shipping rules (admin-controlled): amount OR item count, 0 turns a rule off
+  freeShippingEnabled     Boolean  @default(true)
+  freeShippingThreshold   Float    @default(2000)
+  freeShippingMinItems    Int      @default(20)
   dhakaShippingFee        Float    @default(60)
   outsideDhakaShippingFee Float    @default(120)
   cashOnDelivery          Boolean  @default(true)

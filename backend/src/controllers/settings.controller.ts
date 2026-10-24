@@ -1,6 +1,33 @@
 import type { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { normalizeBdMobile } from '../lib/payments.js';
+import { SHIPPING_SETTINGS_SELECT } from '../lib/shipping.js';
+
+// Shipping numbers the admin can edit: all must be 0 or more, item count must be whole
+const SHIPPING_NUMBER_FIELDS = {
+  dhakaShippingFee: 'Dhaka delivery charge',
+  outsideDhakaShippingFee: 'Outside Dhaka delivery charge',
+  freeShippingThreshold: 'Free shipping order amount',
+  freeShippingMinItems: 'Free shipping item count',
+} as const;
+
+const validateShippingFields = (data: Record<string, unknown>): string | null => {
+  for (const [field, label] of Object.entries(SHIPPING_NUMBER_FIELDS)) {
+    if (data[field] === undefined) continue;
+    const value = Number(data[field]);
+    if (data[field] === '' || !Number.isFinite(value) || value < 0) {
+      return `${label} must be a number of 0 or more`;
+    }
+    if (field === 'freeShippingMinItems' && !Number.isInteger(value)) {
+      return `${label} must be a whole number`;
+    }
+    data[field] = value;
+  }
+  if (data.freeShippingEnabled !== undefined && typeof data.freeShippingEnabled !== 'boolean') {
+    return 'Free shipping must be turned on or off';
+  }
+  return null;
+};
 
 const prisma = new PrismaClient();
 
@@ -37,11 +64,7 @@ export const getPublicShippingSettings = async (req: Request, res: Response): Pr
   try {
     let settings = await prisma.storeSettings.findUnique({
       where: { id: SETTINGS_ID },
-      select: {
-        dhakaShippingFee: true,
-        outsideDhakaShippingFee: true,
-        freeShippingThreshold: true,
-      },
+      select: SHIPPING_SETTINGS_SELECT,
     });
 
     if (!settings) {
@@ -50,11 +73,7 @@ export const getPublicShippingSettings = async (req: Request, res: Response): Pr
           id: SETTINGS_ID,
           updatedAt: new Date(),
         },
-        select: {
-          dhakaShippingFee: true,
-          outsideDhakaShippingFee: true,
-          freeShippingThreshold: true,
-        },
+        select: SHIPPING_SETTINGS_SELECT,
       });
     }
 
@@ -104,6 +123,12 @@ export const getPublicPaymentSettings = async (req: Request, res: Response): Pro
 export const updateSettings = async (req: Request, res: Response): Promise<void> => {
   try {
     const settingsData = req.body;
+
+    const shippingError = validateShippingFields(settingsData);
+    if (shippingError) {
+      res.status(400).json({ error: shippingError });
+      return;
+    }
 
     if (settingsData.mobilePaymentNumber !== undefined) {
       const number = normalizeBdMobile(settingsData.mobilePaymentNumber);
