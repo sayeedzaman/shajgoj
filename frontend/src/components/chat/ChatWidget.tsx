@@ -61,7 +61,7 @@ export default function ChatWidget() {
         setUnreadCount(0);
       }
     } catch (error) {
-      console.error('Error polling messages:', error);
+      console.warn('Error polling messages:', error);
     }
   };
 
@@ -73,7 +73,8 @@ export default function ChatWidget() {
       const data = await getUnreadCount();
       setUnreadCount(data.unreadCount);
     } catch (error) {
-      console.error('Error loading unread count:', error);
+      // Background poll: a brief backend outage shouldn't surface as an error, the next poll retries
+      console.warn('Error loading unread count:', error);
     }
   };
 
