@@ -52,7 +52,7 @@ export default function SquareProductCard({
         {/* Large Discount Badge */}
         {hasDiscount && (
           <div className="absolute top-3 left-3 z-20">
-            <div className="bg-red-500 text-white rounded-lg shadow-lg">
+            <div className="bg-pink-500 text-white rounded-lg shadow-lg">
               <div className="px-3 py-2 text-center">
                 <div className="text-2xl font-bold leading-none">{discountPercent}%</div>
                 <div className="text-xs font-semibold mt-0.5">OFF</div>
@@ -69,7 +69,7 @@ export default function SquareProductCard({
         >
           <Heart
             className={`w-5 h-5 ${
-              isWishlisted ? 'fill-red-500 text-red-500' : 'text-gray-600'
+              isWishlisted ? 'fill-pink-500 text-pink-500' : 'text-gray-600'
             } group-hover/wishlist:scale-110 transition-transform`}
           />
         </button>
@@ -108,7 +108,7 @@ export default function SquareProductCard({
             <button
               onClick={handleAddToCart}
               disabled={isAddingToCart}
-              className="w-full bg-white text-red-600 py-3 px-6 rounded-lg hover:bg-red-600 hover:text-white transition-all font-semibold text-base disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-xl transform md:group-hover:scale-105"
+              className="w-full bg-white text-pink-600 py-3 px-6 rounded-lg hover:bg-pink-600 hover:text-white transition-all font-semibold text-base disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-xl transform md:group-hover:scale-105"
             >
               {isAddingToCart ? (
                 <>
@@ -166,13 +166,13 @@ export default function SquareProductCard({
         )}
 
         {/* Product Name */}
-        <h3 className="text-base font-semibold text-gray-900 mb-3 line-clamp-2 min-h-12 group-hover:text-red-600 transition-colors leading-snug">
+        <h3 className="text-base font-semibold text-gray-900 mb-3 line-clamp-2 min-h-12 group-hover:text-pink-600 transition-colors leading-snug">
           {product.name}
         </h3>
 
         {/* Price Section */}
         <div className="flex items-baseline gap-3 mb-2">
-          <span className="text-2xl font-bold text-red-600">
+          <span className="text-2xl font-bold text-pink-600">
             ৳{displayPrice.toFixed(0)}
           </span>
           {hasDiscount && (
@@ -204,7 +204,7 @@ export default function SquareProductCard({
               </span>
             )
           ) : (
-            <span className="text-red-600 font-semibold">Out of Stock</span>
+            <span className="text-pink-600 font-semibold">Out of Stock</span>
           )}
         </div>
       </div>

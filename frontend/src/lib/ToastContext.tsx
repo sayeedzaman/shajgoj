@@ -52,7 +52,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
               <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
             )}
             {toast.type === 'error' && (
-              <XCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
+              <XCircle className="w-5 h-5 text-pink-600 flex-shrink-0" />
             )}
             {toast.type === 'info' && (
               <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0" />

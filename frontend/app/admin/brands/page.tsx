@@ -215,7 +215,7 @@ export default function BrandManagementPage() {
         </div>
         <button
           onClick={() => openModal()}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors"
         >
           <Plus className="w-5 h-5" />
           Add Brand
@@ -229,7 +229,7 @@ export default function BrandManagementPage() {
         </div>
       )}
       {errorMessage && (
-        <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
+        <div className="bg-pink-50 border border-pink-200 text-pink-800 px-4 py-3 rounded-lg">
           {errorMessage}
         </div>
       )}
@@ -243,7 +243,7 @@ export default function BrandManagementPage() {
             placeholder="Search brands..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
           />
         </div>
       </div>
@@ -252,7 +252,7 @@ export default function BrandManagementPage() {
       <div className="bg-white rounded-lg shadow-sm overflow-hidden">
         {loading ? (
           <div className="p-8 text-center">
-            <div className="inline-block w-8 h-8 border-4 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+            <div className="inline-block w-8 h-8 border-4 border-pink-500 border-t-transparent rounded-full animate-spin"></div>
             <p className="mt-2 text-gray-600">Loading brands...</p>
           </div>
         ) : filteredBrands.length === 0 ? (
@@ -261,7 +261,7 @@ export default function BrandManagementPage() {
             <p className="text-gray-600">No brands found</p>
             <button
               onClick={() => openModal()}
-              className="mt-4 text-red-600 hover:text-red-700 font-medium"
+              className="mt-4 text-pink-600 hover:text-pink-700 font-medium"
             >
               Add your first brand
             </button>
@@ -300,7 +300,7 @@ export default function BrandManagementPage() {
                     </button>
                     <button
                       onClick={() => handleDelete(brand.id, brand.name)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      className="p-2 text-pink-600 hover:bg-pink-50 rounded-lg transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -346,7 +346,7 @@ export default function BrandManagementPage() {
                       slug: generateSlug(name),
                     });
                   }}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                   required
                 />
               </div>
@@ -360,7 +360,7 @@ export default function BrandManagementPage() {
                   type="text"
                   value={formData.slug}
                   onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                   required
                 />
               </div>
@@ -381,7 +381,7 @@ export default function BrandManagementPage() {
                       <button
                         type="button"
                         onClick={removeLogo}
-                        className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+                        className="absolute -top-2 -right-2 p-1 bg-pink-500 text-white rounded-full hover:bg-pink-600"
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -389,7 +389,7 @@ export default function BrandManagementPage() {
                   ) : (
                     <div className="flex gap-3">
                       <label className="flex-1 cursor-pointer">
-                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-red-500 transition-colors">
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-pink-500 transition-colors">
                           <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
                           <p className="text-sm text-gray-600">Click to upload logo</p>
                         </div>
@@ -408,7 +408,7 @@ export default function BrandManagementPage() {
                       placeholder="Or enter image URL"
                       value={logoPreview}
                       onChange={(e) => handleLogoUrlChange(e.target.value)}
-                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                     />
                   </div>
                 </div>
@@ -426,7 +426,7 @@ export default function BrandManagementPage() {
                 <button
                   type="submit"
                   disabled={submitting || uploadingLogo}
-                  className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="px-6 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   {(submitting || uploadingLogo) && (
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>

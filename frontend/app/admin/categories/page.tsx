@@ -444,14 +444,14 @@ export default function CategoryManagementPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <FolderTree className="w-8 h-8 text-red-600" />
+            <FolderTree className="w-8 h-8 text-pink-600" />
             Category Management
           </h1>
           <p className="text-gray-600 mt-2">Organize your product categories</p>
         </div>
         <button
           onClick={() => openModal()}
-          className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors"
         >
           <Plus className="w-5 h-5" />
           Add Category
@@ -465,7 +465,7 @@ export default function CategoryManagementPage() {
         </div>
       )}
       {errorMessage && (
-        <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
+        <div className="bg-pink-50 border border-pink-200 text-pink-800 px-4 py-3 rounded-lg">
           {errorMessage}
         </div>
       )}
@@ -479,7 +479,7 @@ export default function CategoryManagementPage() {
             placeholder="Search categories..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
           />
         </div>
       </div>
@@ -488,7 +488,7 @@ export default function CategoryManagementPage() {
       <div className="bg-white rounded-lg border border-gray-200 p-6">
         {loading ? (
           <div className="p-12 text-center">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600"></div>
             <p className="text-gray-600 mt-4">Loading categories...</p>
           </div>
         ) : filteredCategories.length === 0 ? (
@@ -518,7 +518,7 @@ export default function CategoryManagementPage() {
                     </button>
                     <button
                       onClick={() => handleDelete(category.id, category.name)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      className="p-2 text-pink-600 hover:bg-pink-50 rounded-lg transition-colors"
                       title="Delete"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -595,7 +595,7 @@ export default function CategoryManagementPage() {
                             <button
                               type="button"
                               onClick={() => removeImage(index)}
-                              className="absolute top-2 right-2 p-1 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                              className="absolute top-2 right-2 p-1 bg-pink-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                               aria-label ="Remove image"
                             >
                               <X className="w-4 h-4" />
@@ -629,7 +629,7 @@ export default function CategoryManagementPage() {
                         placeholder="Or paste image URL"
                         value={imagePreviews[index]}
                         onChange={(e) => handleImageUrlChange(index, e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-red-500"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-pink-500"
                       />
                     </div>
                   ))}
@@ -654,7 +654,7 @@ export default function CategoryManagementPage() {
                         slug: generateSlug(name),
                       });
                     }}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
                     aria-label="Category name"
                   />
                 </div>
@@ -667,7 +667,7 @@ export default function CategoryManagementPage() {
                     type="text"
                     value={formData.slug}
                     onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-gray-50"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 bg-gray-50"
                     aria-label="Category slug"
                   />
                 </div>
@@ -680,7 +680,7 @@ export default function CategoryManagementPage() {
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     rows={3}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
                     aria-label="Category description"
                   />
                 </div>
@@ -716,7 +716,7 @@ export default function CategoryManagementPage() {
                             <button
                               type="button"
                               onClick={() => removeType(typeIndex)}
-                              className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+                              className="p-1 text-pink-600 hover:bg-pink-50 rounded transition-colors"
                               aria-label="Remove type"
                             >
                               <X className="w-4 h-4" />
@@ -781,7 +781,7 @@ export default function CategoryManagementPage() {
                                       <button
                                         type="button"
                                         onClick={() => removeSubCategory(typeIndex, subCatIndex)}
-                                        className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
+                                        className="p-1 text-pink-600 hover:bg-pink-50 rounded transition-colors"
                                         aria-label="Remove sub-category"
                                       >
                                         <X className="w-3 h-3" />
@@ -812,7 +812,7 @@ export default function CategoryManagementPage() {
                 <button
                   type="submit"
                   disabled={submitting || uploadingImages}
-                  className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="px-6 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   {(submitting || uploadingImages) && (
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>

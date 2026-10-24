@@ -31,12 +31,12 @@ export default function OrderTracker({ status, history, createdAt, compact = fal
   if (status === 'CANCELLED') {
     const cancelledAt = history?.find((h) => h.status === 'CANCELLED')?.createdAt;
     return (
-      <div className={`flex items-center gap-3 rounded-lg border border-red-200 bg-red-50 ${compact ? 'px-3 py-2' : 'px-4 py-3'}`}>
-        <XCircle className={`text-red-600 flex-shrink-0 ${compact ? 'w-4 h-4' : 'w-5 h-5'}`} />
+      <div className={`flex items-center gap-3 rounded-lg border border-pink-200 bg-pink-50 ${compact ? 'px-3 py-2' : 'px-4 py-3'}`}>
+        <XCircle className={`text-pink-600 flex-shrink-0 ${compact ? 'w-4 h-4' : 'w-5 h-5'}`} />
         <div>
-          <p className={`font-semibold text-red-700 ${compact ? 'text-sm' : 'text-base'}`}>Order Cancelled</p>
+          <p className={`font-semibold text-pink-700 ${compact ? 'text-sm' : 'text-base'}`}>Order Cancelled</p>
           {!compact && cancelledAt && (
-            <p className="text-xs text-red-600">{formatStepTime(cancelledAt)}</p>
+            <p className="text-xs text-pink-600">{formatStepTime(cancelledAt)}</p>
           )}
         </div>
       </div>
@@ -69,9 +69,9 @@ export default function OrderTracker({ status, history, createdAt, compact = fal
                 <div
                   className={`flex items-center justify-center rounded-full border-2 transition-colors ${circleSize} ${
                     done
-                      ? 'bg-red-600 border-red-600 text-white'
+                      ? 'bg-pink-600 border-pink-600 text-white'
                       : active
-                      ? 'bg-red-50 border-red-600 text-red-600 ring-4 ring-red-100'
+                      ? 'bg-pink-50 border-pink-600 text-pink-600 ring-4 ring-pink-100'
                       : 'bg-white border-gray-300 text-gray-400'
                   }`}
                 >
@@ -81,7 +81,7 @@ export default function OrderTracker({ status, history, createdAt, compact = fal
               {i < STEPS.length - 1 && (
                 <div
                   className={`flex-1 h-1 rounded-full transition-colors duration-500 ${
-                    lineFilled ? 'bg-red-600' : 'bg-gray-200'
+                    lineFilled ? 'bg-pink-600' : 'bg-gray-200'
                   }`}
                 />
               )}

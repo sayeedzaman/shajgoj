@@ -7,7 +7,8 @@ import { useState, useEffect } from 'react';
 import StrikingOfferCard from '@/src/components/offers/StrikingOfferCard';
 import ProductCard from '@/src/components/products/ProductCard';
 import ProductCardSkeleton from '@/src/components/products/ProductCardSkeleton';
-import { Product } from '@/src/types/index';
+import { brand } from '@/src/config/brand';
+import { Product, Category } from '@/src/types/index';
 
 interface OfferProductItem {
   id: string;
@@ -65,6 +66,7 @@ export default function Home() {
   const [limitedOffers, setLimitedOffers] = useState<Offer[]>([]);
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [topSellingProducts, setTopSellingProducts] = useState<Product[]>([]);
+  const [shopCategories, setShopCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [productsLoading, setProductsLoading] = useState(true);
 
@@ -75,11 +77,20 @@ export default function Home() {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
         // Fetch all data in parallel for faster loading
-        const [offersRes, featuredRes, topSellingRes] = await Promise.all([
+        const [offersRes, featuredRes, topSellingRes, categoriesRes] = await Promise.all([
           fetch(`${apiUrl}/api/offers/active`),
           fetch(`${apiUrl}/api/products/featured?limit=8`),
-          fetch(`${apiUrl}/api/products/top-selling?limit=12`)
+          fetch(`${apiUrl}/api/products/top-selling?limit=12`),
+          fetch(`${apiUrl}/api/categories`),
         ]);
+
+        if (categoriesRes.ok) {
+          const categoriesData = await categoriesRes.json();
+          const list: Category[] = categoriesData.categories || [];
+          setShopCategories(
+            [...list].sort((a, b) => a.name.localeCompare(b.name))
+          );
+        }
 
         // Process offers
         let activeOffers: Offer[] = [];
@@ -151,7 +162,7 @@ export default function Home() {
     return [
       {
         id: 'dummy-hero-1',
-        name: 'Welcome to Khali\'s Beauty',
+        name: `Welcome to ${brand.name}`,
         code: 'WELCOME',
         description: 'Your one-stop shop for beauty and wellness products',
         linkType: 'url',
@@ -347,21 +358,9 @@ export default function Home() {
       }
     }
     // Fallback to offers page
-    console.log('⚠️ Using fallback link: /offers');
+    console.log('Using fallback link: /offers');
     return '/offers';
   };
-
-  // Categories
-  const categories = [
-    { name: 'Makeup', icon: '💄', link: '/category/makeup' },
-    { name: 'K-beauty', icon: '🇰🇷', link: '/category/k-beauty' },
-    { name: 'Hair Care', icon: '💇', link: '/category/hair-care' },
-    { name: 'Mom & Baby', icon: '👶', link: '/category/mom-baby' },
-    { name: 'Skin Care', icon: '✨', link: '/category/skin-care' },
-    { name: 'Tools & Accessories', icon: '🔧', link: '/category/tools' },
-    { name: 'Undergarments', icon: '👙', link: '/category/undergarments' },
-    { name: 'Fragrance', icon: '🌸', link: '/category/fragrance' },
-  ];
 
   // Shop by concern
   const concerns = [
@@ -380,7 +379,7 @@ export default function Home() {
   if (loading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="w-16 h-16 border-4 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-16 h-16 border-4 border-pink-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -411,7 +410,7 @@ export default function Home() {
                       priority={index === 0}
                     />
                   ) : (
-                    <div className="w-full h-full bg-linear-to-r from-red-100 via-pink-100 to-purple-100 flex items-center justify-center">
+                    <div className="w-full h-full bg-linear-to-r from-pink-100 via-pink-100 to-purple-100 flex items-center justify-center">
                       <div className="text-center px-4">
                         <h2 className="text-2xl md:text-4xl font-bold text-gray-800 mb-2">
                           {offer.name}
@@ -421,7 +420,7 @@ export default function Home() {
                             {offer.description}
                           </p>
                         )}
-                        <div className="mt-4 inline-block bg-red-500 text-white px-6 py-2 rounded-full text-lg font-bold">
+                        <div className="mt-4 inline-block bg-pink-500 text-white px-6 py-2 rounded-full text-lg font-bold">
                           {offer.discountType === 'PERCENTAGE'
                             ? `${offer.discountValue}% OFF`
                             : `৳${offer.discountValue} OFF`}
@@ -464,7 +463,7 @@ export default function Home() {
                   onClick={() => setCurrentSlide(index)}
                   className={`rounded-full transition-all ${
                     index === currentSlide
-                      ? 'bg-red-500 w-4 h-1.5 md:w-6 md:h-2'
+                      ? 'bg-pink-500 w-4 h-1.5 md:w-6 md:h-2'
                       : 'bg-gray-400 w-1.5 h-1.5 md:w-2 md:h-2'
                   }`}
                   aria-label={`Go to slide ${index + 1}`}
@@ -500,7 +499,7 @@ export default function Home() {
                   </div>
                 ) : (
                   <>
-                    <div className="relative h-2/3 bg-gradient-to-br from-red-100 to-purple-100">
+                    <div className="relative h-2/3 bg-gradient-to-br from-pink-100 to-purple-100">
                       {offer.imageUrl ? (
                         <Image
                           src={offer.imageUrl}
@@ -511,11 +510,11 @@ export default function Home() {
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
-                          <span className="text-4xl">🎁</span>
+                          <span className="text-4xl">{'\u{1F381}'}</span>
                         </div>
                       )}
                       <div className="absolute top-2 left-2">
-                        <div className="bg-red-500 text-white rounded-lg shadow-xl px-2 py-1">
+                        <div className="bg-pink-500 text-white rounded-lg shadow-xl px-2 py-1">
                           <div className="text-lg font-bold">
                             {offer.discountType === 'PERCENTAGE'
                               ? `${offer.discountValue}%`
@@ -529,7 +528,7 @@ export default function Home() {
                       <h3 className="text-sm font-bold text-gray-900 mb-1 line-clamp-2">
                         {offer.name}
                       </h3>
-                      <div className="text-xs font-mono font-bold text-red-600">
+                      <div className="text-xs font-mono font-bold text-pink-600">
                         {offer.code}
                       </div>
                     </div>
@@ -567,7 +566,7 @@ export default function Home() {
                   </div>
                 ) : (
                   <>
-                    <div className="relative aspect-[3/2] bg-gradient-to-br from-red-100 to-purple-100">
+                    <div className="relative aspect-[3/2] bg-gradient-to-br from-pink-100 to-purple-100">
                       {offer.imageUrl ? (
                         <Image
                           src={offer.imageUrl}
@@ -578,11 +577,11 @@ export default function Home() {
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
-                          <span className="text-6xl">🎁</span>
+                          <span className="text-6xl">{'\u{1F381}'}</span>
                         </div>
                       )}
                       <div className="absolute top-3 left-3">
-                        <div className="bg-red-500 text-white rounded-lg shadow-xl px-3 py-2">
+                        <div className="bg-pink-500 text-white rounded-lg shadow-xl px-3 py-2">
                           <div className="text-xl font-bold">
                             {offer.discountType === 'PERCENTAGE'
                               ? `${offer.discountValue}%`
@@ -596,7 +595,7 @@ export default function Home() {
                       <h3 className="text-base font-bold text-gray-900 mb-2">
                         {offer.name}
                       </h3>
-                      <div className="text-sm font-mono font-bold text-red-600">
+                      <div className="text-sm font-mono font-bold text-pink-600">
                         {offer.code}
                       </div>
                     </div>
@@ -627,7 +626,7 @@ export default function Home() {
       <section className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Featured Products</h2>
-          <Link href="/products?featured=true" className="text-red-600 hover:text-red-700 font-semibold flex items-center gap-1 text-sm">
+          <Link href="/products?featured=true" className="text-pink-600 hover:text-pink-700 font-semibold flex items-center gap-1 text-sm">
             View All <ChevronRight className="w-4 h-4" />
           </Link>
         </div>
@@ -654,7 +653,7 @@ export default function Home() {
       <section className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl md:text-3xl font-bold text-gray-900">Top Selling Products</h2>
-          <Link href="/top-selling" className="text-red-600 hover:text-red-700 font-semibold flex items-center gap-1 text-sm">
+          <Link href="/top-selling" className="text-pink-600 hover:text-pink-700 font-semibold flex items-center gap-1 text-sm">
             View More <ChevronRight className="w-4 h-4" />
           </Link>
         </div>
@@ -682,20 +681,38 @@ export default function Home() {
         <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6 text-center">
           Shop Beauty Products by Category
         </h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
-          {categories.map((category, index) => (
-            <Link
-              key={index}
-              href={category.link}
-              className="group flex flex-col items-center p-4 bg-white rounded-lg border border-gray-200 hover:border-red-300 hover:shadow-lg transition-all"
-            >
-              <div className="text-4xl mb-3">{category.icon}</div>
-              <h3 className="text-sm font-medium text-gray-800 text-center group-hover:text-red-500 transition-colors">
-                {category.name}
-              </h3>
-            </Link>
-          ))}
-        </div>
+        {shopCategories.length > 0 ? (
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+            {shopCategories.map((category) => (
+              <Link
+                key={category.id}
+                href={`/category/${category.slug}`}
+                className="group flex flex-col items-center p-4 bg-white rounded-lg border border-gray-200 hover:border-pink-300 hover:shadow-lg transition-all"
+              >
+                <div className="relative w-16 h-16 mb-3 rounded-full overflow-hidden bg-pink-50 flex items-center justify-center">
+                  {category.image ? (
+                    <Image
+                      src={category.image}
+                      alt={category.name}
+                      fill
+                      sizes="64px"
+                      className="object-cover"
+                    />
+                  ) : (
+                    <span className="text-xl font-semibold text-pink-500">
+                      {category.name.charAt(0).toUpperCase()}
+                    </span>
+                  )}
+                </div>
+                <h3 className="text-sm font-medium text-gray-800 text-center group-hover:text-pink-500 transition-colors">
+                  {category.name}
+                </h3>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <p className="text-center text-gray-500 py-6">No categories available</p>
+        )}
       </section>
 
       {/* Shop by Concern */}
@@ -708,9 +725,9 @@ export default function Home() {
             <Link
               key={index}
               href={concern.link}
-              className="group p-6 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border-2 border-gray-200 hover:border-red-400 hover:shadow-lg transition-all text-center"
+              className="group p-6 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg border-2 border-gray-200 hover:border-pink-400 hover:shadow-lg transition-all text-center"
             >
-              <h3 className="text-base font-semibold text-gray-800 group-hover:text-red-600 transition-colors">
+              <h3 className="text-base font-semibold text-gray-800 group-hover:text-pink-600 transition-colors">
                 {concern.name}
               </h3>
             </Link>
@@ -719,13 +736,13 @@ export default function Home() {
       </section>
 
       {/* Stats Section - Before Footer */}
-      <section className="bg-gradient-to-br from-red-50 via-pink-50 to-purple-50 py-16 mb-20">
+      <section className="bg-gradient-to-br from-pink-50 via-pink-50 to-purple-50 py-16 mb-20">
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
             {/* 100% Authentic */}
             <div className="flex flex-col items-center text-center space-y-3">
               <div className="w-16 h-16 md:w-20 md:h-20 bg-white rounded-full flex items-center justify-center shadow-lg">
-                <svg className="w-8 h-8 md:w-10 md:h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <svg className="w-8 h-8 md:w-10 md:h-10 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
               </div>
@@ -738,7 +755,7 @@ export default function Home() {
             {/* 10000+ Beauty Products */}
             <div className="flex flex-col items-center text-center space-y-3">
               <div className="w-16 h-16 md:w-20 md:h-20 bg-white rounded-full flex items-center justify-center shadow-lg">
-                <svg className="w-8 h-8 md:w-10 md:h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <svg className="w-8 h-8 md:w-10 md:h-10 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
                 </svg>
               </div>
@@ -751,7 +768,7 @@ export default function Home() {
             {/* 300+ Brands */}
             <div className="flex flex-col items-center text-center space-y-3">
               <div className="w-16 h-16 md:w-20 md:h-20 bg-white rounded-full flex items-center justify-center shadow-lg">
-                <svg className="w-8 h-8 md:w-10 md:h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <svg className="w-8 h-8 md:w-10 md:h-10 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                 </svg>
               </div>
@@ -764,7 +781,7 @@ export default function Home() {
             {/* Free Beauty Consultant */}
             <div className="flex flex-col items-center text-center space-y-3">
               <div className="w-16 h-16 md:w-20 md:h-20 bg-white rounded-full flex items-center justify-center shadow-lg">
-                <svg className="w-8 h-8 md:w-10 md:h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <svg className="w-8 h-8 md:w-10 md:h-10 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
                 </svg>
               </div>

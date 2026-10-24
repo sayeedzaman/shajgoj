@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
@@ -19,6 +20,7 @@ import {
   Gift,
 } from 'lucide-react';
 import { useAuth } from '@/src/lib/AuthContext';
+import { brand } from '@/src/config/brand';
 
 interface AdminSidebarProps {
   isOpen: boolean;
@@ -68,11 +70,17 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200">
             <Link href="/admin" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-rose-500 to-pink-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">K</span>
+              <div className="w-10 h-10 bg-gradient-to-br from-rose-500 to-pink-600 rounded-lg flex items-center justify-center overflow-hidden">
+                <Image
+                  src={brand.logoPath}
+                  alt={brand.name}
+                  width={64}
+                  height={64}
+                  className="w-9 h-9 object-contain"
+                />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-gray-900">Khali's Beauty</h1>
+                <h1 className="text-lg font-bold text-gray-900">{brand.name}</h1>
                 <p className="text-xs text-gray-500">Admin Panel</p>
               </div>
             </Link>
@@ -120,7 +128,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
           <div className="p-4 border-t border-gray-200">
             <button
               onClick={handleLogout}
-              className="flex items-center gap-3 w-full px-4 py-3 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
+              className="flex items-center gap-3 w-full px-4 py-3 text-gray-700 hover:bg-pink-50 hover:text-pink-600 rounded-lg transition-colors"
             >
               <LogOut className="w-5 h-5" />
               <span>Logout</span>

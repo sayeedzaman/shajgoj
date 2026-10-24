@@ -15,15 +15,15 @@ export default function ErrorState({
 }: ErrorStateProps) {
   return (
     <div className="flex flex-col items-center justify-center py-12 px-4">
-      <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
-        <AlertCircle className="w-8 h-8 text-red-600" />
+      <div className="inline-flex items-center justify-center w-16 h-16 bg-pink-100 rounded-full mb-4">
+        <AlertCircle className="w-8 h-8 text-pink-600" />
       </div>
       <h3 className="text-xl font-bold text-gray-900 mb-2">{title}</h3>
       <p className="text-gray-600 text-center max-w-md mb-6">{message}</p>
       {showRetry && onRetry && (
         <button
           onClick={onRetry}
-          className="inline-flex items-center gap-2 px-6 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-colors"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-pink-600 text-white rounded-lg font-semibold hover:bg-pink-700 transition-colors"
         >
           <RefreshCcw className="w-4 h-4" />
           Try Again

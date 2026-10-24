@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { productsAPI, typesAPI, brandsAPI } from '@/src/lib/api';
 import { Product, Type, Brand } from '@/src/types/index';
 import ProductCard from '@/src/components/products/ProductCard';
+import PriceRangeFilter from '@/src/components/filters/PriceRangeFilter';
 import { ChevronRight, SlidersHorizontal } from 'lucide-react';
 
 export default function TypePage() {
@@ -103,7 +104,7 @@ export default function TypePage() {
         <div className="max-w-7xl mx-auto px-4 text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">No products in stock</h1>
           <p className="text-gray-600 mb-6">This category doesn&apos;t have any products yet.</p>
-          <Link href="/products" className="text-red-600 hover:text-red-700 font-medium">
+          <Link href="/products" className="text-pink-600 hover:text-pink-700 font-medium">
             Browse all products
           </Link>
         </div>
@@ -114,7 +115,7 @@ export default function TypePage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {type?.image && (
-        <div className="relative h-48 md:h-64 bg-linear-to-r from-red-100 to-purple-100 overflow-hidden">
+        <div className="relative h-48 md:h-64 bg-linear-to-r from-pink-100 to-purple-100 overflow-hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={type.image} alt={type.name} className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
@@ -128,13 +129,13 @@ export default function TypePage() {
 
       <div className="max-w-7xl mx-auto px-4 py-6">
         <nav className="flex items-center gap-2 text-sm text-gray-600 mb-6">
-          <Link href="/" className="hover:text-red-600">Home</Link>
+          <Link href="/" className="hover:text-pink-600">Home</Link>
           <ChevronRight className="w-4 h-4" />
-          <Link href="/products" className="hover:text-red-600">Products</Link>
+          <Link href="/products" className="hover:text-pink-600">Products</Link>
           {type?.Category && (
             <>
               <ChevronRight className="w-4 h-4" />
-              <Link href={`/category/${type.Category.slug}`} className="hover:text-red-600">
+              <Link href={`/category/${type.Category.slug}`} className="hover:text-pink-600">
                 {type.Category.name}
               </Link>
             </>
@@ -166,7 +167,7 @@ export default function TypePage() {
               <div className="flex items-center justify-between p-6 pb-4 border-b border-gray-100">
                 <h2 className="text-lg font-bold text-gray-900">Filters</h2>
                 {(selectedBrand || priceRange[0] > 0 || priceRange[1] < 1000000) && (
-                  <button onClick={clearFilters} className="text-sm text-red-600 hover:text-red-700 font-medium">
+                  <button onClick={clearFilters} className="text-sm text-pink-600 hover:text-pink-700 font-medium">
                     Clear
                   </button>
                 )}
@@ -182,7 +183,7 @@ export default function TypePage() {
                         name="brand"
                         checked={selectedBrand === ''}
                         onChange={() => setSelectedBrand('')}
-                        className="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500"
+                        className="w-4 h-4 text-pink-600 border-gray-300 focus:ring-pink-500"
                       />
                       <span className="ml-2 text-sm text-gray-700">All Brands</span>
                     </label>
@@ -193,7 +194,7 @@ export default function TypePage() {
                           name="brand"
                           checked={selectedBrand === brand.id}
                           onChange={() => setSelectedBrand(brand.id)}
-                          className="w-4 h-4 text-red-600 border-gray-300 focus:ring-red-500"
+                          className="w-4 h-4 text-pink-600 border-gray-300 focus:ring-pink-500"
                         />
                         <span className="ml-2 text-sm text-gray-700">{brand.name}</span>
                       </label>
@@ -201,65 +202,13 @@ export default function TypePage() {
                   </div>
                 </div>
 
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-3">Price Range</h3>
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="text-xs text-gray-600 mb-1 block">Min</label>
-                        <div className="relative">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">৳</span>
-                          <input
-                            type="number" min="0" max={priceRange[1]} step="100"
-                            value={priceRange[0]}
-                            onChange={(e) => {
-                              const newMin = Math.max(0, Math.min(parseInt(e.target.value) || 0, priceRange[1]));
-                              setPriceRange([newMin, priceRange[1]]);
-                            }}
-                            className="w-full pl-7 pr-2 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="text-xs text-gray-600 mb-1 block">Max</label>
-                        <div className="relative">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">৳</span>
-                          <input
-                            type="number" min={priceRange[0]} max="1000000" step="100"
-                            value={priceRange[1]}
-                            onChange={(e) => {
-                              const newMax = Math.max(priceRange[0], Math.min(parseInt(e.target.value) || 1000000, 1000000));
-                              setPriceRange([priceRange[0], newMax]);
-                            }}
-                            className="w-full pl-7 pr-2 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="relative h-2">
-                      <div className="absolute w-full h-2 bg-gray-200 rounded-lg" />
-                      <div
-                        className="absolute h-2 bg-red-600 rounded-lg"
-                        style={{ left: `${(priceRange[0] / 1000000) * 100}%`, right: `${100 - (priceRange[1] / 1000000) * 100}%` }}
-                      />
-                      <input
-                        type="range" min="0" max="1000000" step="1000"
-                        value={priceRange[0]}
-                        onChange={(e) => { const v = parseInt(e.target.value); setPriceRange([Math.min(v, priceRange[1]), priceRange[1]]); }}
-                        className="absolute top-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-red-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-md"
-                        style={{ height: '8px' }} aria-label="Minimum price"
-                      />
-                      <input
-                        type="range" min="0" max="1000000" step="1000"
-                        value={priceRange[1]}
-                        onChange={(e) => { const v = parseInt(e.target.value); setPriceRange([priceRange[0], Math.max(v, priceRange[0])]); }}
-                        className="absolute top-0 w-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-red-600 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow-md"
-                        style={{ height: '8px' }} aria-label="Maximum price"
-                      />
-                    </div>
-                  </div>
-                </div>
+                <PriceRangeFilter
+                  value={priceRange}
+                  onChange={(range) => {
+                    setPriceRange(range);
+                    setCurrentPage(1);
+                  }}
+                />
 
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-3">Sort by</h3>
@@ -271,7 +220,7 @@ export default function TypePage() {
                       setSortBy(sort as 'createdAt' | 'price' | 'name');
                       setSortOrder(order as 'asc' | 'desc');
                     }}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
                   >
                     <option value="createdAt-desc">Newest First</option>
                     <option value="createdAt-asc">Oldest First</option>
@@ -297,7 +246,7 @@ export default function TypePage() {
                 <p className="text-gray-600">{error}</p>
                 <button
                   onClick={fetchProducts}
-                  className="mt-4 px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                  className="mt-4 px-6 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors"
                 >
                   Try Again
                 </button>
@@ -340,7 +289,7 @@ export default function TypePage() {
                             key={pageNum}
                             onClick={() => setCurrentPage(pageNum)}
                             className={`px-3 py-2 rounded-lg text-sm font-medium ${
-                              currentPage === pageNum ? 'bg-red-600 text-white' : 'text-gray-700 hover:bg-gray-100'
+                              currentPage === pageNum ? 'bg-pink-600 text-white' : 'text-gray-700 hover:bg-gray-100'
                             }`}
                           >
                             {pageNum}
@@ -362,7 +311,7 @@ export default function TypePage() {
                 <p className="text-gray-500 text-lg mb-2">No products in stock</p>
                 <p className="text-gray-400 text-sm mb-4">Try adjusting your filters or check back later</p>
                 {(selectedBrand || priceRange[0] > 0 || priceRange[1] < 1000000) && (
-                  <button onClick={clearFilters} className="text-red-600 hover:text-red-700 font-medium text-sm">
+                  <button onClick={clearFilters} className="text-pink-600 hover:text-pink-700 font-medium text-sm">
                     Clear all filters
                   </button>
                 )}

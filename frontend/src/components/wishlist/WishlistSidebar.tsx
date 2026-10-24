@@ -41,7 +41,7 @@ export default function WishlistSidebar({
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200">
             <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-              <Heart className="w-5 h-5 text-red-600 fill-red-600" />
+              <Heart className="w-5 h-5 text-pink-600 fill-pink-600" />
               Wishlist ({wishlist.length})
             </h2>
             <button
@@ -56,8 +56,8 @@ export default function WishlistSidebar({
           {/* Content */}
           {wishlist.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-              <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mb-4">
-                <Heart className="w-10 h-10 text-red-400" />
+              <div className="w-20 h-20 bg-pink-50 rounded-full flex items-center justify-center mb-4">
+                <Heart className="w-10 h-10 text-pink-400" />
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 Your Wishlist is Empty
@@ -68,7 +68,7 @@ export default function WishlistSidebar({
               <Link
                 href="/products"
                 onClick={onClose}
-                className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-semibold"
+                className="px-6 py-3 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors font-semibold"
               >
                 Continue Shopping
               </Link>
@@ -111,7 +111,7 @@ export default function WishlistSidebar({
                           <Link
                             href={`/products/${product.slug}`}
                             onClick={onClose}
-                            className="text-sm font-medium text-gray-900 hover:text-red-600 line-clamp-2 block mb-1"
+                            className="text-sm font-medium text-gray-900 hover:text-pink-600 line-clamp-2 block mb-1"
                           >
                             {product.name}
                           </Link>
@@ -124,7 +124,7 @@ export default function WishlistSidebar({
 
                           {/* Price */}
                           <div className="flex items-center gap-2 mb-2">
-                            <span className="text-sm font-bold text-red-600">
+                            <span className="text-sm font-bold text-pink-600">
                               ৳{displayPrice.toFixed(0)}
                             </span>
                             {hasDiscount && (
@@ -142,7 +142,7 @@ export default function WishlistSidebar({
                               className={`flex-1 py-1.5 px-3 rounded text-xs font-medium transition-colors flex items-center justify-center gap-1 ${
                                 product.stock === 0
                                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                  : 'bg-red-600 text-white hover:bg-red-700'
+                                  : 'bg-pink-600 text-white hover:bg-pink-700'
                               }`}
                             >
                               <ShoppingCart className="w-3 h-3" />
@@ -151,7 +151,7 @@ export default function WishlistSidebar({
                             <button
                               onClick={() => onRemoveFromWishlist(product.id)}
                               disabled={isLoading}
-                              className="p-1.5 text-red-600 hover:bg-red-50 rounded disabled:opacity-50"
+                              className="p-1.5 text-pink-600 hover:bg-pink-50 rounded disabled:opacity-50"
                               aria-label="Remove from wishlist"
                             >
                               <Trash2 className="w-4 h-4" />

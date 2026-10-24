@@ -294,7 +294,7 @@ export const footerLinks = {
   ],
   company: [
     { name: 'Our Story', href: '/about' },
-    { name: 'Khali\'s Beauty Magazine', href: '/magazine' },
+    { name: 'Beautiland Magazine', href: '/magazine' },
     { name: 'Join Our Team', href: '/careers' },
   ],
 };

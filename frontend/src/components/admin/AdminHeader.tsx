@@ -110,7 +110,7 @@ export default function AdminHeader({ onMenuClick }: AdminHeaderProps) {
           {/* View Website Button */}
           <Link
             href="/"
-            className="hidden sm:flex items-center gap-2 px-4 py-2 bg-linear-to-r from-red-500 to-pink-600 text-white rounded-lg hover:from-red-600 hover:to-pink-700 transition-all font-medium text-sm"
+            className="hidden sm:flex items-center gap-2 px-4 py-2 bg-linear-to-r from-pink-500 to-pink-600 text-white rounded-lg hover:from-pink-600 hover:to-pink-700 transition-all font-medium text-sm"
           >
             <Home className="w-4 h-4" />
             <span>View Website</span>
@@ -119,7 +119,7 @@ export default function AdminHeader({ onMenuClick }: AdminHeaderProps) {
           {/* Mobile Home Button */}
           <Link
             href="/"
-            className="sm:hidden p-2 bg-linear-to-r from-red-500 to-pink-600 text-white rounded-lg hover:from-red-600 hover:to-pink-700 transition-all"
+            className="sm:hidden p-2 bg-linear-to-r from-pink-500 to-pink-600 text-white rounded-lg hover:from-pink-600 hover:to-pink-700 transition-all"
             title="View Website"
           >
             <Home className="w-5 h-5" />
@@ -133,7 +133,7 @@ export default function AdminHeader({ onMenuClick }: AdminHeaderProps) {
           >
             <MessageCircle className="w-5 h-5 text-gray-600" />
             {chatUnreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+              <span className="absolute -top-1 -right-1 bg-pink-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
                 {chatUnreadCount}
               </span>
             )}
@@ -150,7 +150,7 @@ export default function AdminHeader({ onMenuClick }: AdminHeaderProps) {
             >
               <Bell className="w-5 h-5 text-gray-600" />
               {unreadCount > 0 && (
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+                <span className="absolute top-1 right-1 w-2 h-2 bg-pink-500 rounded-full" />
               )}
             </button>
 
@@ -237,7 +237,7 @@ export default function AdminHeader({ onMenuClick }: AdminHeaderProps) {
                                   e.stopPropagation();
                                   clearNotification(notification.id);
                                 }}
-                                className="text-xs text-gray-400 hover:text-red-600 transition-colors"
+                                className="text-xs text-gray-400 hover:text-pink-600 transition-colors"
                               >
                                 Dismiss
                               </button>
@@ -302,7 +302,7 @@ export default function AdminHeader({ onMenuClick }: AdminHeaderProps) {
                 <div className="border-t border-gray-100 pt-1">
                   <button
                     onClick={handleLogout}
-                    className="flex items-center gap-3 w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                    className="flex items-center gap-3 w-full px-4 py-2 text-sm text-pink-600 hover:bg-pink-50"
                   >
                     <LogOut className="w-4 h-4" />
                     Logout

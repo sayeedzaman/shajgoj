@@ -114,7 +114,7 @@ export default function BrandPage() {
           <p className="text-gray-600 mb-6">{error || 'The brand you are looking for does not exist.'}</p>
           <Link
             href="/brands"
-            className="inline-block px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            className="inline-block px-6 py-3 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors"
           >
             View All Brands
           </Link>
@@ -128,11 +128,11 @@ export default function BrandPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumb */}
         <div className="flex items-center space-x-2 text-sm text-gray-500 mb-6">
-          <Link href="/" className="hover:text-red-600 transition-colors">
+          <Link href="/" className="hover:text-pink-600 transition-colors">
             Home
           </Link>
           <ChevronRight className="w-4 h-4" />
-          <Link href="/brands" className="hover:text-red-600 transition-colors">
+          <Link href="/brands" className="hover:text-pink-600 transition-colors">
             Brands
           </Link>
           <ChevronRight className="w-4 h-4" />
@@ -187,7 +187,7 @@ export default function BrandPage() {
               id="sort"
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
-              className="flex-1 sm:flex-none px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 bg-white"
+              className="flex-1 sm:flex-none px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 bg-white"
             >
               <option value="newest">Newest</option>
               <option value="popular">Popular</option>
@@ -227,7 +227,7 @@ export default function BrandPage() {
             </p>
             <Link
               href="/brands"
-              className="inline-block px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              className="inline-block px-6 py-3 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors"
             >
               Browse Other Brands
             </Link>

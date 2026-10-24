@@ -25,7 +25,7 @@ const TIMELINE_META: Record<string, { label: string; icon: typeof CheckCircle; b
   PROCESSING: { label: 'Processing', icon: Package, bg: 'bg-blue-100', text: 'text-blue-600' },
   SHIPPED: { label: 'Shipped', icon: Truck, bg: 'bg-purple-100', text: 'text-purple-600' },
   DELIVERED: { label: 'Delivered', icon: CheckCircle, bg: 'bg-green-100', text: 'text-green-600' },
-  CANCELLED: { label: 'Cancelled', icon: AlertCircle, bg: 'bg-red-100', text: 'text-red-600' },
+  CANCELLED: { label: 'Cancelled', icon: AlertCircle, bg: 'bg-pink-100', text: 'text-pink-600' },
 };
 
 export default function OrderDetailPage() {
@@ -80,7 +80,7 @@ export default function OrderDetailPage() {
       case 'DELIVERED':
         return 'bg-green-100 text-green-800';
       case 'CANCELLED':
-        return 'bg-red-100 text-red-800';
+        return 'bg-pink-100 text-pink-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -106,7 +106,7 @@ export default function OrderDetailPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-red-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-pink-600" />
       </div>
     );
   }
@@ -116,14 +116,14 @@ export default function OrderDetailPage() {
       <div className="min-h-screen bg-gray-50 py-12">
         <div className="max-w-3xl mx-auto px-4">
           <div className="bg-white rounded-lg shadow-sm p-8 text-center">
-            <AlertCircle className="w-16 h-16 text-red-600 mx-auto mb-4" />
+            <AlertCircle className="w-16 h-16 text-pink-600 mx-auto mb-4" />
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Order Not Found</h1>
             <p className="text-gray-600 mb-6">
               {error || "We couldn't find the order you're looking for."}
             </p>
             <Link
               href="/orders"
-              className="inline-block px-6 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-colors"
+              className="inline-block px-6 py-3 bg-pink-600 text-white rounded-lg font-semibold hover:bg-pink-700 transition-colors"
             >
               View My Orders
             </Link>
@@ -163,9 +163,9 @@ export default function OrderDetailPage() {
 
         {/* Breadcrumbs */}
         <nav className="flex items-center gap-2 text-sm text-gray-600 mb-6">
-          <Link href="/" className="hover:text-red-600">Home</Link>
+          <Link href="/" className="hover:text-pink-600">Home</Link>
           <ChevronRight className="w-4 h-4" />
-          <Link href="/orders" className="hover:text-red-600">Orders</Link>
+          <Link href="/orders" className="hover:text-pink-600">Orders</Link>
           <ChevronRight className="w-4 h-4" />
           <span className="text-gray-900 font-medium">{order.orderNumber}</span>
         </nav>
@@ -215,7 +215,7 @@ export default function OrderDetailPage() {
             </div>
             <div>
               <p className="text-sm text-gray-600 mb-1">Total Amount</p>
-              <p className="font-semibold text-red-600 text-lg">৳{order.total.toFixed(2)}</p>
+              <p className="font-semibold text-pink-600 text-lg">৳{order.total.toFixed(2)}</p>
             </div>
           </div>
         </div>
@@ -249,7 +249,7 @@ export default function OrderDetailPage() {
                     <div className="flex-1 min-w-0">
                       <Link
                         href={`/products/${item.Product.slug}`}
-                        className="font-semibold text-gray-900 hover:text-red-600 line-clamp-2 block mb-1"
+                        className="font-semibold text-gray-900 hover:text-pink-600 line-clamp-2 block mb-1"
                       >
                         {item.Product.name}
                       </Link>
@@ -353,7 +353,7 @@ export default function OrderDetailPage() {
                 </div>
                 <div className="flex justify-between text-lg font-bold pt-3 border-t border-gray-200">
                   <span className="text-gray-900">Total</span>
-                  <span className="text-red-600">৳{order.total.toFixed(2)}</span>
+                  <span className="text-pink-600">৳{order.total.toFixed(2)}</span>
                 </div>
               </div>
             </div>
@@ -362,7 +362,7 @@ export default function OrderDetailPage() {
             <div className="space-y-3">
               <Link
                 href="/products"
-                className="block w-full py-3 bg-red-600 text-white text-center rounded-lg font-semibold hover:bg-red-700 transition-colors"
+                className="block w-full py-3 bg-pink-600 text-white text-center rounded-lg font-semibold hover:bg-pink-700 transition-colors"
               >
                 Continue Shopping
               </Link>

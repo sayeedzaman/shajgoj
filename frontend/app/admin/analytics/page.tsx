@@ -111,7 +111,7 @@ export default function AnalyticsPage() {
     return (
       <div className="flex items-center justify-center min-h-[500px]">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600"></div>
           <p className="text-gray-600 mt-4">Loading analytics...</p>
         </div>
       </div>
@@ -122,11 +122,11 @@ export default function AnalyticsPage() {
     return (
       <div className="flex items-center justify-center min-h-[500px]">
         <div className="text-center">
-          <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-600 font-medium">{error}</p>
+          <div className="p-4 bg-pink-50 border border-pink-200 rounded-lg">
+            <p className="text-pink-600 font-medium">{error}</p>
             <button
               onClick={() => fetchAnalyticsData()}
-              className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              className="mt-4 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors"
             >
               Retry
             </button>
@@ -146,7 +146,7 @@ export default function AnalyticsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <BarChart3 className="w-8 h-8 text-red-600" />
+            <BarChart3 className="w-8 h-8 text-pink-600" />
             Analytics Dashboard
           </h1>
           <p className="text-gray-600 mt-2">Track your business performance and insights</p>
@@ -154,7 +154,7 @@ export default function AnalyticsPage() {
         <select
           value={timeRange}
           onChange={(e) => setTimeRange(e.target.value as any)}
-          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+          className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
         >
           <option value="7d">Last 7 days</option>
           <option value="30d">Last 30 days</option>
@@ -170,7 +170,7 @@ export default function AnalyticsPage() {
             <div className="p-3 bg-green-100 rounded-lg">
               <DollarSign className="w-6 h-6 text-green-600" />
             </div>
-            <div className={`flex items-center gap-1 text-sm font-medium ${stats.totalRevenue.isPositive ? 'text-green-600' : 'text-red-600'}`}>
+            <div className={`flex items-center gap-1 text-sm font-medium ${stats.totalRevenue.isPositive ? 'text-green-600' : 'text-pink-600'}`}>
               {stats.totalRevenue.isPositive ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
               {Math.abs(stats.totalRevenue.change)}%
             </div>
@@ -185,7 +185,7 @@ export default function AnalyticsPage() {
             <div className="p-3 bg-blue-100 rounded-lg">
               <ShoppingCart className="w-6 h-6 text-blue-600" />
             </div>
-            <div className={`flex items-center gap-1 text-sm font-medium ${stats.totalOrders.isPositive ? 'text-green-600' : 'text-red-600'}`}>
+            <div className={`flex items-center gap-1 text-sm font-medium ${stats.totalOrders.isPositive ? 'text-green-600' : 'text-pink-600'}`}>
               {stats.totalOrders.isPositive ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
               {Math.abs(stats.totalOrders.change)}%
             </div>
@@ -200,7 +200,7 @@ export default function AnalyticsPage() {
             <div className="p-3 bg-purple-100 rounded-lg">
               <Users className="w-6 h-6 text-purple-600" />
             </div>
-            <div className={`flex items-center gap-1 text-sm font-medium ${stats.totalCustomers.isPositive ? 'text-green-600' : 'text-red-600'}`}>
+            <div className={`flex items-center gap-1 text-sm font-medium ${stats.totalCustomers.isPositive ? 'text-green-600' : 'text-pink-600'}`}>
               {stats.totalCustomers.isPositive ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
               {Math.abs(stats.totalCustomers.change)}%
             </div>
@@ -215,7 +215,7 @@ export default function AnalyticsPage() {
             <div className="p-3 bg-orange-100 rounded-lg">
               <Package className="w-6 h-6 text-orange-600" />
             </div>
-            <div className={`flex items-center gap-1 text-sm font-medium ${stats.avgOrderValue.isPositive ? 'text-green-600' : 'text-red-600'}`}>
+            <div className={`flex items-center gap-1 text-sm font-medium ${stats.avgOrderValue.isPositive ? 'text-green-600' : 'text-pink-600'}`}>
               {stats.avgOrderValue.isPositive ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
               {Math.abs(stats.avgOrderValue.change)}%
             </div>
@@ -227,10 +227,10 @@ export default function AnalyticsPage() {
 
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-red-100 rounded-lg">
-              <TrendingUp className="w-6 h-6 text-red-600" />
+            <div className="p-3 bg-pink-100 rounded-lg">
+              <TrendingUp className="w-6 h-6 text-pink-600" />
             </div>
-            <div className={`flex items-center gap-1 text-sm font-medium ${stats.conversionRate.isPositive ? 'text-green-600' : 'text-red-600'}`}>
+            <div className={`flex items-center gap-1 text-sm font-medium ${stats.conversionRate.isPositive ? 'text-green-600' : 'text-pink-600'}`}>
               {stats.conversionRate.isPositive ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
               {Math.abs(stats.conversionRate.change)}%
             </div>
@@ -245,7 +245,7 @@ export default function AnalyticsPage() {
             <div className="p-3 bg-yellow-100 rounded-lg">
               <ShoppingCart className="w-6 h-6 text-yellow-600" />
             </div>
-            <div className={`flex items-center gap-1 text-sm font-medium ${stats.cartAbandonment.isPositive ? 'text-green-600' : 'text-red-600'}`}>
+            <div className={`flex items-center gap-1 text-sm font-medium ${stats.cartAbandonment.isPositive ? 'text-green-600' : 'text-pink-600'}`}>
               {stats.cartAbandonment.isPositive ? <TrendingDown className="w-4 h-4" /> : <TrendingUp className="w-4 h-4" />}
               {Math.abs(stats.cartAbandonment.change)}%
             </div>
@@ -386,7 +386,7 @@ export default function AnalyticsPage() {
               {topProducts.map((product, index) => (
                 <tr key={index} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center justify-center w-8 h-8 bg-red-100 text-red-600 rounded-full font-bold">
+                    <div className="flex items-center justify-center w-8 h-8 bg-pink-100 text-pink-600 rounded-full font-bold">
                       {index + 1}
                     </div>
                   </td>
@@ -402,7 +402,7 @@ export default function AnalyticsPage() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div
-                        className="bg-red-600 h-2 rounded-full"
+                        className="bg-pink-600 h-2 rounded-full"
                         style={{ width: `${(product.sales / topProducts[0].sales) * 100}%` }}
                       ></div>
                     </div>

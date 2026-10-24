@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Star, Search, Eye, Trash2, MessageSquare, User, Package, Calendar, AlertCircle, CheckCircle } from 'lucide-react';
+import { Star, Search, Eye, Trash2, MessageSquare, User, Package, Calendar, AlertCircle, CheckCircle, X } from 'lucide-react';
 
 interface ReviewUser {
   id: string;
@@ -183,7 +183,7 @@ export default function ReviewsPage() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-          <MessageSquare className="w-8 h-8 text-red-600" />
+          <MessageSquare className="w-8 h-8 text-pink-600" />
           Reviews Management
         </h1>
         <p className="text-gray-600 mt-2">Monitor and moderate customer reviews</p>
@@ -199,7 +199,7 @@ export default function ReviewsPage() {
 
       {/* Error Message */}
       {errorMessage && (
-        <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg flex items-center gap-2">
+        <div className="bg-pink-50 border border-pink-200 text-pink-800 px-4 py-3 rounded-lg flex items-center gap-2">
           <AlertCircle className="w-5 h-5" />
           {errorMessage}
         </div>
@@ -269,7 +269,7 @@ export default function ReviewsPage() {
                 setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
             />
           </div>
           <select
@@ -278,7 +278,7 @@ export default function ReviewsPage() {
               setRatingFilter(e.target.value === 'all' ? 'all' : Number(e.target.value));
               setCurrentPage(1);
             }}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
           >
             <option value="all">All Ratings</option>
             <option value="5">5 Stars</option>
@@ -294,7 +294,7 @@ export default function ReviewsPage() {
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
         {loading ? (
           <div className="p-12 text-center">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600"></div>
             <p className="text-gray-600 mt-4">Loading reviews...</p>
           </div>
         ) : filteredReviews.length === 0 ? (
@@ -362,8 +362,8 @@ export default function ReviewsPage() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
-                            <span className="text-red-600 font-semibold text-xs">
+                          <div className="w-8 h-8 bg-pink-100 rounded-full flex items-center justify-center">
+                            <span className="text-pink-600 font-semibold text-xs">
                               {review.User.firstName?.[0] || 'U'}
                             </span>
                           </div>
@@ -406,7 +406,7 @@ export default function ReviewsPage() {
                           </button>
                           <button
                             onClick={() => setDeleteConfirm(review.id)}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            className="p-2 text-pink-600 hover:bg-pink-50 rounded-lg transition-colors"
                             title="Delete Review"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -457,7 +457,7 @@ export default function ReviewsPage() {
                 onClick={() => setShowModal(false)}
                 className="text-gray-400 hover:text-gray-600"
               >
-                ✕
+                <X className="w-6 h-6" />
               </button>
             </div>
 
@@ -546,7 +546,7 @@ export default function ReviewsPage() {
                   setDeleteConfirm(selectedReview.id);
                   setShowModal(false);
                 }}
-                className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
+                className="px-6 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors flex items-center gap-2"
               >
                 <Trash2 className="w-4 h-4" />
                 Delete Review
@@ -567,8 +567,8 @@ export default function ReviewsPage() {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg max-w-md w-full p-6">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                <Trash2 className="w-6 h-6 text-red-600" />
+              <div className="w-12 h-12 bg-pink-100 rounded-full flex items-center justify-center">
+                <Trash2 className="w-6 h-6 text-pink-600" />
               </div>
               <div>
                 <h3 className="text-lg font-bold text-gray-900">Delete Review</h3>
@@ -581,7 +581,7 @@ export default function ReviewsPage() {
             <div className="flex gap-3">
               <button
                 onClick={() => deleteReview(deleteConfirm)}
-                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                className="flex-1 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors"
               >
                 Delete
               </button>

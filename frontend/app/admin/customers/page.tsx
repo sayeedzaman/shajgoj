@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Users, Search, Eye, Mail, Phone, Calendar, ShoppingBag, MessageSquare } from 'lucide-react';
+import { Users, Search, Eye, Mail, Phone, Calendar, ShoppingBag, MessageSquare, X } from 'lucide-react';
 import { adminAPI, type Customer, type Order } from '@/src/lib/adminApi';
 
 export default function CustomerManagementPage() {
@@ -73,7 +73,7 @@ export default function CustomerManagementPage() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-          <Users className="w-8 h-8 text-red-600" />
+          <Users className="w-8 h-8 text-pink-600" />
           Customer Management
         </h1>
         <p className="text-gray-600 mt-2">View and manage your customer base</p>
@@ -81,7 +81,7 @@ export default function CustomerManagementPage() {
 
       {/* Error Message */}
       {errorMessage && (
-        <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
+        <div className="bg-pink-50 border border-pink-200 text-pink-800 px-4 py-3 rounded-lg">
           {errorMessage}
         </div>
       )}
@@ -98,7 +98,7 @@ export default function CustomerManagementPage() {
               setSearchQuery(e.target.value);
               setCurrentPage(1);
             }}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
           />
         </div>
       </div>
@@ -107,7 +107,7 @@ export default function CustomerManagementPage() {
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
         {loading ? (
           <div className="p-12 text-center">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600"></div>
             <p className="text-gray-600 mt-4">Loading customers...</p>
           </div>
         ) : filteredCustomers.length === 0 ? (
@@ -159,8 +159,8 @@ export default function CustomerManagementPage() {
                     <tr key={customer.id} className="hover:bg-gray-50 transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-                            <span className="text-red-600 font-semibold text-sm">
+                          <div className="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center">
+                            <span className="text-pink-600 font-semibold text-sm">
                               {customer.firstName?.[0] || 'U'}{customer.lastName?.[0] || ''}
                             </span>
                           </div>
@@ -205,7 +205,7 @@ export default function CustomerManagementPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm font-bold text-red-600">
+                        <span className="text-sm font-bold text-pink-600">
                           ৳{customer.totalSpent?.toFixed(2) || '0.00'}
                         </span>
                       </td>
@@ -264,7 +264,7 @@ export default function CustomerManagementPage() {
                 onClick={() => setShowModal(false)}
                 className="text-gray-400 hover:text-gray-600"
               >
-                ✕
+                <X className="w-6 h-6" />
               </button>
             </div>
 
@@ -316,7 +316,7 @@ export default function CustomerManagementPage() {
                     </div>
                     <div>
                       <span className="text-gray-600">Total Spent:</span>
-                      <span className="ml-2 font-bold text-red-600">৳{selectedCustomer.totalSpent?.toFixed(2) || '0.00'}</span>
+                      <span className="ml-2 font-bold text-pink-600">৳{selectedCustomer.totalSpent?.toFixed(2) || '0.00'}</span>
                     </div>
                   </div>
                 </div>
@@ -344,13 +344,13 @@ export default function CustomerManagementPage() {
                             <td className="px-4 py-3">
                               <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
                                 order.status === 'DELIVERED' ? 'bg-green-100 text-green-800' :
-                                order.status === 'CANCELLED' ? 'bg-red-100 text-red-800' :
+                                order.status === 'CANCELLED' ? 'bg-pink-100 text-pink-800' :
                                 'bg-yellow-100 text-yellow-800'
                               }`}>
                                 {order.status}
                               </span>
                             </td>
-                            <td className="px-4 py-3 text-sm font-bold text-red-600">৳{order.total.toFixed(2)}</td>
+                            <td className="px-4 py-3 text-sm font-bold text-pink-600">৳{order.total.toFixed(2)}</td>
                           </tr>
                         ))}
                       </tbody>

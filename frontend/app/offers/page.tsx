@@ -148,7 +148,7 @@ function OffersContent() {
   };
 
   return (
-    <div className={`min-h-screen ${viewMode === 'products' ? 'bg-white' : 'bg-linear-to-br from-red-50 via-orange-50 to-amber-50'}`}>
+    <div className={`min-h-screen ${viewMode === 'products' ? 'bg-white' : 'bg-linear-to-br from-pink-50 via-orange-50 to-amber-50'}`}>
       {/* Hero Section */}
       <section className="relative bg-gray-900 text-white py-8 overflow-hidden">
         {/* Background Image - For both views */}
@@ -234,7 +234,7 @@ function OffersContent() {
           <>
             {loading ? (
               <div className="flex flex-col items-center justify-center py-20">
-                <div className="w-16 h-16 border-4 border-red-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                <div className="w-16 h-16 border-4 border-pink-500 border-t-transparent rounded-full animate-spin mb-4"></div>
                 <p className="text-gray-600">Loading products...</p>
               </div>
             ) : products.length === 0 ? (
@@ -244,7 +244,7 @@ function OffersContent() {
                 <p className="text-gray-600 mb-4">This offer doesn't have any specific products yet</p>
                 <Link
                   href="/offers"
-                  className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                  className="px-6 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors"
                 >
                   View All Offers
                 </Link>
@@ -271,7 +271,7 @@ function OffersContent() {
                         </div>
                       )}
                       {product.salePrice && (
-                        <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                        <div className="absolute top-2 right-2 bg-pink-500 text-white text-xs font-bold px-2 py-1 rounded-full">
                           {Math.round(((product.price - product.salePrice) / product.price) * 100)}% OFF
                         </div>
                       )}
@@ -286,7 +286,7 @@ function OffersContent() {
                       <div className="flex items-center gap-2">
                         {product.salePrice ? (
                           <>
-                            <span className="text-lg font-bold text-red-600">৳{product.salePrice}</span>
+                            <span className="text-lg font-bold text-pink-600">৳{product.salePrice}</span>
                             <span className="text-sm text-gray-400 line-through">৳{product.price}</span>
                           </>
                         ) : (
@@ -312,7 +312,7 @@ function OffersContent() {
                     placeholder="Search offers..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                   />
                 </div>
 
@@ -323,7 +323,7 @@ function OffersContent() {
                     onClick={() => setFilterType('all')}
                     className={`px-6 py-3 rounded-lg font-medium transition-colors ${
                       filterType === 'all'
-                        ? 'bg-red-600 text-white'
+                        ? 'bg-pink-600 text-white'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
@@ -334,7 +334,7 @@ function OffersContent() {
                     onClick={() => setFilterType('PERCENTAGE')}
                     className={`px-6 py-3 rounded-lg font-medium transition-colors flex items-center gap-2 ${
                       filterType === 'PERCENTAGE'
-                        ? 'bg-red-600 text-white'
+                        ? 'bg-pink-600 text-white'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
@@ -346,7 +346,7 @@ function OffersContent() {
                     onClick={() => setFilterType('FIXED')}
                     className={`px-6 py-3 rounded-lg font-medium transition-colors flex items-center gap-2 ${
                       filterType === 'FIXED'
-                        ? 'bg-red-600 text-white'
+                        ? 'bg-pink-600 text-white'
                         : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     }`}
                   >
@@ -359,7 +359,7 @@ function OffersContent() {
 
             {loading ? (
           <div className="flex flex-col items-center justify-center py-20">
-            <div className="w-16 h-16 border-4 border-red-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+            <div className="w-16 h-16 border-4 border-pink-500 border-t-transparent rounded-full animate-spin mb-4"></div>
             <p className="text-gray-600">Loading offers...</p>
           </div>
         ) : filteredOffers.length === 0 ? (
@@ -393,7 +393,7 @@ function OffersContent() {
                         </div>
                       ) : (
                         <>
-                          <div className="relative h-2/3 bg-linear-to-br from-red-100 to-orange-100">
+                          <div className="relative h-2/3 bg-linear-to-br from-pink-100 to-orange-100">
                             {offer.imageUrl ? (
                               <div className="relative w-full h-full">
                                 <Image
@@ -410,7 +410,7 @@ function OffersContent() {
                               </div>
                             )}
                             <div className="absolute top-2 left-2">
-                              <div className="bg-red-500 text-white rounded-lg shadow-xl px-2 py-1">
+                              <div className="bg-pink-500 text-white rounded-lg shadow-xl px-2 py-1">
                                 <div className="text-lg font-bold">
                                   {offer.discountType === 'PERCENTAGE'
                                     ? `${offer.discountValue}%`
@@ -424,7 +424,7 @@ function OffersContent() {
                             <h3 className="text-sm font-bold text-gray-900 mb-1 line-clamp-2">
                               {offer.name}
                             </h3>
-                            <div className="text-xs font-mono font-bold text-red-600">
+                            <div className="text-xs font-mono font-bold text-pink-600">
                               {offer.code}
                             </div>
                           </div>
@@ -459,7 +459,7 @@ function OffersContent() {
                         </div>
                       ) : (
                         <>
-                          <div className="relative aspect-[3/2] bg-linear-to-br from-red-100 to-orange-100">
+                          <div className="relative aspect-[3/2] bg-linear-to-br from-pink-100 to-orange-100">
                             {offer.imageUrl ? (
                               <div className="relative w-full h-full">
                                 <Image
@@ -476,7 +476,7 @@ function OffersContent() {
                               </div>
                             )}
                             <div className="absolute top-3 left-3">
-                              <div className="bg-red-500 text-white rounded-lg shadow-xl px-3 py-2">
+                              <div className="bg-pink-500 text-white rounded-lg shadow-xl px-3 py-2">
                                 <div className="text-xl font-bold">
                                   {offer.discountType === 'PERCENTAGE'
                                     ? `${offer.discountValue}%`
@@ -490,7 +490,7 @@ function OffersContent() {
                             <h3 className="text-base font-bold text-gray-900 mb-2">
                               {offer.name}
                             </h3>
-                            <div className="text-sm font-mono font-bold text-red-600">
+                            <div className="text-sm font-mono font-bold text-pink-600">
                               {offer.code}
                             </div>
                           </div>
@@ -531,7 +531,7 @@ function OffersContent() {
                           </div>
                         ) : (
                           <>
-                            <div className="relative h-48 bg-linear-to-br from-red-100 to-orange-100">
+                            <div className="relative h-48 bg-linear-to-br from-pink-100 to-orange-100">
                               {offer.imageUrl ? (
                                 <div className="relative w-full h-full">
                                   <Image
@@ -549,7 +549,7 @@ function OffersContent() {
                               )}
 
                               <div className="absolute top-4 left-4">
-                                <div className="bg-red-500 text-white rounded-lg shadow-xl px-4 py-2">
+                                <div className="bg-pink-500 text-white rounded-lg shadow-xl px-4 py-2">
                                   <div className="text-2xl font-bold">
                                     {offer.discountType === 'PERCENTAGE'
                                       ? `${offer.discountValue}%`
@@ -577,11 +577,11 @@ function OffersContent() {
                                 </p>
                               )}
 
-                              <div className="bg-linear-to-r from-red-50 to-orange-50 rounded-lg p-4 mb-4">
+                              <div className="bg-linear-to-r from-pink-50 to-orange-50 rounded-lg p-4 mb-4">
                                 <div className="flex items-center justify-between">
                                   <div>
                                     <div className="text-xs text-gray-600 mb-1">Promo Code</div>
-                                    <div className="text-lg font-mono font-bold text-red-600">
+                                    <div className="text-lg font-mono font-bold text-pink-600">
                                       {offer.code}
                                     </div>
                                   </div>
@@ -633,7 +633,7 @@ function OffersContent() {
                                   </div>
                                   <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
                                     <div
-                                      className="bg-linear-to-r from-red-500 to-orange-500 h-2 rounded-full transition-all"
+                                      className="bg-linear-to-r from-pink-500 to-orange-500 h-2 rounded-full transition-all"
                                       style={{ width: `${Math.min((offer.usageCount / offer.usageLimit) * 100, 100)}%` }}
                                     ></div>
                                   </div>
@@ -646,7 +646,7 @@ function OffersContent() {
                                   e.preventDefault();
                                   copyCode(offer.code);
                                 }}
-                                className="w-full mt-4 bg-linear-to-r from-red-600 to-orange-600 text-white py-3 rounded-lg font-semibold hover:from-red-700 hover:to-orange-700 transition-all transform hover:scale-105"
+                                className="w-full mt-4 bg-linear-to-r from-pink-600 to-orange-600 text-white py-3 rounded-lg font-semibold hover:from-pink-700 hover:to-orange-700 transition-all transform hover:scale-105"
                               >
                                 {copiedCode === offer.code ? 'Code Copied!' : 'Copy Code & Shop'}
                               </button>
@@ -674,8 +674,8 @@ function OffersContent() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="text-center">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Tag className="w-8 h-8 text-red-600" />
+              <div className="w-16 h-16 bg-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Tag className="w-8 h-8 text-pink-600" />
               </div>
               <h3 className="font-semibold text-gray-900 mb-2">1. Choose an Offer</h3>
               <p className="text-sm text-gray-600">
@@ -711,9 +711,9 @@ function OffersContent() {
 export default function OffersPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-linear-to-br from-red-50 via-orange-50 to-amber-50 flex items-center justify-center">
+      <div className="min-h-screen bg-linear-to-br from-pink-50 via-orange-50 to-amber-50 flex items-center justify-center">
         <div className="flex flex-col items-center">
-          <div className="w-16 h-16 border-4 border-red-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+          <div className="w-16 h-16 border-4 border-pink-500 border-t-transparent rounded-full animate-spin mb-4"></div>
           <p className="text-gray-600">Loading offers...</p>
         </div>
       </div>

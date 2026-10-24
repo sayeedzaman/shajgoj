@@ -51,7 +51,7 @@ export default function InventoryPage() {
     const styles = {
       IN_STOCK: 'bg-green-100 text-green-800 border-green-200',
       LOW_STOCK: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      OUT_OF_STOCK: 'bg-red-100 text-red-800 border-red-200',
+      OUT_OF_STOCK: 'bg-pink-100 text-pink-800 border-pink-200',
     };
 
     const icons = {
@@ -99,7 +99,7 @@ export default function InventoryPage() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-          <Warehouse className="w-8 h-8 text-red-600" />
+          <Warehouse className="w-8 h-8 text-pink-600" />
           Inventory Management
         </h1>
         <p className="text-gray-600 mt-2">Monitor and manage product stock levels</p>
@@ -119,9 +119,9 @@ export default function InventoryPage() {
           <p className="text-sm text-yellow-800">Low Stock</p>
           <p className="text-2xl font-bold text-yellow-900 mt-1">{inventoryStats.lowStock}</p>
         </div>
-        <div className="bg-red-50 rounded-lg border border-red-200 p-4">
-          <p className="text-sm text-red-800">Out of Stock</p>
-          <p className="text-2xl font-bold text-red-900 mt-1">{inventoryStats.outOfStock}</p>
+        <div className="bg-pink-50 rounded-lg border border-pink-200 p-4">
+          <p className="text-sm text-pink-800">Out of Stock</p>
+          <p className="text-2xl font-bold text-pink-900 mt-1">{inventoryStats.outOfStock}</p>
         </div>
         <div className="bg-blue-50 rounded-lg border border-blue-200 p-4">
           <p className="text-sm text-blue-800">Total Value</p>
@@ -143,7 +143,7 @@ export default function InventoryPage() {
                 setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
             />
           </div>
 
@@ -156,7 +156,7 @@ export default function InventoryPage() {
                 setStatusFilter(e.target.value);
                 setCurrentPage(1);
               }}
-              className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 appearance-none bg-white"
+              className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 appearance-none bg-white"
             >
               <option value="ALL">All Status</option>
               <option value="IN_STOCK">In Stock</option>
@@ -172,7 +172,7 @@ export default function InventoryPage() {
       <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
         {loading ? (
           <div className="p-12 text-center">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600"></div>
             <p className="text-gray-600 mt-4">Loading inventory...</p>
           </div>
         ) : currentItems.length === 0 ? (
@@ -263,7 +263,7 @@ export default function InventoryPage() {
                       onClick={() => setCurrentPage(i + 1)}
                       className={`px-4 py-2 rounded-lg text-sm font-medium ${
                         currentPage === i + 1
-                          ? 'bg-red-600 text-white'
+                          ? 'bg-pink-600 text-white'
                           : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
                       }`}
                     >

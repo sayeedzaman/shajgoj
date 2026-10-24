@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/src/lib/AuthContext';
 import { useCart } from '@/src/lib/CartContext';
 import { useWishlist } from '@/src/lib/WishlistContext';
@@ -10,6 +10,7 @@ import { ShoppingCart, User, Search, Heart, LogOut, Plus, Minus, X } from 'lucid
 import { useState, useEffect, useRef } from 'react';
 import type { Category, Product } from '@/src/types';
 import WishlistSidebar from '@/src/components/wishlist/WishlistSidebar';
+import { brand } from '@/src/config/brand';
 
 interface Type {
   id: string;
@@ -33,6 +34,7 @@ export default function Navbar() {
   const { cartCount, openCart, addToCart } = useCart();
   const { wishlistCount, wishlist, removeFromWishlist } = useWishlist();
   const router = useRouter();
+  const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -52,6 +54,57 @@ export default function Navbar() {
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const mobileSearchContainerRef = useRef<HTMLDivElement>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const hoverCloseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const openCategoryMenu = (categoryId: string) => {
+    if (hoverCloseTimeoutRef.current) {
+      clearTimeout(hoverCloseTimeoutRef.current);
+      hoverCloseTimeoutRef.current = null;
+    }
+    if (!isSearchFocused) {
+      setHoveredCategoryId(categoryId);
+    }
+  };
+
+  const scheduleCloseCategoryMenu = () => {
+    if (hoverCloseTimeoutRef.current) {
+      clearTimeout(hoverCloseTimeoutRef.current);
+    }
+    hoverCloseTimeoutRef.current = setTimeout(() => {
+      setHoveredCategoryId(null);
+      hoverCloseTimeoutRef.current = null;
+    }, 180);
+  };
+
+  const closeCategoryMenu = () => {
+    if (hoverCloseTimeoutRef.current) {
+      clearTimeout(hoverCloseTimeoutRef.current);
+      hoverCloseTimeoutRef.current = null;
+    }
+    setHoveredCategoryId(null);
+  };
+
+  const getCategoryDisplayName = (category: CategoryWithHierarchy) => {
+    const name = category.name.toLowerCase();
+    if (name === 'men') return 'MEN';
+    if (name === 'jewellery' || name === 'jewelry') return 'JEWELLERY';
+    return category.name;
+  };
+
+  const getCategoryLinkClass = (category: CategoryWithHierarchy) => {
+    const name = category.name.toLowerCase();
+    if (name === 'men') {
+      return 'text-sm text-white bg-gray-600 hover:bg-gray-700 transition-all duration-200 whitespace-nowrap flex items-center px-4 py-2 rounded-full shadow-md font-medium';
+    }
+    if (name === 'jewellery' || name === 'jewelry') {
+      return 'text-sm text-white bg-yellow-600 hover:bg-yellow-700 transition-all duration-200 whitespace-nowrap flex items-center px-4 py-2 rounded-full shadow-md font-medium';
+    }
+    return 'text-sm text-gray-700 hover:text-pink-500 transition-all duration-200 whitespace-nowrap flex items-center px-3 py-2 rounded-md hover:bg-pink-50 relative';
+  };
+
+  // Alternate categories around centered GIGA DEALS: 1st left, 2nd right, 3rd left...
+  const leftNavCategories = categories.filter((_, index) => index % 2 === 0);
+  const rightNavCategories = categories.filter((_, index) => index % 2 === 1);
 
   const fetchCategories = async () => {
     try {
@@ -143,6 +196,20 @@ export default function Navbar() {
   useEffect(() => {
     fetchCategories();
     fetchBrands();
+  }, []);
+
+  // Close mega menu on route change (e.g. after clicking a subcategory/product link)
+  useEffect(() => {
+    closeCategoryMenu();
+    setIsBrandsHovered(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    return () => {
+      if (hoverCloseTimeoutRef.current) {
+        clearTimeout(hoverCloseTimeoutRef.current);
+      }
+    };
   }, []);
 
   // Instant search with debouncing
@@ -239,12 +306,12 @@ export default function Navbar() {
 
       <nav className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
         {/* Top Banner */}
-        {/* <div className="bg-linear-to-r from-red-500 to-purple-600 text-white text-center py-2 text-sm">
-          <p>Free Shipping on orders over ৳500! 🎉</p>
+        {/* <div className="bg-linear-to-r from-pink-500 to-purple-600 text-white text-center py-2 text-sm">
+          <p>Free Shipping on orders over ৳500! {'\u{1F389}'}</p>
         </div> */}
 
         {/* Main Navbar */}
-        <div className="bg-red-600">
+        <div className="bg-pink-600">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between h-16">
             {/* Mobile Menu Button - Left side on mobile */}
@@ -260,15 +327,18 @@ export default function Navbar() {
 
             {/* Logo - Centered on mobile, left on desktop */}
             <div className="absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0 flex items-center justify-center md:justify-start gap-4">
-              <Link href="/" className="flex items-center justify-center md:justify-start">
+              <Link href="/" className="flex items-center gap-2 justify-center md:justify-start">
                 <Image
-                  src="/Logo.png"
-                  alt="Khali's Beauty"
-                  width={1000}
-                  height={250}
-                  className="h-30 w-auto md:h-40"
+                  src={brand.markPath}
+                  alt=""
+                  width={512}
+                  height={512}
+                  className="h-12 w-12 object-contain md:h-14 md:w-14"
                   priority
                 />
+                <span className="brand-script whitespace-nowrap text-[20px] leading-none text-white">
+                  {brand.name}
+                </span>
               </Link>
 
               {/* Brands Dropdown - Desktop only */}
@@ -321,7 +391,7 @@ export default function Navbar() {
                       }
                     }}
                     placeholder="Search for products..."
-                    className="w-full px-4 py-2 pl-10 border-2 border-red-500 rounded-full focus:outline-none focus:border-green-500 relative bg-white transition-all"
+                    className="w-full px-4 py-2 pl-10 border-2 border-pink-500 rounded-full focus:outline-none focus:border-green-500 relative bg-white transition-all"
                     autoComplete="off"
                   />
                   <button type="submit" aria-label="Search" className="absolute left-3 top-2.5">
@@ -348,7 +418,7 @@ export default function Navbar() {
                   <div className="absolute top-full mt-2 w-full bg-white rounded-lg shadow-xl border border-gray-200 z-[60] max-h-[500px] overflow-y-auto">
                     {instantLoading ? (
                       <div className="p-4 text-center text-gray-500">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto"></div>
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600 mx-auto"></div>
                       </div>
                     ) : instantResults.length > 0 ? (
                       <>
@@ -388,7 +458,7 @@ export default function Navbar() {
                                   {product.name}
                                 </h3>
                                 <div className="flex items-center gap-2 mt-1">
-                                  <p className="text-sm text-red-600">
+                                  <p className="text-sm text-pink-600">
                                     {formatPrice(product.price, product.salePrice)}
                                   </p>
                                   {product.salePrice && (
@@ -421,7 +491,7 @@ export default function Navbar() {
                               setIsSearchFocused(false);
                               router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
                             }}
-                            className="w-full text-center text-sm text-red-600 hover:text-red-700"
+                            className="w-full text-center text-sm text-pink-600 hover:text-pink-700"
                           >
                             View all results for &quot;{searchQuery}&quot;
                           </button>
@@ -447,7 +517,7 @@ export default function Navbar() {
               >
                 <Heart className="h-6 w-6" />
                 {wishlistCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-white text-red-600 text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  <span className="absolute -top-2 -right-2 bg-white text-pink-600 text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
                     {wishlistCount > 9 ? '9+' : wishlistCount}
                   </span>
                 )}
@@ -461,7 +531,7 @@ export default function Navbar() {
               >
                 <ShoppingCart className="h-6 w-6" />
                 {cartCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-white text-red-600 text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  <span className="absolute -top-2 -right-2 bg-white text-pink-600 text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
                     {cartCount}
                   </span>
                 )}
@@ -513,7 +583,7 @@ export default function Navbar() {
                             logout();
                             setIsProfileOpen(false);
                           }}
-                          className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center space-x-2"
+                          className="w-full text-left px-4 py-2 text-sm text-pink-600 hover:bg-gray-100 flex items-center space-x-2"
                         >
                           <LogOut className="h-4 w-4" />
                           <span>Logout</span>
@@ -566,7 +636,7 @@ export default function Navbar() {
                   }
                 }}
                 placeholder="Search for products..."
-                className="w-full px-4 py-2 pl-10 pr-10 border-2 border-red-500 rounded-full focus:outline-none focus:border-green-500 relative bg-white transition-all"
+                className="w-full px-4 py-2 pl-10 pr-10 border-2 border-pink-500 rounded-full focus:outline-none focus:border-green-500 relative bg-white transition-all"
                 autoComplete="off"
               />
               <button type="submit" aria-label="Search" className="absolute left-3 top-2.5">
@@ -593,7 +663,7 @@ export default function Navbar() {
               <div className="absolute top-full mt-2 w-full bg-white rounded-lg shadow-xl border border-gray-200 z-[60] max-h-[500px] overflow-y-auto">
                 {instantLoading ? (
                   <div className="p-4 text-center text-gray-500">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-600 mx-auto"></div>
                   </div>
                 ) : instantResults.length > 0 ? (
                   <>
@@ -633,7 +703,7 @@ export default function Navbar() {
                               {product.name}
                             </h3>
                             <div className="flex items-center gap-2 mt-1">
-                              <p className="text-sm text-red-600">
+                              <p className="text-sm text-pink-600">
                                 {formatPrice(product.price, product.salePrice)}
                               </p>
                               {product.salePrice && (
@@ -667,7 +737,7 @@ export default function Navbar() {
                           setIsSearchFocused(false);
                           router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
                         }}
-                        className="w-full text-center text-sm text-red-600 hover:text-red-700"
+                        className="w-full text-center text-sm text-pink-600 hover:text-pink-700"
                       >
                         View all results for &quot;{searchQuery}&quot;
                       </button>
@@ -718,9 +788,9 @@ export default function Navbar() {
               {/* User Profile Section - Only shown when logged in */}
               {user && (
                 <div className="mb-4 pb-4 border-b-2 border-gray-300">
-                  <div className="bg-gradient-to-r from-red-50 to-purple-50 rounded-lg p-4 mb-3">
+                  <div className="bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg p-4 mb-3">
                     <div className="flex items-center space-x-3 mb-3">
-                      <div className="bg-red-500 text-white rounded-full h-12 w-12 flex items-center justify-center text-lg">
+                      <div className="bg-pink-500 text-white rounded-full h-12 w-12 flex items-center justify-center text-lg">
                         {user.firstName?.charAt(0).toUpperCase() || 'U'}
                       </div>
                       <div>
@@ -735,7 +805,7 @@ export default function Navbar() {
                   <div className="space-y-1">
                     <Link
                       href="/profile"
-                      className="flex items-center space-x-3 px-3 py-2.5 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
+                      className="flex items-center space-x-3 px-3 py-2.5 text-gray-700 hover:bg-pink-50 hover:text-pink-600 rounded-lg transition-colors"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       <User className="h-5 w-5" />
@@ -743,7 +813,7 @@ export default function Navbar() {
                     </Link>
                     <Link
                       href="/orders"
-                      className="flex items-center space-x-3 px-3 py-2.5 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
+                      className="flex items-center space-x-3 px-3 py-2.5 text-gray-700 hover:bg-pink-50 hover:text-pink-600 rounded-lg transition-colors"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       <ShoppingCart className="h-5 w-5" />
@@ -752,7 +822,7 @@ export default function Navbar() {
                     {user.role === 'ADMIN' && (
                       <Link
                         href="/admin"
-                        className="flex items-center space-x-3 px-3 py-2.5 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
+                        className="flex items-center space-x-3 px-3 py-2.5 text-gray-700 hover:bg-pink-50 hover:text-pink-600 rounded-lg transition-colors"
                         onClick={() => setIsMenuOpen(false)}
                       >
                         <User className="h-5 w-5" />
@@ -764,7 +834,7 @@ export default function Navbar() {
                         logout();
                         setIsMenuOpen(false);
                       }}
-                      className="w-full flex items-center space-x-3 px-3 py-2.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      className="w-full flex items-center space-x-3 px-3 py-2.5 text-pink-600 hover:bg-pink-50 rounded-lg transition-colors"
                     >
                       <LogOut className="h-5 w-5" />
                       <span>Logout</span>
@@ -786,7 +856,7 @@ export default function Navbar() {
                   <div className="flex items-center justify-between">
                     <Link
                       href={`/category/${category.slug}`}
-                      className="flex-1 text-gray-700 hover:text-red-500 py-2"
+                      className="flex-1 text-gray-700 hover:text-pink-500 py-2"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       {category.name}
@@ -794,7 +864,7 @@ export default function Navbar() {
                     {category.Type && category.Type.length > 0 && (
                       <button
                         onClick={() => setExpandedCategoryId(expandedCategoryId === category.id ? null : category.id)}
-                        className="p-2 text-gray-600 hover:text-red-500"
+                        className="p-2 text-gray-600 hover:text-pink-500"
                         aria-label={expandedCategoryId === category.id ? "Collapse" : "Expand"}
                       >
                         {expandedCategoryId === category.id ? (
@@ -815,7 +885,7 @@ export default function Navbar() {
                           <div className="flex items-center justify-between">
                             <Link
                               href={`/type/${type.slug}`}
-                              className="flex-1 text-sm text-gray-600 hover:text-red-500 py-1.5"
+                              className="flex-1 text-sm text-gray-600 hover:text-pink-500 py-1.5"
                               onClick={() => setIsMenuOpen(false)}
                             >
                               {type.name}
@@ -823,7 +893,7 @@ export default function Navbar() {
                             {type.SubCategory && type.SubCategory.length > 0 && (
                               <button
                                 onClick={() => setExpandedTypeId(expandedTypeId === type.id ? null : type.id)}
-                                className="p-1.5 text-gray-500 hover:text-red-500"
+                                className="p-1.5 text-gray-500 hover:text-pink-500"
                                 aria-label={expandedTypeId === type.id ? "Collapse" : "Expand"}
                               >
                                 {expandedTypeId === type.id ? (
@@ -842,7 +912,7 @@ export default function Navbar() {
                                 <Link
                                   key={subCat.id}
                                   href={`/subcategory/${subCat.slug}`}
-                                  className="block text-xs text-gray-500 hover:text-red-500 py-1"
+                                  className="block text-xs text-gray-500 hover:text-pink-500 py-1"
                                   onClick={() => setIsMenuOpen(false)}
                                 >
                                   {subCat.name}
@@ -861,7 +931,7 @@ export default function Navbar() {
               All Products Link
               <Link
                 href="/products"
-                className="block text-gray-700 hover:text-red-500 py-2"
+                className="block text-gray-700 hover:text-pink-500 py-2"
                 onClick={() => setIsMenuOpen(false)}
               >
                 All Products
@@ -878,7 +948,7 @@ export default function Navbar() {
                     <div className="flex items-center justify-between">
                       <Link
                         href={`/category/${menCategory.slug}`}
-                        className="flex-1 text-gray-700 hover:text-red-500 py-2"
+                        className="flex-1 text-gray-700 hover:text-pink-500 py-2"
                         onClick={() => setIsMenuOpen(false)}
                       >
                         MEN
@@ -886,7 +956,7 @@ export default function Navbar() {
                       {menCategory.Type && menCategory.Type.length > 0 && (
                         <button
                           onClick={() => setExpandedCategoryId(expandedCategoryId === menCategory.id ? null : menCategory.id)}
-                          className="p-2 text-gray-600 hover:text-red-500"
+                          className="p-2 text-gray-600 hover:text-pink-500"
                           aria-label={expandedCategoryId === menCategory.id ? "Collapse" : "Expand"}
                         >
                           {expandedCategoryId === menCategory.id ? (
@@ -907,7 +977,7 @@ export default function Navbar() {
                             <div className="flex items-center justify-between">
                               <Link
                                 href={`/type/${type.slug}`}
-                                className="flex-1 text-sm text-gray-600 hover:text-red-500 py-1.5"
+                                className="flex-1 text-sm text-gray-600 hover:text-pink-500 py-1.5"
                                 onClick={() => setIsMenuOpen(false)}
                               >
                                 {type.name}
@@ -915,7 +985,7 @@ export default function Navbar() {
                               {type.SubCategory && type.SubCategory.length > 0 && (
                                 <button
                                   onClick={() => setExpandedTypeId(expandedTypeId === type.id ? null : type.id)}
-                                  className="p-1.5 text-gray-500 hover:text-red-500"
+                                  className="p-1.5 text-gray-500 hover:text-pink-500"
                                   aria-label={expandedTypeId === type.id ? "Collapse" : "Expand"}
                                 >
                                   {expandedTypeId === type.id ? (
@@ -934,7 +1004,7 @@ export default function Navbar() {
                                   <Link
                                     key={subCat.id}
                                     href={`/subcategory/${subCat.slug}`}
-                                    className="block text-xs text-gray-500 hover:text-red-500 py-1"
+                                    className="block text-xs text-gray-500 hover:text-pink-500 py-1"
                                     onClick={() => setIsMenuOpen(false)}
                                   >
                                     {subCat.name}
@@ -961,7 +1031,7 @@ export default function Navbar() {
                     <div className="flex items-center justify-between">
                       <Link
                         href={`/category/${jewelleryCategory.slug}`}
-                        className="flex-1 text-gray-700 hover:text-red-500 py-2"
+                        className="flex-1 text-gray-700 hover:text-pink-500 py-2"
                         onClick={() => setIsMenuOpen(false)}
                       >
                         JEWELLERY
@@ -969,7 +1039,7 @@ export default function Navbar() {
                       {jewelleryCategory.Type && jewelleryCategory.Type.length > 0 && (
                         <button
                           onClick={() => setExpandedCategoryId(expandedCategoryId === jewelleryCategory.id ? null : jewelleryCategory.id)}
-                          className="p-2 text-gray-600 hover:text-red-500"
+                          className="p-2 text-gray-600 hover:text-pink-500"
                           aria-label={expandedCategoryId === jewelleryCategory.id ? "Collapse" : "Expand"}
                         >
                           {expandedCategoryId === jewelleryCategory.id ? (
@@ -990,7 +1060,7 @@ export default function Navbar() {
                             <div className="flex items-center justify-between">
                               <Link
                                 href={`/type/${type.slug}`}
-                                className="flex-1 text-sm text-gray-600 hover:text-red-500 py-1.5"
+                                className="flex-1 text-sm text-gray-600 hover:text-pink-500 py-1.5"
                                 onClick={() => setIsMenuOpen(false)}
                               >
                                 {type.name}
@@ -998,7 +1068,7 @@ export default function Navbar() {
                               {type.SubCategory && type.SubCategory.length > 0 && (
                                 <button
                                   onClick={() => setExpandedTypeId(expandedTypeId === type.id ? null : type.id)}
-                                  className="p-1.5 text-gray-500 hover:text-red-500"
+                                  className="p-1.5 text-gray-500 hover:text-pink-500"
                                   aria-label={expandedTypeId === type.id ? "Collapse" : "Expand"}
                                 >
                                   {expandedTypeId === type.id ? (
@@ -1017,7 +1087,7 @@ export default function Navbar() {
                                   <Link
                                     key={subCat.id}
                                     href={`/subcategory/${subCat.slug}`}
-                                    className="block text-xs text-gray-500 hover:text-red-500 py-1"
+                                    className="block text-xs text-gray-500 hover:text-pink-500 py-1"
                                     onClick={() => setIsMenuOpen(false)}
                                   >
                                     {subCat.name}
@@ -1036,7 +1106,7 @@ export default function Navbar() {
               {/* Deals Link */}
               <Link
                 href="/offers"
-                className="block text-gray-700 hover:text-red-500 py-2"
+                className="block text-gray-700 hover:text-pink-500 py-2"
                 onClick={() => setIsMenuOpen(false)}
               >
                 GIGA DEALS
@@ -1045,7 +1115,7 @@ export default function Navbar() {
               {/* Brands Link - At the end with cursive font */}
               <Link
                 href="/brands"
-                className="block text-gray-700 hover:text-red-500 py-2 italic"
+                className="block text-gray-700 hover:text-pink-500 py-2 italic"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Brands
@@ -1056,14 +1126,14 @@ export default function Navbar() {
                 <div className="pt-2 border-t border-gray-200 space-y-2">
                   <Link
                     href="/login"
-                    className="block text-gray-700 hover:text-red-500 py-2"
+                    className="block text-gray-700 hover:text-pink-500 py-2"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Login
                   </Link>
                   <Link
                     href="/signup"
-                    className="block text-gray-700 hover:text-red-500 py-2"
+                    className="block text-gray-700 hover:text-pink-500 py-2"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Sign up
@@ -1076,116 +1146,120 @@ export default function Navbar() {
         </>
 
         {/* Categories Navigation - Desktop with Mega Menu */}
-        <div className="hidden md:block border-t border-gray-200 bg-white relative">
-          {/* Category Links Bar */}
+        <div
+          className="hidden md:block border-t border-gray-200 bg-white relative"
+          onMouseLeave={scheduleCloseCategoryMenu}
+        >
+          {/* Category Links Bar — GIGA DEALS always centered; categories alternate L/R */}
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-center flex-wrap gap-x-8 gap-y-2 min-h-12 py-2 relative z-50">
-              {categories
-                .filter(category =>
-                  category.name.toLowerCase() !== 'men' &&
-                  category.name.toLowerCase() !== 'jewellery' &&
-                  category.name.toLowerCase() !== 'jewelry'
-                )
-                .slice(0, 7)
-                .map((category) => (
-                <div
-                  key={category.id}
-                  className="relative group"
-                  onMouseEnter={() => !isSearchFocused && setHoveredCategoryId(category.id)}
-                  onMouseLeave={() => setHoveredCategoryId(null)}
-                >
-                  <Link
-                    href={`/category/${category.slug}`}
-                    className="text-sm text-gray-700 hover:text-red-500 transition-all duration-200 whitespace-nowrap flex items-center px-3 py-2 rounded-md hover:bg-red-50 relative"
-                  >
-                    {category.name}
-                    {/* Active indicator */}
-                    <span className={`absolute bottom-0 left-0 right-0 h-0.5 bg-red-500 transform origin-left transition-transform duration-200 ${
-                      hoveredCategoryId === category.id ? 'scale-x-100' : 'scale-x-0'
-                    }`} />
-                  </Link>
-                </div>
-              ))}
-              {/* <Link
-                href="/products"
-                className="text-sm text-gray-700 hover:text-red-500 transition-all duration-200 whitespace-nowrap flex items-center px-3 py-2 rounded-md hover:bg-red-50"
-              >
-                All Products
-              </Link> */}
+            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-x-3 min-h-12 py-2 relative z-50">
+              {/* Left side: 1st, 3rd, 5th... */}
+              <div className="flex items-center justify-end flex-wrap gap-x-4 gap-y-2">
+                {leftNavCategories.map((category) => {
+                  const isSpecial =
+                    category.name.toLowerCase() === 'men' ||
+                    category.name.toLowerCase() === 'jewellery' ||
+                    category.name.toLowerCase() === 'jewelry';
+                  return (
+                    <div
+                      key={category.id}
+                      className="relative group"
+                      onMouseEnter={() => openCategoryMenu(category.id)}
+                    >
+                      <Link
+                        href={`/category/${category.slug}`}
+                        className={getCategoryLinkClass(category)}
+                        onClick={closeCategoryMenu}
+                      >
+                        {getCategoryDisplayName(category)}
+                        {!isSpecial && (
+                          <span
+                            className={`absolute bottom-0 left-0 right-0 h-0.5 bg-pink-500 transform origin-left transition-transform duration-200 ${
+                              hoveredCategoryId === category.id ? 'scale-x-100' : 'scale-x-0'
+                            }`}
+                          />
+                        )}
+                      </Link>
+                    </div>
+                  );
+                })}
+              </div>
 
-              {/* Men Category - Only show if it exists */}
-              {categories.find(cat => cat.name.toLowerCase() === 'men') && (
-                <div
-                  className="relative group"
-                  onMouseEnter={() => !isSearchFocused && setHoveredCategoryId(categories.find(cat => cat.name.toLowerCase() === 'men')!.id)}
-                  onMouseLeave={() => setHoveredCategoryId(null)}
-                >
-                  <Link
-                    href={`/category/${categories.find(cat => cat.name.toLowerCase() === 'men')?.slug}`}
-                    className="text-sm text-white bg-gray-600 hover:bg-gray-700 transition-all duration-200 whitespace-nowrap flex items-center px-4 py-2 rounded-full shadow-md font-medium"
-                  >
-                    MEN
-                  </Link>
-                </div>
-              )}
-
-              {/* Jewellery Category - Only show if it exists */}
-              {categories.find(cat => cat.name.toLowerCase() === 'jewellery' || cat.name.toLowerCase() === 'jewelry') && (
-                <div
-                  className="relative group"
-                  onMouseEnter={() => !isSearchFocused && setHoveredCategoryId(categories.find(cat => cat.name.toLowerCase() === 'jewellery' || cat.name.toLowerCase() === 'jewelry')!.id)}
-                  onMouseLeave={() => setHoveredCategoryId(null)}
-                >
-                  <Link
-                    href={`/category/${categories.find(cat => cat.name.toLowerCase() === 'jewellery' || cat.name.toLowerCase() === 'jewelry')?.slug}`}
-                    className="text-sm text-white bg-yellow-600 hover:bg-yellow-700 transition-all duration-200 whitespace-nowrap flex items-center px-4 py-2 rounded-full shadow-md font-medium"
-                  >
-                    JEWELLERY
-                  </Link>
-                </div>
-              )}
-
+              {/* Center: GIGA DEALS always stays in the middle */}
               <Link
                 href="/offers"
-                className="text-sm text-white bg-red-600 hover:bg-red-700 transition-all duration-200 whitespace-nowrap flex items-center px-4 py-2 rounded-full shadow-md font-medium"
+                className="text-sm text-white bg-pink-600 hover:bg-pink-700 transition-all duration-200 whitespace-nowrap flex items-center px-4 py-2 rounded-full shadow-md font-medium justify-self-center"
+                onClick={closeCategoryMenu}
               >
                 GIGA DEALS
               </Link>
+
+              {/* Right side: 2nd, 4th, 6th... */}
+              <div className="flex items-center justify-start flex-wrap gap-x-4 gap-y-2">
+                {rightNavCategories.map((category) => {
+                  const isSpecial =
+                    category.name.toLowerCase() === 'men' ||
+                    category.name.toLowerCase() === 'jewellery' ||
+                    category.name.toLowerCase() === 'jewelry';
+                  return (
+                    <div
+                      key={category.id}
+                      className="relative group"
+                      onMouseEnter={() => openCategoryMenu(category.id)}
+                    >
+                      <Link
+                        href={`/category/${category.slug}`}
+                        className={getCategoryLinkClass(category)}
+                        onClick={closeCategoryMenu}
+                      >
+                        {getCategoryDisplayName(category)}
+                        {!isSpecial && (
+                          <span
+                            className={`absolute bottom-0 left-0 right-0 h-0.5 bg-pink-500 transform origin-left transition-transform duration-200 ${
+                              hoveredCategoryId === category.id ? 'scale-x-100' : 'scale-x-0'
+                            }`}
+                          />
+                        )}
+                      </Link>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
-          {/* Mega Menu Dropdown - Single instance rendered outside */}
+          {/* Mega Menu Dropdown — pt bridge so hover doesn't drop between bar and panel */}
           {!isSearchFocused && hoveredCategoryId && categories.find(cat => cat.id === hoveredCategoryId)?.Type && categories.find(cat => cat.id === hoveredCategoryId)!.Type!.length > 0 && (
             <div
-              className="absolute left-0 right-0 top-full z-50 flex justify-center animate-fadeIn"
-              onMouseEnter={() => setHoveredCategoryId(hoveredCategoryId)}
-              onMouseLeave={() => setHoveredCategoryId(null)}
+              className="absolute left-0 right-0 top-full z-50 flex justify-center pt-1"
+              onMouseEnter={() => openCategoryMenu(hoveredCategoryId)}
+              onMouseLeave={scheduleCloseCategoryMenu}
             >
               <div className="bg-white border border-gray-200 shadow-2xl rounded-b-lg mx-4 sm:mx-8 md:mx-16 w-full max-w-6xl overflow-hidden">
                 <div className="px-6 py-6">
-                  {/* Category Title */}
-                  <div className="flex items-center justify-between mb-4 pb-3 border-b-2 border-red-100">
+                  <div className="flex items-center justify-between mb-4 pb-3 border-b-2 border-pink-100">
                     <h3 className="text-lg text-gray-900">
                       {categories.find(cat => cat.id === hoveredCategoryId)?.name}
                     </h3>
                     <Link
                       href={`/category/${categories.find(cat => cat.id === hoveredCategoryId)?.slug}`}
-                      className="text-xs text-red-500 hover:text-red-600 hover:underline transition-colors"
+                      className="text-xs text-pink-500 hover:text-pink-600 hover:underline transition-colors"
+                      onClick={closeCategoryMenu}
                     >
                       View All →
                     </Link>
                   </div>
 
-                  {/* Types and SubCategories Grid */}
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-8 gap-y-6">
                     {categories.find(cat => cat.id === hoveredCategoryId)?.Type?.map((type) => (
                       <div key={type.id} className="space-y-3 group/type">
                         <Link
                           href={`/type/${type.slug}`}
-                          className="text-sm text-gray-900 hover:text-red-500 block uppercase tracking-wide transition-colors relative inline-block"
+                          className="text-sm text-gray-900 hover:text-pink-500 block uppercase tracking-wide transition-colors relative inline-block"
+                          onClick={closeCategoryMenu}
                         >
                           {type.name}
-                          <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-red-500 group-hover/type:w-full transition-all duration-200" />
+                          <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-pink-500 group-hover/type:w-full transition-all duration-200" />
                         </Link>
                         {type.SubCategory && type.SubCategory.length > 0 && (
                           <div className="space-y-2 pl-2 border-l-2 border-gray-100">
@@ -1193,9 +1267,10 @@ export default function Navbar() {
                               <Link
                                 key={subCat.id}
                                 href={`/subcategory/${subCat.slug}`}
-                                className="text-xs text-gray-600 hover:text-red-500 hover:translate-x-1 block transition-all duration-150 py-0.5"
+                                className="text-xs text-gray-600 hover:text-pink-500 hover:translate-x-1 block transition-all duration-150 py-0.5"
+                                onClick={closeCategoryMenu}
                               >
-                                • {subCat.name}
+                                {'\u2022'} {subCat.name}
                               </Link>
                             ))}
                           </div>
@@ -1212,9 +1287,8 @@ export default function Navbar() {
         {/* Backdrop overlay for dropdown */}
         {!isSearchFocused && hoveredCategoryId && (
           <div
-            className="fixed left-0 right-0 bottom-0 bg-black/20 backdrop-blur-sm z-40 transition-opacity duration-200"
+            className="fixed left-0 right-0 bottom-0 bg-black/20 backdrop-blur-sm z-40 transition-opacity duration-200 pointer-events-none"
             style={{ top: '113px' }}
-            onMouseEnter={() => setHoveredCategoryId(null)}
           />
         )}
       </nav>
@@ -1235,7 +1309,7 @@ export default function Navbar() {
               <Link
                 key={brand.id}
                 href={`/products?brandId=${brand.id}&brandName=${encodeURIComponent(brand.name)}`}
-                className="block px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-500 transition-colors"
+                className="block px-4 py-2 text-sm text-gray-700 hover:bg-pink-50 hover:text-pink-500 transition-colors"
               >
                 {brand.name}
               </Link>
@@ -1264,12 +1338,12 @@ export default function Navbar() {
         {/* Wishlist Button */}
         <button
           onClick={() => setIsWishlistOpen(true)}
-          className="bg-white hover:bg-red-50 text-gray-700 hover:text-red-500 p-3 shadow-lg transition-all duration-200 relative group border-l border-b border-gray-200"
+          className="bg-white hover:bg-pink-50 text-gray-700 hover:text-pink-500 p-3 shadow-lg transition-all duration-200 relative group border-l border-b border-gray-200"
           aria-label="Wishlist"
         >
           <Heart className="h-5 w-5" />
           {wishlistCount > 0 && (
-            <span className="absolute top-0.5 right-0.5 bg-red-600 text-white text-xs font-bold rounded-full h-4 w-4 flex items-center justify-center">
+            <span className="absolute top-0.5 right-0.5 bg-pink-600 text-white text-xs font-bold rounded-full h-4 w-4 flex items-center justify-center">
               {wishlistCount > 9 ? '9+' : wishlistCount}
             </span>
           )}
@@ -1281,12 +1355,12 @@ export default function Navbar() {
         {/* Cart Button */}
         <button
           onClick={openCart}
-          className="bg-white hover:bg-red-50 text-gray-700 hover:text-red-500 p-3 shadow-lg transition-all duration-200 relative group border-l border-t border-gray-200"
+          className="bg-white hover:bg-pink-50 text-gray-700 hover:text-pink-500 p-3 shadow-lg transition-all duration-200 relative group border-l border-t border-gray-200"
           aria-label="Cart"
         >
           <ShoppingCart className="h-5 w-5" />
           {cartCount > 0 && (
-            <span className="absolute top-0.5 right-0.5 bg-red-500 text-white text-xs font-bold rounded-full h-4 w-4 flex items-center justify-center">
+            <span className="absolute top-0.5 right-0.5 bg-pink-500 text-white text-xs font-bold rounded-full h-4 w-4 flex items-center justify-center">
               {cartCount}
             </span>
           )}

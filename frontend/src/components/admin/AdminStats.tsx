@@ -31,7 +31,7 @@ export default function AdminStats() {
   }, []);
 
   if (loading) return <div>Loading stats...</div>;
-  if (error) return <div className="text-red-600">{error}</div>;
+  if (error) return <div className="text-pink-600">{error}</div>;
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
