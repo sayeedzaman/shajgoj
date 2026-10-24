@@ -1209,8 +1209,8 @@ export const uploadProductImages = async (req: Request, res: Response): Promise<
       console.log('🖼️ File path:', file.path);
       console.log('🖼️ File url:', file.url);
       console.log('🖼️ File secure_url:', file.secure_url);
-      // Cloudinary storage provides both path and url
-      return file.path || file.url || file.secure_url;
+      // Prefer the HTTPS URL so images don't trigger mixed-content blocking
+      return file.secure_url || file.path || file.url;
     });
 
     console.log('✅ Upload successful, URLs:', imageUrls);

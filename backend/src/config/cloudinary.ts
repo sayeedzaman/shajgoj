@@ -1,3 +1,5 @@
+// Load .env here: ESM hoists imports, so server.ts's dotenv.config() runs after this module
+import 'dotenv/config';
 import cloudinary from 'cloudinary';
 
 cloudinary.v2.config({

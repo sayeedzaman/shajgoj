@@ -144,6 +144,11 @@ export default function ProductManagementPage() {
     newPreviews[index] = url;
     setImagePreviews(newPreviews);
 
+    // A typed URL replaces any file picked for this slot
+    const newFiles = [...imageFiles];
+    newFiles[index] = null;
+    setImageFiles(newFiles);
+
     const newImages = [...(formData.images || [])];
     newImages[index] = url;
     setFormData({ ...formData, images: newImages.filter(img => img) });
@@ -153,6 +158,10 @@ export default function ProductManagementPage() {
     const newPreviews = [...imagePreviews];
     newPreviews[index] = '';
     setImagePreviews(newPreviews);
+
+    const newFiles = [...imageFiles];
+    newFiles[index] = null;
+    setImageFiles(newFiles);
 
     const newImages = [...(formData.images || [])];
     newImages.splice(index, 1);
@@ -362,11 +371,14 @@ export default function ProductManagementPage() {
         }
       }
 
-      // Also include any manually entered URLs (from the URL input field)
-      const manualUrls = imagePreviews
-        .filter((url, i) => url && !url.startsWith('data:image') && !imageFiles[i]);
-
-      const allImageUrls = [...uploadedImageUrls, ...manualUrls].filter(url => url);
+      // Build images slot by slot so uploaded files keep their position among existing URLs
+      let uploadIndex = 0;
+      const allImageUrls = imagePreviews
+        .map((url, i) => {
+          if (imageFiles[i]) return uploadedImageUrls[uploadIndex++];
+          return url && !url.startsWith('data:image') ? url : '';
+        })
+        .filter((url): url is string => !!url);
 
       // Clean the data - remove undefined/null optional fields and convert to proper types
       const cleanedData: CreateProductRequest = {

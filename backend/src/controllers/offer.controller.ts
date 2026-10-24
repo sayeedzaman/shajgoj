@@ -3,6 +3,32 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+type OfferStatus = 'ACTIVE' | 'SCHEDULED' | 'EXPIRED';
+
+// Status is derived from the dates so offers go live / expire on their own
+const deriveStatus = (startDate: Date, endDate: Date, now = new Date()): OfferStatus => {
+  if (now < startDate) return 'SCHEDULED';
+  if (now > endDate) return 'EXPIRED';
+  return 'ACTIVE';
+};
+
+const withLiveStatus = <T extends { startDate: Date; endDate: Date }>(offer: T) => ({
+  ...offer,
+  status: deriveStatus(offer.startDate, offer.endDate),
+});
+
+const parseDate = (value: unknown): Date | null => {
+  if (value === undefined || value === null || value === '') return null;
+  const date = new Date(value as string);
+  return isNaN(date.getTime()) ? null : date;
+};
+
+// Fields the client may send back from a fetched offer that must not be written
+const stripReadOnlyFields = (data: any) => {
+  const { id, createdAt, updatedAt, usageCount, OfferProduct, status, ...rest } = data;
+  return rest;
+};
+
 // Upload offer image (Admin only)
 export const uploadOfferImage = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -41,7 +67,6 @@ export const getActiveOffers = async (req: Request, res: Response): Promise<void
 
     const offers = await prisma.offer.findMany({
       where: {
-        status: 'ACTIVE',
         displayOnHomepage: true,
         startDate: { lte: now },
         endDate: { gte: now },
@@ -59,7 +84,7 @@ export const getActiveOffers = async (req: Request, res: Response): Promise<void
       ],
     });
 
-    res.json(offers);
+    res.json(offers.map(withLiveStatus));
   } catch (error) {
     console.error('Error fetching active offers:', error);
     res.status(500).json({ error: 'Failed to fetch offers' });
@@ -77,8 +102,14 @@ export const getAllOffers = async (req: Request, res: Response): Promise<void> =
       where.type = type;
     }
 
-    if (status) {
-      where.status = status;
+    const now = new Date();
+    if (status === 'ACTIVE') {
+      where.startDate = { lte: now };
+      where.endDate = { gte: now };
+    } else if (status === 'SCHEDULED') {
+      where.startDate = { gt: now };
+    } else if (status === 'EXPIRED') {
+      where.endDate = { lt: now };
     }
 
     const offers = await prisma.offer.findMany({
@@ -96,7 +127,7 @@ export const getAllOffers = async (req: Request, res: Response): Promise<void> =
       ],
     });
 
-    res.json(offers);
+    res.json(offers.map(withLiveStatus));
   } catch (error) {
     console.error('Error fetching offers:', error);
     res.status(500).json({ error: 'Failed to fetch offers' });
@@ -129,7 +160,7 @@ export const getOfferById = async (req: Request, res: Response): Promise<void> =
       return;
     }
 
-    res.json(offer);
+    res.json(withLiveStatus(offer));
   } catch (error) {
     console.error('Error fetching offer:', error);
     res.status(500).json({ error: 'Failed to fetch offer' });
@@ -139,15 +170,25 @@ export const getOfferById = async (req: Request, res: Response): Promise<void> =
 // Create offer (Admin)
 export const createOffer = async (req: Request, res: Response): Promise<void> => {
   try {
-    const offerData = req.body;
-    const { productIds, ...restData } = offerData;
+    const { productIds, ...restData } = req.body;
 
-    // Convert date strings to Date objects
+    const startDate = parseDate(restData.startDate);
+    const endDate = parseDate(restData.endDate);
+    if (!startDate || !endDate) {
+      res.status(400).json({ error: 'Valid start and end dates are required' });
+      return;
+    }
+    if (endDate < startDate) {
+      res.status(400).json({ error: 'End date must be on or after start date' });
+      return;
+    }
+
     const offer = await prisma.offer.create({
       data: {
-        ...restData,
-        startDate: new Date(offerData.startDate),
-        endDate: new Date(offerData.endDate),
+        ...stripReadOnlyFields(restData),
+        startDate,
+        endDate,
+        status: deriveStatus(startDate, endDate),
       },
     });
 
@@ -173,7 +214,7 @@ export const createOffer = async (req: Request, res: Response): Promise<void> =>
       },
     });
 
-    res.status(201).json(offerWithProducts);
+    res.status(201).json(offerWithProducts && withLiveStatus(offerWithProducts));
   } catch (error: any) {
     console.error('Error creating offer:', error);
     if (error.code === 'P2002') {
@@ -196,15 +237,31 @@ export const updateOffer = async (req: Request, res: Response): Promise<void> =>
     }
 
     const { productIds, ...restData } = offerData;
+    const updateData: any = stripReadOnlyFields(restData);
 
-    // Convert date strings to Date objects if they exist
-    const updateData: any = { ...restData };
-    if (offerData.startDate) {
-      updateData.startDate = new Date(offerData.startDate);
+    const existing = await prisma.offer.findUnique({
+      where: { id },
+      select: { startDate: true, endDate: true },
+    });
+    if (!existing) {
+      res.status(404).json({ error: 'Offer not found' });
+      return;
     }
-    if (offerData.endDate) {
-      updateData.endDate = new Date(offerData.endDate);
+
+    // Dates are optional on update; fall back to the stored ones
+    const startDate = restData.startDate !== undefined ? parseDate(restData.startDate) : existing.startDate;
+    const endDate = restData.endDate !== undefined ? parseDate(restData.endDate) : existing.endDate;
+    if (!startDate || !endDate) {
+      res.status(400).json({ error: 'Invalid start or end date' });
+      return;
     }
+    if (endDate < startDate) {
+      res.status(400).json({ error: 'End date must be on or after start date' });
+      return;
+    }
+    updateData.startDate = startDate;
+    updateData.endDate = endDate;
+    updateData.status = deriveStatus(startDate, endDate);
 
     await prisma.offer.update({
       where: { id },
@@ -241,7 +298,7 @@ export const updateOffer = async (req: Request, res: Response): Promise<void> =>
       },
     });
 
-    res.json(offerWithProducts);
+    res.json(offerWithProducts && withLiveStatus(offerWithProducts));
   } catch (error: any) {
     console.error('Error updating offer:', error);
     if (error.code === 'P2025') {
@@ -302,12 +359,7 @@ export const applyOfferCode = async (req: Request, res: Response): Promise<void>
       return;
     }
 
-    // Validate offer
-    if (offer.status !== 'ACTIVE') {
-      res.status(400).json({ error: 'This offer is no longer active' });
-      return;
-    }
-
+    // Validate offer (active window is defined by the dates)
     if (offer.startDate > now) {
       res.status(400).json({ error: 'This offer has not started yet' });
       return;

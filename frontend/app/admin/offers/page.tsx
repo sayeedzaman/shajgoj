@@ -42,6 +42,18 @@ interface Offer {
   }>;
 }
 
+// <input type="date"> needs YYYY-MM-DD in local time, not an ISO timestamp
+const toDateInputValue = (iso: string): string => {
+  const date = new Date(iso);
+  if (isNaN(date.getTime())) return '';
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+};
+
+// Interpret picked dates in local time: start of the start day, end of the end day
+const toLocalStartOfDay = (value: string) => new Date(`${value}T00:00:00`);
+const toLocalEndOfDay = (value: string) => new Date(`${value}T23:59:59.999`);
+
 export default function OffersPage() {
   const [offers, setOffers] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -165,8 +177,8 @@ export default function OffersPage() {
         discountValue: offer.discountValue,
         minPurchase: offer.minPurchase,
         maxDiscount: offer.maxDiscount || 0,
-        startDate: offer.startDate,
-        endDate: offer.endDate,
+        startDate: toDateInputValue(offer.startDate),
+        endDate: toDateInputValue(offer.endDate),
         usageLimit: offer.usageLimit,
         displayOnHomepage: offer.displayOnHomepage,
         priority: offer.priority || 1,
@@ -355,19 +367,18 @@ export default function OffersPage() {
       console.error('Failed to decode token:', err);
     }
 
-    // Determine status based on dates
-    const now = new Date();
-    const start = new Date(formData.startDate);
-    const end = new Date(formData.endDate);
-    let status: 'ACTIVE' | 'EXPIRED' | 'SCHEDULED' = 'ACTIVE';
+    // Status is derived from these dates by the backend
+    const start = toLocalStartOfDay(formData.startDate);
+    const end = toLocalEndOfDay(formData.endDate);
 
-    if (now < start) {
-      status = 'SCHEDULED';
-    } else if (now > end) {
-      status = 'EXPIRED';
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      alert('Please select valid start and end dates');
+      return;
     }
-
-    console.log('📅 Computed Status:', { status, now, start, end });
+    if (end < start) {
+      alert('End date must be on or after the start date');
+      return;
+    }
 
     // Only send fields that exist in the backend schema
     const offerData = {
@@ -384,10 +395,9 @@ export default function OffersPage() {
       discountValue: Number(formData.discountValue),
       minPurchase: Number(formData.minPurchase),
       maxDiscount: formData.maxDiscount ? Number(formData.maxDiscount) : null,
-      startDate: formData.startDate,
-      endDate: formData.endDate,
+      startDate: start.toISOString(),
+      endDate: end.toISOString(),
       usageLimit: Number(formData.usageLimit),
-      status,
       displayOnHomepage: formData.displayOnHomepage,
       priority: Number(formData.priority),
       backgroundColor: formData.backgroundColor || null,
