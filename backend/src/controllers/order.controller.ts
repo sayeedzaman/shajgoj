@@ -60,6 +60,12 @@ const validateMobilePaymentDetails = (
   return { sender: normalizedSender, trxId: normalizedTrxId };
 };
 
+class InsufficientStockError extends Error {
+  constructor(public productName: string) {
+    super(`Insufficient stock for ${productName}`);
+  }
+}
+
 const isDuplicateTrxIdError = (error: unknown) =>
   error instanceof Prisma.PrismaClientKnownRequestError &&
   error.code === 'P2002' &&
@@ -492,6 +498,7 @@ export const updateOrderStatus = async (req: AuthRequest, res: Response): Promis
 
     const order = await prisma.order.findUnique({
       where: { id: id },
+      include: { OrderItem: { include: { Product: { select: { name: true } } } } },
     });
 
     if (!order) {
@@ -501,37 +508,45 @@ export const updateOrderStatus = async (req: AuthRequest, res: Response): Promis
     // Cash on delivery is collected when the parcel is handed over
     const codCollected = status === 'DELIVERED' && order.paymentMethod === 'COD' && order.paymentStatus === 'UNPAID';
 
-    const updatedOrder = await prisma.order.update({
-      where: { id: id },
-      data: {
-        status: status as any,
-        ...(codCollected && { paymentStatus: 'PAID', paidAt: new Date() }),
-        ...(status !== order.status && {
-          OrderStatusHistory: {
-            create: { status: status as any },
-          },
-        }),
-      },
-      include: {
-        OrderItem: {
-          include: {
-            Product: true,
-          },
+    // Cancelling releases the order's stock; reopening a cancelled order reserves it again
+    const isCancelling = status === 'CANCELLED' && order.status !== 'CANCELLED';
+    const isReopening = order.status === 'CANCELLED' && status !== 'CANCELLED';
+
+    const updatedOrder = await prisma.$transaction(async (tx) => {
+      for (const item of order.OrderItem) {
+        if (isCancelling) {
+          await tx.product.update({
+            where: { id: item.productId },
+            data: { stock: { increment: item.quantity } },
+          });
+        } else if (isReopening) {
+          // Conditional decrement so two admins can't oversell the same stock
+          const { count } = await tx.product.updateMany({
+            where: { id: item.productId, stock: { gte: item.quantity } },
+            data: { stock: { decrement: item.quantity } },
+          });
+          if (count === 0) {
+            throw new InsufficientStockError(item.Product.name);
+          }
+        }
+      }
+
+      return tx.order.update({
+        where: { id: id },
+        data: {
+          status: status as any,
+          ...(codCollected && { paymentStatus: 'PAID', paidAt: new Date() }),
+          ...(status !== order.status && {
+            OrderStatusHistory: {
+              create: {
+                status: status as any,
+                ...(isCancelling && { note: 'Cancelled by store' }),
+              },
+            },
+          }),
         },
-        Address: true,
-        User: {
-          select: {
-            id: true,
-            email: true,
-            firstName: true,
-            lastName: true,
-            phone: true,
-          },
-        },
-        OrderStatusHistory: {
-          orderBy: { createdAt: 'asc' },
-        },
-      },
+        include: ORDER_DETAIL_INCLUDE,
+      });
     });
 
     res.json({
@@ -539,6 +554,11 @@ export const updateOrderStatus = async (req: AuthRequest, res: Response): Promis
       order: updatedOrder
     });
   } catch (error) {
+    if (error instanceof InsufficientStockError) {
+      return res.status(400).json({
+        error: `Can't reopen this order: not enough stock left for ${error.productName}`,
+      });
+    }
     console.error('Update order status error:', error);
     res.status(500).json({ error: 'Failed to update order status' });
   }
