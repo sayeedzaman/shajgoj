@@ -102,9 +102,40 @@ export default function Navbar() {
     return 'text-sm text-gray-700 hover:text-pink-500 transition-all duration-200 whitespace-nowrap flex items-center px-3 py-2 rounded-md hover:bg-pink-50 relative';
   };
 
-  // Alternate categories around centered GIGA DEALS: 1st left, 2nd right, 3rd left...
-  const leftNavCategories = categories.filter((_, index) => index % 2 === 0);
-  const rightNavCategories = categories.filter((_, index) => index % 2 === 1);
+  const isSpecialCategory = (category: CategoryWithHierarchy) => {
+    const name = category.name.toLowerCase();
+    return name === 'men' || name === 'jewellery' || name === 'jewelry';
+  };
+
+  // Regular categories flow from the left; JEWELLERY, MEN (then GIGA DEALS) are pinned to the right
+  const SPECIAL_ORDER = ['jewellery', 'jewelry', 'men'];
+  const regularNavCategories = categories.filter((category) => !isSpecialCategory(category));
+  const pinnedNavCategories = categories
+    .filter(isSpecialCategory)
+    .sort((a, b) => SPECIAL_ORDER.indexOf(a.name.toLowerCase()) - SPECIAL_ORDER.indexOf(b.name.toLowerCase()));
+
+  const renderNavCategory = (category: CategoryWithHierarchy) => (
+    <div
+      key={category.id}
+      className="relative group"
+      onMouseEnter={() => openCategoryMenu(category.id)}
+    >
+      <Link
+        href={`/category/${category.slug}`}
+        className={getCategoryLinkClass(category)}
+        onClick={closeCategoryMenu}
+      >
+        {getCategoryDisplayName(category)}
+        {!isSpecialCategory(category) && (
+          <span
+            className={`absolute bottom-0 left-0 right-0 h-0.5 bg-pink-500 transform origin-left transition-transform duration-200 ${
+              hoveredCategoryId === category.id ? 'scale-x-100' : 'scale-x-0'
+            }`}
+          />
+        )}
+      </Link>
+    </div>
+  );
 
   const fetchCategories = async () => {
     try {
@@ -1150,81 +1181,18 @@ export default function Navbar() {
           className="hidden md:block border-t border-gray-200 bg-white relative"
           onMouseLeave={scheduleCloseCategoryMenu}
         >
-          {/* Category Links Bar — GIGA DEALS always centered; categories alternate L/R */}
+          {/* Category Links Bar — regular categories on the left; JEWELLERY, MEN, GIGA DEALS always rightmost */}
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-x-3 min-h-12 py-2 relative z-50">
-              {/* Left side: 1st, 3rd, 5th... */}
-              <div className="flex items-center justify-end flex-wrap gap-x-4 gap-y-2">
-                {leftNavCategories.map((category) => {
-                  const isSpecial =
-                    category.name.toLowerCase() === 'men' ||
-                    category.name.toLowerCase() === 'jewellery' ||
-                    category.name.toLowerCase() === 'jewelry';
-                  return (
-                    <div
-                      key={category.id}
-                      className="relative group"
-                      onMouseEnter={() => openCategoryMenu(category.id)}
-                    >
-                      <Link
-                        href={`/category/${category.slug}`}
-                        className={getCategoryLinkClass(category)}
-                        onClick={closeCategoryMenu}
-                      >
-                        {getCategoryDisplayName(category)}
-                        {!isSpecial && (
-                          <span
-                            className={`absolute bottom-0 left-0 right-0 h-0.5 bg-pink-500 transform origin-left transition-transform duration-200 ${
-                              hoveredCategoryId === category.id ? 'scale-x-100' : 'scale-x-0'
-                            }`}
-                          />
-                        )}
-                      </Link>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Center: GIGA DEALS always stays in the middle */}
+            <div className="flex items-center justify-center flex-wrap gap-x-4 gap-y-2 min-h-12 py-2 relative z-50">
+              {regularNavCategories.map(renderNavCategory)}
+              {pinnedNavCategories.map(renderNavCategory)}
               <Link
                 href="/offers"
-                className="text-sm text-white bg-pink-600 hover:bg-pink-700 transition-all duration-200 whitespace-nowrap flex items-center px-4 py-2 rounded-full shadow-md font-medium justify-self-center"
+                className="text-sm text-white bg-pink-600 hover:bg-pink-700 transition-all duration-200 whitespace-nowrap flex items-center px-4 py-2 rounded-full shadow-md font-medium"
                 onClick={closeCategoryMenu}
               >
                 GIGA DEALS
               </Link>
-
-              {/* Right side: 2nd, 4th, 6th... */}
-              <div className="flex items-center justify-start flex-wrap gap-x-4 gap-y-2">
-                {rightNavCategories.map((category) => {
-                  const isSpecial =
-                    category.name.toLowerCase() === 'men' ||
-                    category.name.toLowerCase() === 'jewellery' ||
-                    category.name.toLowerCase() === 'jewelry';
-                  return (
-                    <div
-                      key={category.id}
-                      className="relative group"
-                      onMouseEnter={() => openCategoryMenu(category.id)}
-                    >
-                      <Link
-                        href={`/category/${category.slug}`}
-                        className={getCategoryLinkClass(category)}
-                        onClick={closeCategoryMenu}
-                      >
-                        {getCategoryDisplayName(category)}
-                        {!isSpecial && (
-                          <span
-                            className={`absolute bottom-0 left-0 right-0 h-0.5 bg-pink-500 transform origin-left transition-transform duration-200 ${
-                              hoveredCategoryId === category.id ? 'scale-x-100' : 'scale-x-0'
-                            }`}
-                          />
-                        )}
-                      </Link>
-                    </div>
-                  );
-                })}
-              </div>
             </div>
           </div>
 
