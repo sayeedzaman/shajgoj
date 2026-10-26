@@ -37,6 +37,7 @@ import {
   ShoppingBag,
   Loader2,
   Smartphone,
+  X,
 } from 'lucide-react';
 
 export default function CheckoutPage() {
@@ -53,6 +54,7 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('COD');
   const [paymentSettings, setPaymentSettings] = useState<PaymentSettings | null>(null);
   const [paymentSender, setPaymentSender] = useState('');
+  const [showConfirm, setShowConfirm] = useState(false);
   const [paymentTrxId, setPaymentTrxId] = useState('');
   const [shippingSettings, setShippingSettings] = useState<ShippingSettings>(DEFAULT_SHIPPING_SETTINGS);
 
@@ -192,6 +194,12 @@ export default function CheckoutPage() {
       }
     }
 
+    // Details are valid: ask the shopper to review and confirm before the order is created
+    setError(null);
+    setShowConfirm(true);
+  };
+
+  const submitOrder = async () => {
     try {
       setPlacingOrder(true);
       setError(null);
@@ -222,6 +230,7 @@ export default function CheckoutPage() {
     } catch (error: any) {
       setError(error.message || 'Failed to place order');
       setPlacingOrder(false);
+      setShowConfirm(false);
     }
   };
 
@@ -615,7 +624,7 @@ export default function CheckoutPage() {
                 ) : (
                   <>
                     <CheckCircle className="w-5 h-5" />
-                    {isMobilePayment(paymentMethod) ? 'Confirm Payment & Place Order' : 'Place Order'}
+                    Place Order
                   </>
                 )}
               </button>
@@ -639,6 +648,113 @@ export default function CheckoutPage() {
           </div>
         </div>
       </div>
+
+      {/* Order confirmation popup */}
+      {showConfirm && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="confirm-order-title"
+          onClick={() => !placingOrder && setShowConfirm(false)}
+        >
+          <div
+            className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between p-5 border-b border-gray-200">
+              <h2 id="confirm-order-title" className="text-xl font-bold text-gray-900">Confirm your order</h2>
+              <button
+                onClick={() => setShowConfirm(false)}
+                disabled={placingOrder}
+                className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-50"
+                aria-label="Close"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4 overflow-y-auto">
+              <div className="space-y-2">
+                {cartItems.map((item) => (
+                  <div key={item.id} className="flex justify-between gap-3 text-sm">
+                    <span className="text-gray-700 line-clamp-1">{item.product.name} × {item.quantity}</span>
+                    <span className="font-medium text-gray-900 whitespace-nowrap">
+                      ৳{((item.product.salePrice || item.product.price) * item.quantity).toFixed(0)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="border-t border-gray-200 pt-3 space-y-1 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Subtotal</span>
+                  <span className="text-gray-900">৳{subtotal.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Shipping</span>
+                  <span className="text-gray-900">{shipping === 0 ? 'FREE' : `৳${shipping.toFixed(2)}`}</span>
+                </div>
+                <div className="flex justify-between text-base font-bold pt-1">
+                  <span className="text-gray-900">Total</span>
+                  <span className="text-pink-600">৳{total.toFixed(2)}</span>
+                </div>
+              </div>
+
+              {selectedAddress && (
+                <div className="bg-gray-50 rounded-lg p-3 text-sm">
+                  <p className="text-gray-500 mb-1">Deliver to</p>
+                  <p className="font-medium text-gray-900">{selectedAddress.fullName} · {selectedAddress.phone}</p>
+                  <p className="text-gray-700">
+                    {selectedAddress.address}, {selectedAddress.city}, {selectedAddress.state} - {selectedAddress.zipCode}
+                  </p>
+                </div>
+              )}
+
+              <div className="bg-gray-50 rounded-lg p-3 text-sm">
+                <p className="text-gray-500 mb-1">Payment</p>
+                <p className="font-medium text-gray-900">{PAYMENT_METHOD_INFO[paymentMethod].label}</p>
+                {isMobilePayment(paymentMethod) && (
+                  <p className="text-gray-700">
+                    From {paymentSender.trim()} · TrxID <span className="font-mono">{paymentTrxId.trim().toUpperCase()}</span>
+                  </p>
+                )}
+              </div>
+
+              <p className="text-xs text-gray-500">
+                After you confirm, your order will be <span className="font-semibold">Placed</span>. We&apos;ll confirm it shortly and keep you updated.
+              </p>
+            </div>
+
+            <div className="flex gap-3 p-5 border-t border-gray-200">
+              <button
+                onClick={() => setShowConfirm(false)}
+                disabled={placingOrder}
+                className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition-colors disabled:opacity-50"
+              >
+                Go Back
+              </button>
+              <button
+                onClick={submitOrder}
+                disabled={placingOrder}
+                className="flex-1 py-3 bg-pink-600 text-white rounded-lg font-semibold hover:bg-pink-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {placingOrder ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Placing...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="w-5 h-5" />
+                    Confirm Order
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
