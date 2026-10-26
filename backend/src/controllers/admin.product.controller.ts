@@ -663,12 +663,48 @@ export const updateProduct = async (req: Request, res: Response): Promise<void> 
 
       console.log('✅ Hierarchy resolved from SubCategory:', hierarchy);
     }
-    // Manual category/type update (requires all three to be provided)
+    // Manual category/type update (type and subcategory are optional, same as createProduct).
+    // Needed for categories without types/subcategories.
     else if (categoryId || categoryName || categorySlug || typeId || typeName || typeSlug) {
-      res.status(400).json({
-        error: 'Please provide subCategory identifier to update category hierarchy. SubCategory will auto-populate Category and Type.',
-      });
-      return;
+      let finalCategoryId: string | null = null;
+      if (categoryId || categoryName || categorySlug) {
+        finalCategoryId = categoryId || (await resolveCategoryId(categoryName || categorySlug));
+        if (!finalCategoryId || !(await prisma.category.findUnique({ where: { id: finalCategoryId } }))) {
+          res.status(404).json({ error: 'Category not found' });
+          return;
+        }
+      }
+
+      let finalType: { id: string; categoryId: string } | null = null;
+      if (typeId || typeName || typeSlug) {
+        const resolvedTypeId = typeId || (await resolveTypeId(typeName || typeSlug));
+        finalType = resolvedTypeId
+          ? await prisma.type.findUnique({ where: { id: resolvedTypeId }, select: { id: true, categoryId: true } })
+          : null;
+        if (!finalType) {
+          res.status(404).json({ error: 'Type not found' });
+          return;
+        }
+      }
+
+      const categoryForProduct = finalCategoryId ?? finalType?.categoryId ?? existingProduct.categoryId;
+      if (finalType && finalType.categoryId !== categoryForProduct) {
+        res.status(400).json({ error: 'The selected type does not belong to the selected category' });
+        return;
+      }
+
+      updateData.categoryId = categoryForProduct;
+      if (finalType) {
+        updateData.typeId = finalType.id;
+        // Keep the subcategory only if it belongs to the chosen type
+        if (finalType.id !== existingProduct.typeId) updateData.subCategoryId = null;
+      } else if (categoryForProduct !== existingProduct.categoryId) {
+        // Moved to another category without picking a type: old type/subcategory no longer apply
+        updateData.typeId = null;
+        updateData.subCategoryId = null;
+      }
+
+      console.log('✅ Manual hierarchy updated - Category:', updateData.categoryId, 'Type:', updateData.typeId ?? existingProduct.typeId);
     }
 
     // Resolve brand ID if provided
