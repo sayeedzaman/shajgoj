@@ -5,6 +5,7 @@ import { ShoppingBag, Search, Filter, ChevronDown, Eye, Package, Truck, Pencil, 
 import { adminAPI, type Order } from '@/src/lib/adminApi';
 import OrderTracker from '@/src/components/orders/OrderTracker';
 import OrderItemPrice from '@/src/components/orders/OrderItemPrice';
+import { ORDER_STATUSES, ORDER_STATUS_INFO } from '@/src/lib/orderStatus';
 import { PaymentMethodBadge, PaymentStatusBadge } from '@/src/components/payments/PaymentBadges';
 import { PAYMENT_METHOD_INFO, PAYMENT_STATUS_INFO, isMobilePayment, type PaymentStatus } from '@/src/lib/payments';
 
@@ -189,21 +190,11 @@ export default function OrderManagementPage() {
     setEditingShipping(false);
   };
 
-  const getStatusBadge = (status: Order['status']) => {
-    const styles = {
-      PENDING: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      PROCESSING: 'bg-blue-100 text-blue-800 border-blue-200',
-      SHIPPED: 'bg-purple-100 text-purple-800 border-purple-200',
-      DELIVERED: 'bg-green-100 text-green-800 border-green-200',
-      CANCELLED: 'bg-pink-100 text-pink-800 border-pink-200',
-    };
-
-    return (
-      <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium border ${styles[status]}`}>
-        {status}
-      </span>
-    );
-  };
+  const getStatusBadge = (status: Order['status']) => (
+    <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium border ${ORDER_STATUS_INFO[status].badge}`}>
+      {ORDER_STATUS_INFO[status].label}
+    </span>
+  );
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -311,11 +302,9 @@ export default function OrderManagementPage() {
               aria-label='status'
             >
               <option value="">All Status</option>
-              <option value="PENDING">Pending</option>
-              <option value="PROCESSING">Processing</option>
-              <option value="SHIPPED">Shipped</option>
-              <option value="DELIVERED">Delivered</option>
-              <option value="CANCELLED">Cancelled</option>
+              {ORDER_STATUSES.map((status) => (
+                <option key={status} value={status}>{ORDER_STATUS_INFO[status].label}</option>
+              ))}
             </select>
             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
           </div>
@@ -419,6 +408,16 @@ export default function OrderManagementPage() {
                           >
                             <Eye className="w-5 h-5" />
                           </button>
+                          {order.status === 'PENDING' && (
+                            <button
+                              onClick={() => handleStatusUpdate(order.id, 'CONFIRMED')}
+                              disabled={updatingOrderId === order.id}
+                              className="px-2.5 py-1 rounded text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50"
+                              title="Confirm this order"
+                            >
+                              Confirm
+                            </button>
+                          )}
                           <div className="relative flex items-center gap-1">
                             <select
                               value={order.status}
@@ -426,11 +425,9 @@ export default function OrderManagementPage() {
                               disabled={updatingOrderId === order.id}
                               className="text-xs border border-gray-300 rounded px-2 py-1 pr-6 focus:outline-none focus:ring-2 focus:ring-pink-500 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                              <option value="PENDING">Pending</option>
-                              <option value="PROCESSING">Processing</option>
-                              <option value="SHIPPED">Shipped</option>
-                              <option value="DELIVERED">Delivered</option>
-                              <option value="CANCELLED">Cancelled</option>
+                              {ORDER_STATUSES.map((status) => (
+                                <option key={status} value={status}>{ORDER_STATUS_INFO[status].label}</option>
+                              ))}
                             </select>
                             {updatingOrderId === order.id && (
                               <div className="w-4 h-4 border-2 border-pink-600 border-t-transparent rounded-full animate-spin"></div>
@@ -737,11 +734,31 @@ export default function OrderManagementPage() {
                 </div>
               </div>
 
+              {selectedOrder.status === 'PENDING' && (
+                <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-indigo-900">This order is waiting for your confirmation</p>
+                    <p className="text-xs text-indigo-700">
+                      {selectedOrder.paymentStatus === 'PENDING_VERIFICATION'
+                        ? 'Verify the mobile payment above before confirming.'
+                        : 'Check stock and the delivery details, then confirm.'}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => handleStatusUpdate(selectedOrder.id, 'CONFIRMED')}
+                    disabled={updatingOrderId === selectedOrder.id}
+                    className="px-5 py-2 rounded-lg text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 whitespace-nowrap"
+                  >
+                    Confirm Order
+                  </button>
+                </div>
+              )}
+
               {/* Update Status */}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <h3 className="text-sm font-semibold text-gray-700 mb-3">Update Order Status</h3>
                 <div className="flex gap-2 flex-wrap">
-                  {['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'].map((status) => (
+                  {ORDER_STATUSES.map((status) => (
                     <button
                       key={status}
                       onClick={() => handleStatusUpdate(selectedOrder.id, status as Order['status'])}
@@ -757,7 +774,7 @@ export default function OrderManagementPage() {
                       {updatingOrderId === selectedOrder.id && (
                         <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
                       )}
-                      {status}
+                      {ORDER_STATUS_INFO[status].label}
                     </button>
                   ))}
                 </div>

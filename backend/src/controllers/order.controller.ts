@@ -516,7 +516,7 @@ export const updateOrderStatus = async (req: AuthRequest, res: Response): Promis
       return res.status(400).json({ error: 'Order ID is required' });
     }
 
-    const validStatuses = ['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'];
+    const validStatuses = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'];
 
     if (!status || !validStatuses.includes(status)) {
       return res.status(400).json({

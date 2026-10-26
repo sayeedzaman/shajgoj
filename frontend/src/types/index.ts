@@ -1,4 +1,5 @@
 import type { PaymentMethod, PaymentStatus } from '@/src/lib/payments';
+import type { OrderStatusValue } from '@/src/lib/orderStatus';
 
 // API Response Types
 export interface User {
@@ -244,7 +245,7 @@ export interface CreateAddressRequest {
 }
 
 // Order Types
-export type OrderStatusValue = 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
+export type { OrderStatusValue } from '@/src/lib/orderStatus';
 
 export interface OrderStatusHistoryEntry {
   id: string;

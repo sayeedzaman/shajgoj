@@ -1,7 +1,7 @@
 'use client';
 
 import { Fragment } from 'react';
-import { ShoppingBag, PackageCheck, Truck, Home, Check, XCircle } from 'lucide-react';
+import { ShoppingBag, ClipboardCheck, PackageCheck, Truck, Home, Check, XCircle } from 'lucide-react';
 import type { OrderStatusHistoryEntry, OrderStatusValue } from '@/src/types/index';
 
 interface OrderTrackerProps {
@@ -13,7 +13,8 @@ interface OrderTrackerProps {
 }
 
 const STEPS: { key: Exclude<OrderStatusValue, 'CANCELLED'>; label: string; icon: typeof ShoppingBag }[] = [
-  { key: 'PENDING', label: 'Confirmed', icon: ShoppingBag },
+  { key: 'PENDING', label: 'Placed', icon: ShoppingBag },
+  { key: 'CONFIRMED', label: 'Confirmed', icon: ClipboardCheck },
   { key: 'PROCESSING', label: 'Processing', icon: PackageCheck },
   { key: 'SHIPPED', label: 'In Transit', icon: Truck },
   { key: 'DELIVERED', label: 'Delivered', icon: Home },

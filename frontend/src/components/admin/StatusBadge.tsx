@@ -1,6 +1,7 @@
 import React from 'react';
+import type { OrderStatusValue } from '@/src/lib/orderStatus';
 
-type OrderStatus = 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
+type OrderStatus = OrderStatusValue;
 type PaymentStatus = 'PAID' | 'PENDING' | 'FAILED' | 'REFUNDED';
 type StockStatus = 'IN_STOCK' | 'LOW_STOCK' | 'OUT_OF_STOCK';
 type UserStatus = 'ACTIVE' | 'INACTIVE' | 'BANNED';
@@ -11,7 +12,8 @@ interface StatusBadgeProps {
 }
 
 const orderStatusConfig: Record<OrderStatus, { bg: string; text: string; label: string }> = {
-  PENDING: { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Pending' },
+  PENDING: { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Placed' },
+  CONFIRMED: { bg: 'bg-indigo-100', text: 'text-indigo-800', label: 'Confirmed' },
   PROCESSING: { bg: 'bg-blue-100', text: 'text-blue-800', label: 'Processing' },
   SHIPPED: { bg: 'bg-purple-100', text: 'text-purple-800', label: 'Shipped' },
   DELIVERED: { bg: 'bg-green-100', text: 'text-green-800', label: 'Delivered' },

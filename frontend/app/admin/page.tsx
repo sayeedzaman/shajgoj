@@ -187,7 +187,7 @@ export default function AdminDashboard() {
           value={analytics?.totalOrders.value || 0}
           icon={ShoppingCart}
           iconColor="bg-purple-500"
-          subtitle={`${recentOrders.filter(o => o.status === 'PENDING').length} pending`}
+          subtitle={`${recentOrders.filter(o => o.status === 'PENDING').length} awaiting confirmation`}
           trend={{
             value: analytics?.totalOrders.change || 0,
             isPositive: analytics?.totalOrders.isPositive ?? true

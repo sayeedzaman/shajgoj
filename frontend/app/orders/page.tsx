@@ -5,6 +5,7 @@ import { ShoppingBag, Package, X, ChevronLeft, Star } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import OrderTracker from '@/src/components/orders/OrderTracker';
+import { ORDER_STATUS_INFO, type OrderStatusValue } from '@/src/lib/orderStatus';
 import OrderItemPrice from '@/src/components/orders/OrderItemPrice';
 import type { OrderStatusHistoryEntry } from '@/src/types/index';
 import { PaymentMethodBadge, PaymentStatusBadge } from '@/src/components/payments/PaymentBadges';
@@ -36,7 +37,7 @@ interface ProductReview {
 interface Order {
   id: string;
   orderNumber: string;
-  status: 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
+  status: OrderStatusValue;
   total: number;
   discountTotal: number;
   paymentMethod: PaymentMethod;
@@ -253,21 +254,11 @@ export default function OrdersPage() {
     }
   };
 
-  const getStatusBadge = (status: Order['status']) => {
-    const styles = {
-      PENDING: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-      PROCESSING: 'bg-blue-100 text-blue-800 border-blue-200',
-      SHIPPED: 'bg-purple-100 text-purple-800 border-purple-200',
-      DELIVERED: 'bg-green-100 text-green-800 border-green-200',
-      CANCELLED: 'bg-pink-100 text-pink-800 border-pink-200',
-    };
-
-    return (
-      <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium border ${styles[status]}`}>
-        {status}
-      </span>
-    );
-  };
+  const getStatusBadge = (status: Order['status']) => (
+    <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium border ${ORDER_STATUS_INFO[status].badge}`}>
+      {ORDER_STATUS_INFO[status].label}
+    </span>
+  );
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {

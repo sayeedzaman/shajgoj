@@ -374,7 +374,8 @@ model Message {
 }
 
 enum OrderStatus {
-  PENDING
+  PENDING // shown to shoppers as "Placed"
+  CONFIRMED
   PROCESSING
   SHIPPED
   DELIVERED

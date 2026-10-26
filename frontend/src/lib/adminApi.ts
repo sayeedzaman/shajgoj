@@ -7,6 +7,7 @@ import type {
 } from '@/src/types/index';
 import { cachedFetch, apiCache } from './apiCache';
 import type { PaymentMethod, PaymentStatus } from './payments';
+import type { OrderStatusValue } from './orderStatus';
 
 // Order Types for Admin
 export interface OrderItem {
@@ -30,7 +31,7 @@ export interface OrderItem {
 
 export interface OrderStatusHistoryEntry {
   id: string;
-  status: 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
+  status: OrderStatusValue;
   note: string | null;
   createdAt: string;
   orderId: string;
@@ -39,7 +40,7 @@ export interface OrderStatusHistoryEntry {
 export interface Order {
   id: string;
   orderNumber: string;
-  status: 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
+  status: OrderStatusValue;
   subtotal: number;
   shippingCost: number;
   discountTotal: number;
@@ -593,7 +594,7 @@ export const adminOrdersAPI = {
 
   updateStatus: async (
     id: string,
-    status: 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED'
+    status: OrderStatusValue
   ): Promise<{ message: string; order: Order }> => {
     const response = await fetch(`${API_URL}/api/orders/admin/${id}`, {
       method: 'PUT',
