@@ -197,30 +197,22 @@ export default function ProductManagementPage() {
         product.images?.[2] || '',
       ]);
 
-      // Load the existing product's subcategory data
-      if (product.subCategoryId) {
-        try {
-          const subCat = await adminAPI.subCategories.getById(product.subCategoryId);
-          if (subCat.Type?.categoryId) {
-            setSelectedCategoryId(subCat.Type.categoryId);
-            setSelectedTypeId(subCat.typeId);
-            setSelectedSubCategoryId(product.subCategoryId);
-
-            // Load types for the category
-            const typesForCategory = await adminAPI.types.getByCategoryId(subCat.Type.categoryId);
-            setTypes(typesForCategory);
-
-            // Load subcategories for the type
-            const subCatsForType = await adminAPI.subCategories.getByTypeId(subCat.typeId);
-            setSubCategories(subCatsForType);
-          }
-        } catch (error) {
-          console.error('Failed to load product hierarchy:', error);
-        }
-      } else {
-        setSelectedCategoryId('');
-        setSelectedTypeId('');
-        setSelectedSubCategoryId('');
+      // Load the product's own hierarchy so Type/Sub-Category can be changed even when
+      // the product has no sub-category (e.g. categories without types)
+      setSelectedCategoryId(product.categoryId || '');
+      setSelectedTypeId(product.typeId || '');
+      setSelectedSubCategoryId(product.subCategoryId || '');
+      setTypes([]);
+      setSubCategories([]);
+      try {
+        const [typesForCategory, subCatsForType] = await Promise.all([
+          product.categoryId ? adminAPI.types.getByCategoryId(product.categoryId) : Promise.resolve([]),
+          product.typeId ? adminAPI.subCategories.getByTypeId(product.typeId) : Promise.resolve([]),
+        ]);
+        setTypes(typesForCategory);
+        setSubCategories(subCatsForType);
+      } catch (error) {
+        console.error('Failed to load product hierarchy:', error);
       }
     } else {
       setEditingProduct(null);
