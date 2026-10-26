@@ -2,6 +2,48 @@ import type { Response } from 'express';
 import type { AuthRequest } from '../middleware/auth.middleware.js';
 import { prisma } from '../lib/prisma.js';
 
+const round1 = (value: number) => Math.round(value * 10) / 10;
+
+// A cart left untouched this long, still holding items, counts as abandoned
+const ABANDONED_AFTER_MS = 60 * 60 * 1000;
+
+/**
+ * Customer conversion: % of registered customers (as of the period end) who placed
+ * at least one non-cancelled order during the period. No visitor tracking exists, so
+ * shoppers who never sign up aren't counted.
+ */
+const getConversionRate = async (from: Date, to: Date): Promise<number> => {
+  const [customers, buyers] = await Promise.all([
+    prisma.user.count({ where: { role: 'USER', createdAt: { lt: to } } }),
+    prisma.order.findMany({
+      where: { createdAt: { gte: from, lt: to }, status: { not: 'CANCELLED' }, User: { role: 'USER' } },
+      select: { userId: true },
+      distinct: ['userId'],
+    }),
+  ]);
+  return customers > 0 ? (buyers.length / customers) * 100 : 0;
+};
+
+/**
+ * Cart abandonment: carts last changed in the period that still hold items after an hour
+ * (placing an order empties the cart), out of those plus shoppers who ordered in the period.
+ */
+const getCartAbandonmentRate = async (from: Date, to: Date): Promise<number> => {
+  const idleCutoff = new Date(Math.min(to.getTime(), Date.now() - ABANDONED_AFTER_MS));
+  const [abandoned, converted] = await Promise.all([
+    idleCutoff > from
+      ? prisma.cart.count({ where: { updatedAt: { gte: from, lt: idleCutoff }, CartItem: { some: {} } } })
+      : Promise.resolve(0),
+    prisma.order.findMany({
+      where: { createdAt: { gte: from, lt: to }, status: { not: 'CANCELLED' } },
+      select: { userId: true },
+      distinct: ['userId'],
+    }),
+  ]);
+  const started = abandoned + converted.length;
+  return started > 0 ? (abandoned / started) * 100 : 0;
+};
+
 // Get dashboard analytics overview
 export const getDashboardAnalytics = async (req: AuthRequest, res: Response): Promise<any> => {
   try {
@@ -64,36 +106,47 @@ export const getDashboardAnalytics = async (req: AuthRequest, res: Response): Pr
     const prevAvgOrderValue = prevOrdersCount > 0 ? prevRevenue / prevOrdersCount : 0;
     const avgOrderValueChange = prevAvgOrderValue > 0 ? ((avgOrderValue - prevAvgOrderValue) / prevAvgOrderValue) * 100 : 0;
 
+    // Rates compare as percentage-point differences with the previous period
+    const [conversion, prevConversion, abandonment, prevAbandonment] = await Promise.all([
+      getConversionRate(startDate, now),
+      getConversionRate(prevStartDate, startDate),
+      getCartAbandonmentRate(startDate, now),
+      getCartAbandonmentRate(prevStartDate, startDate),
+    ]);
+    const conversionChange = conversion - prevConversion;
+    const abandonmentChange = abandonment - prevAbandonment;
+
     res.json({
       totalRevenue: {
         value: totalRevenue,
-        change: revenueChange,
+        change: round1(revenueChange),
         isPositive: revenueChange >= 0,
       },
       totalOrders: {
         value: totalOrders,
-        change: ordersChange,
+        change: round1(ordersChange),
         isPositive: ordersChange >= 0,
       },
       totalCustomers: {
         value: totalCustomers,
-        change: customersChange,
+        change: round1(customersChange),
         isPositive: customersChange >= 0,
       },
       avgOrderValue: {
         value: avgOrderValue,
-        change: avgOrderValueChange,
+        change: round1(avgOrderValueChange),
         isPositive: avgOrderValueChange >= 0,
       },
       conversionRate: {
-        value: 3.2, // Mock for now
-        change: 0.5,
-        isPositive: true,
+        value: round1(conversion),
+        change: round1(conversionChange),
+        isPositive: conversionChange >= 0,
       },
       cartAbandonment: {
-        value: 68.5, // Mock for now
-        change: -3.2,
-        isPositive: true,
+        value: round1(abandonment),
+        change: round1(abandonmentChange),
+        // Lower abandonment is better
+        isPositive: abandonmentChange <= 0,
       },
     });
   } catch (error) {

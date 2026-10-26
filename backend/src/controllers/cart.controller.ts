@@ -49,6 +49,10 @@ const buildCartResponse = async (cart: CartWithProducts) => {
   };
 };
 
+// Record cart activity (cart.updatedAt) so analytics can spot abandoned carts
+const touchCart = (cartId: string) =>
+  prisma.cart.update({ where: { id: cartId }, data: { updatedAt: new Date() } });
+
 // Get user's cart
 export const getCart = async (req: AuthRequest, res: Response) => {
   try {
@@ -213,6 +217,8 @@ export const addToCart = async (req: AuthRequest, res: Response) => {
       });
     }
 
+    await touchCart(cart.id);
+
     // Get the updated cart with all items
     const updatedCart = await prisma.cart.findUnique({
       where: { id: cart.id },
@@ -287,6 +293,7 @@ export const updateCartItem = async (req: AuthRequest, res: Response) => {
       where: { id: itemId },
       data: { quantity: parseInt(quantity) },
     });
+    await touchCart(cartItem.Cart.id);
 
     // Get the updated cart with all items
     const updatedCart = await prisma.cart.findUnique({
@@ -348,6 +355,7 @@ export const removeFromCart = async (req: AuthRequest, res: Response) => {
     await prisma.cartItem.delete({
       where: { id: itemId },
     });
+    await touchCart(cartItem.Cart.id);
 
     // Get the updated cart with all items
     const updatedCart = await prisma.cart.findUnique({
