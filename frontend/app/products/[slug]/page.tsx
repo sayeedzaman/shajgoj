@@ -317,6 +317,18 @@ export default function ProductDetailPage() {
                 </>
               )}
             </div>
+            {product.appliedOffer && (
+              <Link
+                href={`/offers?offerId=${product.appliedOffer.id}`}
+                className="inline-flex items-center gap-1.5 bg-yellow-100 text-yellow-900 px-3 py-1 rounded-full text-sm font-semibold hover:bg-yellow-200 transition-colors"
+              >
+                Offer: {product.appliedOffer.name}
+                {' · '}
+                {product.appliedOffer.discountType === 'PERCENTAGE'
+                  ? `${product.appliedOffer.discountValue}% off`
+                  : `৳${product.appliedOffer.discountValue} off`}
+              </Link>
+            )}
 
             {/* Stock Status */}
             <div>

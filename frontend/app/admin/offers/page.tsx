@@ -24,6 +24,9 @@ interface Offer {
   endDate: string;
   usageLimit: number;
   usageCount: number;
+  /** Admin list only: total product-offer discount given and orders that used it */
+  discountGiven?: number;
+  ordersWithOffer?: number;
   status: 'ACTIVE' | 'EXPIRED' | 'SCHEDULED';
   displayOnHomepage: boolean;
   priority: number; // Order of display (higher = shows first)
@@ -675,14 +678,25 @@ export default function OffersPage() {
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-gray-600">Usage:</span>
                     <span className="font-semibold text-gray-900">
-                      {offer.usageCount} / {offer.usageLimit}
+                      {offer.usageCount} / {offer.usageLimit > 0 ? offer.usageLimit : '∞'}
                     </span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-1.5">
-                    <div
-                      className="bg-pink-600 h-1.5 rounded-full"
-                      style={{ width: `${(offer.usageCount / offer.usageLimit) * 100}%` }}
-                    ></div>
+                  {offer.usageLimit > 0 && (
+                    <div className="w-full bg-gray-200 rounded-full h-1.5">
+                      <div
+                        className="bg-pink-600 h-1.5 rounded-full"
+                        style={{ width: `${Math.min(100, (offer.usageCount / offer.usageLimit) * 100)}%` }}
+                      ></div>
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-gray-600">Discount given:</span>
+                    <span className="font-semibold text-green-700">
+                      ৳{(offer.discountGiven ?? 0).toFixed(0)}
+                      <span className="text-xs font-normal text-gray-500 ml-1">
+                        ({offer.ordersWithOffer ?? 0} order{offer.ordersWithOffer === 1 ? '' : 's'})
+                      </span>
+                    </span>
                   </div>
                 </div>
 

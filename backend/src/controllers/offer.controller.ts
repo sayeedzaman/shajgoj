@@ -1,7 +1,43 @@
 import type { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { applyOfferPricing } from '../lib/offerPricing.js';
 
 const prisma = new PrismaClient();
+
+// Storefront offer responses show each linked product at its running offer price
+const withOfferProductPrices = async <T extends { OfferProduct: Array<{ Product: Parameters<typeof applyOfferPricing>[0][number] }> }>(offers: T[]) => {
+  const priced = await applyOfferPricing(offers.flatMap((offer) => offer.OfferProduct.map((op) => op.Product)));
+  let i = 0;
+  return offers.map((offer) => ({
+    ...offer,
+    OfferProduct: offer.OfferProduct.map((op) => ({ ...op, Product: priced[i++]! })),
+  }));
+};
+
+// Admin reporting: total discount each offer has given and how many orders used it (cancelled orders excluded)
+const getOfferDiscountStats = async (offerIds: string[]) => {
+  const stats = new Map<string, { discountGiven: number; orders: number }>();
+  if (offerIds.length === 0) return stats;
+
+  const items = await prisma.orderItem.findMany({
+    where: { offerId: { in: offerIds }, Order: { status: { not: 'CANCELLED' } } },
+    select: { offerId: true, orderId: true, price: true, originalPrice: true, quantity: true },
+  });
+
+  const ordersByOffer = new Map<string, Set<string>>();
+  for (const item of items) {
+    const offerId = item.offerId!;
+    const entry = stats.get(offerId) ?? { discountGiven: 0, orders: 0 };
+    entry.discountGiven += ((item.originalPrice ?? item.price) - item.price) * item.quantity;
+    stats.set(offerId, entry);
+    ordersByOffer.set(offerId, (ordersByOffer.get(offerId) ?? new Set()).add(item.orderId));
+  }
+  for (const [offerId, orders] of ordersByOffer) {
+    stats.get(offerId)!.orders = orders.size;
+    stats.get(offerId)!.discountGiven = parseFloat(stats.get(offerId)!.discountGiven.toFixed(2));
+  }
+  return stats;
+};
 
 type OfferStatus = 'ACTIVE' | 'SCHEDULED' | 'EXPIRED';
 
@@ -84,7 +120,7 @@ export const getActiveOffers = async (req: Request, res: Response): Promise<void
       ],
     });
 
-    res.json(offers.map(withLiveStatus));
+    res.json((await withOfferProductPrices(offers)).map(withLiveStatus));
   } catch (error) {
     console.error('Error fetching active offers:', error);
     res.status(500).json({ error: 'Failed to fetch offers' });
@@ -127,7 +163,12 @@ export const getAllOffers = async (req: Request, res: Response): Promise<void> =
       ],
     });
 
-    res.json(offers.map(withLiveStatus));
+    const stats = await getOfferDiscountStats(offers.map((offer) => offer.id));
+    res.json(offers.map((offer) => ({
+      ...withLiveStatus(offer),
+      discountGiven: stats.get(offer.id)?.discountGiven ?? 0,
+      ordersWithOffer: stats.get(offer.id)?.orders ?? 0,
+    })));
   } catch (error) {
     console.error('Error fetching offers:', error);
     res.status(500).json({ error: 'Failed to fetch offers' });
@@ -160,7 +201,7 @@ export const getOfferById = async (req: Request, res: Response): Promise<void> =
       return;
     }
 
-    res.json(withLiveStatus(offer));
+    res.json(withLiveStatus((await withOfferProductPrices([offer]))[0]!));
   } catch (error) {
     console.error('Error fetching offer:', error);
     res.status(500).json({ error: 'Failed to fetch offer' });

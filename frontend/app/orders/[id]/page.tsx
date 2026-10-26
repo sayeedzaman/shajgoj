@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { ordersAPI, settingsAPI } from '@/src/lib/api';
 import MobilePaymentPanel from '@/src/components/payments/MobilePaymentPanel';
 import PaymentMethodOption from '@/src/components/payments/PaymentMethodOption';
+import OrderItemPrice from '@/src/components/orders/OrderItemPrice';
 import { PaymentMethodBadge, PaymentStatusBadge } from '@/src/components/payments/PaymentBadges';
 import {
   DEFAULT_PAYMENT_NUMBER,
@@ -428,9 +429,7 @@ export default function OrderDetailPage() {
                         <span className="text-sm text-gray-600">
                           Qty: {item.quantity}
                         </span>
-                        <span className="text-sm font-semibold text-gray-900">
-                          ৳{item.price.toFixed(0)} each
-                        </span>
+                        <OrderItemPrice item={item} suffix=" each" className="text-sm font-semibold text-gray-900" />
                       </div>
                     </div>
                     <div className="text-left sm:text-right">
@@ -507,6 +506,12 @@ export default function OrderDetailPage() {
                     ৳{order.subtotal.toFixed(2)}
                   </span>
                 </div>
+                {order.discountTotal > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-green-700">Offer savings</span>
+                    <span className="font-medium text-green-700">−৳{order.discountTotal.toFixed(2)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Shipping</span>
                   <span className="font-medium text-gray-900">

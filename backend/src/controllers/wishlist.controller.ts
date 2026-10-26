@@ -1,6 +1,7 @@
 import type { Response } from 'express';
 import type { AuthRequest } from '../middleware/auth.middleware.js';
 import { prisma } from '../lib/prisma.js';
+import { applyOfferPricing } from '../lib/offerPricing.js';
 
 // Get user's wishlist
 export const getWishlist = async (req: AuthRequest, res: Response) => {
@@ -81,10 +82,11 @@ export const getWishlist = async (req: AuthRequest, res: Response) => {
     }
 
     // Transform wishlist items to include imageUrl
-    const transformedItems = wishlist!.WishlistItem.map((item) => ({
+    const pricedProducts = await applyOfferPricing(wishlist!.WishlistItem.map((item) => item.Product));
+    const transformedItems = wishlist!.WishlistItem.map((item, i) => ({
       ...item,
       Product: {
-        ...item.Product,
+        ...pricedProducts[i]!,
         imageUrl: item.Product.images.length > 0 ? item.Product.images[0] : null,
       },
     }));
@@ -191,10 +193,11 @@ export const addToWishlist = async (req: AuthRequest, res: Response) => {
       },
     });
 
-    const transformedItems = updatedWishlist!.WishlistItem.map((item) => ({
+    const pricedProducts = await applyOfferPricing(updatedWishlist!.WishlistItem.map((item) => item.Product));
+    const transformedItems = updatedWishlist!.WishlistItem.map((item, i) => ({
       ...item,
       Product: {
-        ...item.Product,
+        ...pricedProducts[i]!,
         imageUrl: item.Product.images.length > 0 ? item.Product.images[0] : null,
       },
     }));
@@ -279,10 +282,11 @@ export const removeFromWishlist = async (req: AuthRequest, res: Response) => {
       },
     });
 
-    const transformedItems = updatedWishlist!.WishlistItem.map((item) => ({
+    const pricedProducts = await applyOfferPricing(updatedWishlist!.WishlistItem.map((item) => item.Product));
+    const transformedItems = updatedWishlist!.WishlistItem.map((item, i) => ({
       ...item,
       Product: {
-        ...item.Product,
+        ...pricedProducts[i]!,
         imageUrl: item.Product.images.length > 0 ? item.Product.images[0] : null,
       },
     }));

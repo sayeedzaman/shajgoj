@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
 import { prisma } from '../lib/prisma.js';
+import { applyOfferPricing } from '../lib/offerPricing.js';
 
 // Get all concerns
 export const getAllConcerns = async (req: Request, res: Response) => {
@@ -130,7 +131,7 @@ export const searchByConcern = async (req: Request, res: Response) => {
     ]);
 
     // Transform products to match frontend expectations
-    const transformedProducts = products.map((product) => ({
+    const transformedProducts = (await applyOfferPricing(products)).map((product) => ({
       ...product,
       imageUrl: product.images.length > 0 ? product.images[0] : null,
     }));

@@ -13,6 +13,10 @@ export interface OrderItem {
   id: string;
   quantity: number;
   price: number;
+  /** Unit price before a product offer, when one applied */
+  originalPrice?: number | null;
+  offerId?: string | null;
+  offerName?: string | null;
   productId: string;
   Product: {
     id: string;
@@ -38,6 +42,7 @@ export interface Order {
   status: 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
   subtotal: number;
   shippingCost: number;
+  discountTotal: number;
   total: number;
   paymentMethod: PaymentMethod;
   paymentStatus: PaymentStatus;

@@ -1,5 +1,6 @@
 import type{ Request, Response } from 'express';
 import { prisma } from '../lib/prisma.js';
+import { applyOfferPricing, applyOfferPricingOne } from '../lib/offerPricing.js';
 
 // Get all products with optional filtering
 export const getAllProducts = async (req: Request, res: Response) => {
@@ -102,7 +103,7 @@ export const getAllProducts = async (req: Request, res: Response) => {
     ]);
 
     // Transform products to match frontend expectations
-    const transformedProducts = products.map((product) => ({
+    const transformedProducts = (await applyOfferPricing(products)).map((product) => ({
       ...product,
       imageUrl: product.images.length > 0 ? product.images[0] : null,
     }));
@@ -241,7 +242,7 @@ export const getProductById = async (req: Request, res: Response) => {
         : 0;
 
     const transformedProduct = {
-      ...product,
+      ...(await applyOfferPricingOne(product)),
       imageUrl: product.images.length > 0 ? product.images[0] : null,
       averageRating: parseFloat(averageRating.toFixed(1)),
       totalReviews: product.Review.length,
@@ -494,7 +495,7 @@ export const getFeaturedProducts = async (req: Request, res: Response) => {
       take: parseInt(limit as string),
     });
 
-    const transformedProducts = products.map((product) => ({
+    const transformedProducts = (await applyOfferPricing(products)).map((product) => ({
       ...product,
       imageUrl: product.images.length > 0 ? product.images[0] : null,
     }));
@@ -599,7 +600,7 @@ export const getTopSellingProducts = async (req: Request, res: Response) => {
     ]);
 
     // Step 4: Attach sales data and sort
-    let productsWithSalesData = products.map((product) => {
+    let productsWithSalesData = (await applyOfferPricing(products)).map((product) => {
       const salesData = topSellingData.find((item) => item.productId === product.id);
       return {
         ...product,

@@ -140,6 +140,7 @@ model Offer {
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
   OfferProduct      OfferProduct[]
+  OrderItem         OrderItem[]
 
   @@index([displayOnHomepage])
   @@index([endDate])
@@ -167,6 +168,8 @@ model Order {
   status             OrderStatus          @default(PENDING)
   subtotal           Float                @default(0)
   shippingCost       Float                @default(0)
+  // Total saved through product offers (sum of (originalPrice - price) x quantity)
+  discountTotal      Float                @default(0)
   total              Float
   paymentMethod      PaymentMethod        @default(COD)
   paymentStatus      PaymentStatus        @default(UNPAID)
@@ -201,13 +204,20 @@ model OrderStatusHistory {
 }
 
 model OrderItem {
-  id        String  @id @default(uuid())
-  quantity  Int
-  price     Float
-  orderId   String
-  productId String
-  Order     Order   @relation(fields: [orderId], references: [id])
-  Product   Product @relation(fields: [productId], references: [id])
+  id            String  @id @default(uuid())
+  quantity      Int
+  price         Float
+  // Product offer snapshot: unit price before the offer, and which offer gave the discount
+  originalPrice Float?
+  offerId       String?
+  offerName     String?
+  orderId       String
+  productId     String
+  Order         Order   @relation(fields: [orderId], references: [id])
+  Product       Product @relation(fields: [productId], references: [id])
+  Offer         Offer?  @relation(fields: [offerId], references: [id], onDelete: SetNull)
+
+  @@index([offerId])
 }
 
 model Product {

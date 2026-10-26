@@ -72,7 +72,12 @@ export interface Product {
   slug: string;
   description: string | null;
   price: number;
+  /** Selling price; includes any running product offer (set by the backend) */
   salePrice: number | null;
+  /** Store sale price before an offer was applied */
+  regularSalePrice?: number | null;
+  /** Running offer that sets salePrice, if any */
+  appliedOffer?: { id: string; name: string; discountType: string; discountValue: number } | null;
   stock: number;
   images: string[];
   imageUrl: string | null;
@@ -255,6 +260,8 @@ export interface Order {
   status: OrderStatusValue;
   subtotal: number;
   shippingCost: number;
+  /** Total saved through product offers (already reflected in subtotal) */
+  discountTotal: number;
   total: number;
   paymentMethod: PaymentMethod;
   paymentStatus: PaymentStatus;
@@ -274,6 +281,10 @@ export interface OrderItem {
   id: string;
   quantity: number;
   price: number;
+  /** Unit price before a product offer, when one applied */
+  originalPrice?: number | null;
+  offerId?: string | null;
+  offerName?: string | null;
   orderId: string;
   productId: string;
   Product: Product;

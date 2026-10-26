@@ -17,6 +17,7 @@ import {
   calculateShippingCost,
   type ShippingSettings,
 } from '../lib/shipping.js';
+import { applyOfferPricingOne } from '../lib/offerPricing.js';
 
 // Generate unique order number
 const generateOrderNumber = (): string => {
@@ -125,7 +126,12 @@ export const createOrder = async (req: AuthRequest, res: Response): Promise<any>
       productId: string;
       quantity: number;
       price: number;
+      originalPrice: number | null;
+      offerId: string | null;
+      offerName: string | null;
     }> = [];
+    const usedOfferIds = new Set<string>();
+    let discountTotal = 0;
 
     for (const item of items) {
       const product = await prisma.product.findUnique({
@@ -142,14 +148,27 @@ export const createOrder = async (req: AuthRequest, res: Response): Promise<any>
         });
       }
 
-      const price = product.salePrice || product.price;
+      // Running product offers lower the unit price (same rule the cart and product pages show)
+      const pricedProduct = await applyOfferPricingOne(product);
+      const offer = pricedProduct.appliedOffer;
+      const price = pricedProduct.salePrice || pricedProduct.price;
+      // Price the customer would have paid without the offer (store sale price, else regular price)
+      const originalPrice = product.salePrice || product.price;
       subtotal += price * item.quantity;
       totalQuantity += item.quantity;
+
+      if (offer) {
+        usedOfferIds.add(offer.id);
+        discountTotal += (originalPrice - price) * item.quantity;
+      }
 
       orderItems.push({
         productId: product.id,
         quantity: item.quantity,
         price,
+        originalPrice: offer ? originalPrice : null,
+        offerId: offer?.id ?? null,
+        offerName: offer?.name ?? null,
       });
     }
 
@@ -166,6 +185,7 @@ export const createOrder = async (req: AuthRequest, res: Response): Promise<any>
         addressId: addressId,
         subtotal: parseFloat(subtotal.toFixed(2)),
         shippingCost: parseFloat(shippingCost.toFixed(2)),
+        discountTotal: parseFloat(discountTotal.toFixed(2)),
         total: parseFloat(total.toFixed(2)),
         status: 'PENDING',
         paymentMethod,
@@ -202,6 +222,14 @@ export const createOrder = async (req: AuthRequest, res: Response): Promise<any>
             decrement: item.quantity,
           },
         },
+      });
+    }
+
+    // Count one use per order for each offer that discounted it (enforces the offer's usage limit)
+    if (usedOfferIds.size > 0) {
+      await prisma.offer.updateMany({
+        where: { id: { in: [...usedOfferIds] } },
+        data: { usageCount: { increment: 1 } },
       });
     }
 

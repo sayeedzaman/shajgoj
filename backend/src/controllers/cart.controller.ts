@@ -2,6 +2,52 @@ import type { Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import type { AuthRequest } from '../middleware/auth.middleware.js';
 import { prisma } from '../lib/prisma.js';
+import { applyOfferPricing } from '../lib/offerPricing.js';
+
+type CartWithProducts = {
+  id: string;
+  CartItem: Array<{
+    id: string;
+    quantity: number;
+    productId: string;
+    cartId: string;
+    Product: Parameters<typeof applyOfferPricing>[0][number] & { images: string[]; Brand: unknown; Category: unknown };
+  }>;
+};
+
+// Shape the cart for the frontend, with running offer prices applied so the subtotal matches checkout
+const buildCartResponse = async (cart: CartWithProducts) => {
+  const pricedProducts = await applyOfferPricing(cart.CartItem.map((item) => item.Product));
+
+  const items = cart.CartItem.map((item, i) => {
+    const product = pricedProducts[i]!;
+    return {
+      id: item.id,
+      quantity: item.quantity,
+      productId: item.productId,
+      cartId: item.cartId,
+      product: {
+        ...product,
+        imageUrl: product.images.length > 0 ? product.images[0] : null,
+        brand: product.Brand,
+        category: product.Category,
+      },
+    };
+  });
+
+  // Calculate cart totals
+  const subtotal = items.reduce((sum, item) => {
+    const price = item.product.salePrice || item.product.price;
+    return sum + price * item.quantity;
+  }, 0);
+
+  return {
+    id: cart.id,
+    items,
+    itemCount: items.reduce((sum, item) => sum + item.quantity, 0),
+    subtotal: parseFloat(subtotal.toFixed(2)),
+  };
+};
 
 // Get user's cart
 export const getCart = async (req: AuthRequest, res: Response) => {
@@ -75,33 +121,7 @@ export const getCart = async (req: AuthRequest, res: Response) => {
       });
     }
 
-    // At this point, cart is guaranteed to be non-null with CartItem included
-    // Transform cart items to match frontend expectations
-    const transformedItems = cart!.CartItem.map((item) => ({
-      id: item.id,
-      quantity: item.quantity,
-      productId: item.productId,
-      cartId: item.cartId,
-      product: {
-        ...item.Product,
-        imageUrl: item.Product.images.length > 0 ? item.Product.images[0] : null,
-        brand: item.Product.Brand,
-        category: item.Product.Category,
-      },
-    }));
-
-    // Calculate cart totals
-    const subtotal = transformedItems.reduce((sum, item) => {
-      const price = item.product.salePrice || item.product.price;
-      return sum + price * item.quantity;
-    }, 0);
-
-    const cartData = {
-      id: cart!.id,
-      items: transformedItems,
-      itemCount: transformedItems.reduce((sum, item) => sum + item.quantity, 0),
-      subtotal: parseFloat(subtotal.toFixed(2)),
-    };
+    const cartData = await buildCartResponse(cart!);
 
     res.json(cartData);
   } catch (error) {
@@ -210,32 +230,7 @@ export const addToCart = async (req: AuthRequest, res: Response) => {
       },
     });
 
-    // Transform cart items to match frontend expectations
-    const transformedItems = updatedCart!.CartItem.map((item) => ({
-      id: item.id,
-      quantity: item.quantity,
-      productId: item.productId,
-      cartId: item.cartId,
-      product: {
-        ...item.Product,
-        imageUrl: item.Product.images.length > 0 ? item.Product.images[0] : null,
-        brand: item.Product.Brand,
-        category: item.Product.Category,
-      },
-    }));
-
-    // Calculate cart totals
-    const subtotal = transformedItems.reduce((sum, item) => {
-      const price = item.product.salePrice || item.product.price;
-      return sum + price * item.quantity;
-    }, 0);
-
-    const cartData = {
-      id: updatedCart!.id,
-      items: transformedItems,
-      itemCount: transformedItems.reduce((sum, item) => sum + item.quantity, 0),
-      subtotal: parseFloat(subtotal.toFixed(2)),
-    };
+    const cartData = await buildCartResponse(updatedCart!);
 
     res.json(cartData);
   } catch (error) {
@@ -310,32 +305,7 @@ export const updateCartItem = async (req: AuthRequest, res: Response) => {
       },
     });
 
-    // Transform cart items to match frontend expectations
-    const transformedItems = updatedCart!.CartItem.map((item) => ({
-      id: item.id,
-      quantity: item.quantity,
-      productId: item.productId,
-      cartId: item.cartId,
-      product: {
-        ...item.Product,
-        imageUrl: item.Product.images.length > 0 ? item.Product.images[0] : null,
-        brand: item.Product.Brand,
-        category: item.Product.Category,
-      },
-    }));
-
-    // Calculate cart totals
-    const subtotal = transformedItems.reduce((sum, item) => {
-      const price = item.product.salePrice || item.product.price;
-      return sum + price * item.quantity;
-    }, 0);
-
-    const cartData = {
-      id: updatedCart!.id,
-      items: transformedItems,
-      itemCount: transformedItems.reduce((sum, item) => sum + item.quantity, 0),
-      subtotal: parseFloat(subtotal.toFixed(2)),
-    };
+    const cartData = await buildCartResponse(updatedCart!);
 
     res.json(cartData);
   } catch (error) {
@@ -396,32 +366,7 @@ export const removeFromCart = async (req: AuthRequest, res: Response) => {
       },
     });
 
-    // Transform cart items to match frontend expectations
-    const transformedItems = updatedCart!.CartItem.map((item) => ({
-      id: item.id,
-      quantity: item.quantity,
-      productId: item.productId,
-      cartId: item.cartId,
-      product: {
-        ...item.Product,
-        imageUrl: item.Product.images.length > 0 ? item.Product.images[0] : null,
-        brand: item.Product.Brand,
-        category: item.Product.Category,
-      },
-    }));
-
-    // Calculate cart totals
-    const subtotal = transformedItems.reduce((sum, item) => {
-      const price = item.product.salePrice || item.product.price;
-      return sum + price * item.quantity;
-    }, 0);
-
-    const cartData = {
-      id: updatedCart!.id,
-      items: transformedItems,
-      itemCount: transformedItems.reduce((sum, item) => sum + item.quantity, 0),
-      subtotal: parseFloat(subtotal.toFixed(2)),
-    };
+    const cartData = await buildCartResponse(updatedCart!);
 
     res.json(cartData);
   } catch (error) {

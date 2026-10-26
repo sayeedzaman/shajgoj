@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { ShoppingBag, Search, Filter, ChevronDown, Eye, Package, Truck, Pencil, Check, X, Wallet, AlertCircle } from 'lucide-react';
 import { adminAPI, type Order } from '@/src/lib/adminApi';
 import OrderTracker from '@/src/components/orders/OrderTracker';
+import OrderItemPrice from '@/src/components/orders/OrderItemPrice';
 import { PaymentMethodBadge, PaymentStatusBadge } from '@/src/components/payments/PaymentBadges';
 import { PAYMENT_METHOD_INFO, PAYMENT_STATUS_INFO, isMobilePayment, type PaymentStatus } from '@/src/lib/payments';
 
@@ -662,7 +663,7 @@ export default function OrderManagementPage() {
                               </div>
                             </div>
                           </td>
-                          <td className="px-4 py-3 text-sm text-gray-900">৳{item.price.toFixed(2)}</td>
+                          <td className="px-4 py-3 text-sm text-gray-900"><OrderItemPrice item={item} /></td>
                           <td className="px-4 py-3 text-sm text-gray-900">{item.quantity}</td>
                           <td className="px-4 py-3 text-sm font-bold text-pink-600">
                             ৳{(item.price * item.quantity).toFixed(2)}
@@ -681,6 +682,12 @@ export default function OrderManagementPage() {
                     <span className="text-gray-600">Subtotal:</span>
                     <span className="font-medium text-gray-900">৳{selectedOrder.subtotal.toFixed(2)}</span>
                   </div>
+                  {selectedOrder.discountTotal > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-green-700">Offer discount (included in subtotal):</span>
+                      <span className="font-medium text-green-700">−৳{selectedOrder.discountTotal.toFixed(2)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between items-center text-sm">
                     <span className="text-gray-600">Shipping:</span>
                     {editingShipping ? (

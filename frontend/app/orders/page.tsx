@@ -5,6 +5,7 @@ import { ShoppingBag, Package, X, ChevronLeft, Star } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import OrderTracker from '@/src/components/orders/OrderTracker';
+import OrderItemPrice from '@/src/components/orders/OrderItemPrice';
 import type { OrderStatusHistoryEntry } from '@/src/types/index';
 import { PaymentMethodBadge, PaymentStatusBadge } from '@/src/components/payments/PaymentBadges';
 import { isMobilePayment, type PaymentMethod, type PaymentStatus } from '@/src/lib/payments';
@@ -13,6 +14,8 @@ interface OrderItem {
   id: string;
   quantity: number;
   price: number;
+  originalPrice?: number | null;
+  offerName?: string | null;
   Product: {
     id: string;
     name: string;
@@ -35,6 +38,7 @@ interface Order {
   orderNumber: string;
   status: 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
   total: number;
+  discountTotal: number;
   paymentMethod: PaymentMethod;
   paymentStatus: PaymentStatus;
   paymentSender: string | null;
@@ -537,7 +541,7 @@ export default function OrdersPage() {
                                     {item.Product.name}
                                   </Link>
                                   <div className="flex items-center gap-4 mt-1 text-xs text-gray-600">
-                                    <span>Price: ৳{item.price.toFixed(2)}</span>
+                                    <span className="inline-flex items-center gap-1">Price: <OrderItemPrice item={item} /></span>
                                     <span>Qty: {item.quantity}</span>
                                     <span className="font-bold text-pink-600">Total: ৳{(item.price * item.quantity).toFixed(2)}</span>
                                   </div>
@@ -617,6 +621,12 @@ export default function OrdersPage() {
                 {/* Order Summary */}
                 <div className="bg-gray-50 rounded-lg p-4">
                   <div className="space-y-2">
+                    {selectedOrder.discountTotal > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-green-700">Offer savings:</span>
+                        <span className="font-medium text-green-700">−৳{selectedOrder.discountTotal.toFixed(2)}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between text-base font-bold pt-2 border-t border-gray-200">
                       <span className="text-gray-900">Total:</span>
                       <span className="text-pink-600">৳{selectedOrder.total.toFixed(2)}</span>
