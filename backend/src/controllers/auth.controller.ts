@@ -198,6 +198,17 @@ export const updateProfile = async (req: Request, res: Response): Promise<void> 
   }
 };
 
+// Amount each customer has spent: order totals excluding cancelled and refunded orders
+const getTotalSpentByUser = async (userIds: string[]) => {
+  if (userIds.length === 0) return new Map<string, number>();
+  const sums = await prisma.order.groupBy({
+    by: ['userId'],
+    where: { userId: { in: userIds }, status: { not: 'CANCELLED' }, paymentStatus: { not: 'REFUNDED' } },
+    _sum: { total: true },
+  });
+  return new Map(sums.map((row) => [row.userId, parseFloat((row._sum.total ?? 0).toFixed(2))]));
+};
+
 // Admin: Get all users with pagination
 export const getAllUsers = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -237,6 +248,7 @@ export const getAllUsers = async (req: Request, res: Response): Promise<void> =>
             select: {
               Order: true,
               Address: true,
+              Review: true,
             },
           },
         },
@@ -249,8 +261,10 @@ export const getAllUsers = async (req: Request, res: Response): Promise<void> =>
       prisma.user.count({ where }),
     ]);
 
+    const spent = await getTotalSpentByUser(users.map((user) => user.id));
+
     res.json({
-      users,
+      users: users.map((user) => ({ ...user, totalSpent: spent.get(user.id) ?? 0 })),
       pagination: {
         currentPage: pageNum,
         totalPages: Math.ceil(total / limitNum),
@@ -312,7 +326,8 @@ export const getUserById = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
-    res.json({ user });
+    const spent = await getTotalSpentByUser([user.id]);
+    res.json({ user: { ...user, totalSpent: spent.get(user.id) ?? 0 } });
   } catch (error) {
     res.status(500).json({ message: 'Error fetching user', error });
   }

@@ -685,7 +685,7 @@ export const adminCustomersAPI = {
     );
     const data = await handleResponse<{ users: any[]; pagination: any }>(response);
     // Map users to customers and properly map backend field names
-    // Backend returns: _count: { Order: N, Address: N }
+    // Backend returns: _count: { Order: N, Address: N, Review: N }, totalSpent
     // Frontend expects: _count: { orders: N, reviews: N }
     const customers = data.users.map((user: any) => ({
       id: user.id,
@@ -698,9 +698,10 @@ export const adminCustomersAPI = {
       updatedAt: user.updatedAt,
       _count: {
         orders: user._count?.Order || 0,
-        reviews: 0, // Backend doesn't include Review count in getAll
+        reviews: user._count?.Review || 0,
       },
-      totalSpent: 0, // Backend doesn't calculate this in getAll
+      // Backend total excludes cancelled and refunded orders
+      totalSpent: user.totalSpent ?? 0,
     }));
     return {
       customers,
@@ -726,8 +727,8 @@ export const adminCustomersAPI = {
     // Backend returns: { user: { Order: [...], _count: { Order: N, Review: N } } }
     // Frontend expects: { orders: [...], _count: { orders: N, reviews: N } }
 
-    // Calculate total spent from orders
-    const totalSpent = user.Order?.reduce((sum: number, order: any) => sum + (order.total || 0), 0) || 0;
+    // Backend total excludes cancelled and refunded orders (same as the customer list)
+    const totalSpent = user.totalSpent ?? 0;
 
     return {
       id: user.id,
