@@ -230,6 +230,9 @@ export async function cachedFetch<T>(
   if (method !== 'GET') {
     const response = await fetch(url, options);
     if (!response.ok) {
+      // Log which request failed and the backend's reason; the thrown message alone doesn't say
+      const reason = await response.clone().json().then((body) => body?.error).catch(() => undefined);
+      console.warn(`API ${response.status} for ${url}${reason ? `: ${reason}` : ''}`);
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
     return response.json() as Promise<T>;
@@ -252,6 +255,9 @@ export async function cachedFetch<T>(
   // Make new request
   const promise = fetch(url, options).then(async (response) => {
     if (!response.ok) {
+      // Log which request failed and the backend's reason; the thrown message alone doesn't say
+      const reason = await response.clone().json().then((body) => body?.error).catch(() => undefined);
+      console.warn(`API ${response.status} for ${url}${reason ? `: ${reason}` : ''}`);
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
     const data = await response.json();
