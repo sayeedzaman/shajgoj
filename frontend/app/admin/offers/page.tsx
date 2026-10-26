@@ -275,33 +275,32 @@ export default function OffersPage() {
     setShowProductSearch(false);
   };
 
-  // Search products from Prisma database
+  // Search products from Prisma database; with an empty query the open picker lists products to browse
   useEffect(() => {
-    const searchProducts = async () => {
-      if (productSearchQuery.length >= 2) {
-        setProductSearchLoading(true);
-        try {
-          // Fetch from Prisma-powered backend API
-          const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-          const response = await fetch(`${apiUrl}/api/products?search=${encodeURIComponent(productSearchQuery)}&limit=10`);
+    const query = productSearchQuery.trim();
 
-          if (response.ok) {
-            const data = await response.json();
-            console.log('Product search results:', data);
-            // Use products directly - backend already returns correct format
-            setProducts(data.products || []);
-            setShowProductSearch(true);
-          }
-        } catch (apiError) {
-          console.error('Error fetching products from database:', apiError);
-          setProducts([]);
-          setShowProductSearch(false);
-        } finally {
-          setProductSearchLoading(false);
-        }
-      } else {
+    const searchProducts = async () => {
+      if (query.length === 1 || (!query && !showProductSearch)) {
         setProducts([]);
-        setShowProductSearch(false);
+        setProductSearchLoading(false);
+        return;
+      }
+
+      setProductSearchLoading(true);
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+        const searchParam = query ? `search=${encodeURIComponent(query)}&` : '';
+        const response = await fetch(`${apiUrl}/api/products?${searchParam}limit=20`);
+
+        if (response.ok) {
+          const data = await response.json();
+          setProducts(data.products || []);
+          setShowProductSearch(true);
+        }
+      } catch (apiError) {
+        console.error('Error fetching products from database:', apiError);
+        setProducts([]);
+      } finally {
         setProductSearchLoading(false);
       }
     };
@@ -312,7 +311,12 @@ export default function OffersPage() {
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [productSearchQuery]);
+  }, [productSearchQuery, showProductSearch]);
+
+  const handleSelectAllResults = () => {
+    const toAdd = products.filter((product) => !selectedProducts.some((p) => p.id === product.id));
+    setSelectedProducts([...selectedProducts, ...toAdd]);
+  };
 
   const handleProductSelect = (product: Product) => {
     // Toggle product selection
@@ -379,6 +383,10 @@ export default function OffersPage() {
       alert('End date must be on or after the start date');
       return;
     }
+    if (formData.linkType === 'product' && selectedProducts.length === 0) {
+      alert('Please select at least one product for this offer');
+      return;
+    }
 
     // Only send fields that exist in the backend schema
     const offerData = {
@@ -388,8 +396,9 @@ export default function OffersPage() {
       imageUrl: formData.imageUrl || null,
       linkType: formData.linkType,
       link: formData.link || null,
-      productId: formData.productId || null,
-      productIds: selectedProducts.map(p => p.id), // Add multiple product IDs
+      // Products are saved via productIds; the legacy single productId would override them on the storefront
+      productId: null,
+      productIds: formData.linkType === 'product' ? selectedProducts.map(p => p.id) : [],
       type: formData.type,
       discountType: formData.discountType,
       discountValue: Number(formData.discountValue),
@@ -899,6 +908,8 @@ export default function OffersPage() {
                   <button
                     type="button"
                     onClick={() => {
+                      // Clicking "Specific Products" again must not wipe the products already chosen
+                      if (formData.linkType === 'product') return;
                       setFormData({ ...formData, linkType: 'product', link: '' });
                       setSelectedProducts([]);
                     }}
@@ -982,7 +993,7 @@ export default function OffersPage() {
                               setShowProductSearch(true);
                             }}
                             onFocus={() => setShowProductSearch(true)}
-                            placeholder="Search for a product by name..."
+                            placeholder={selectedProducts.length > 0 ? 'Search to add more products...' : 'Search or browse products...'}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500"
                           />
                           {productSearchLoading ? (
@@ -1004,9 +1015,40 @@ export default function OffersPage() {
                           </div>
                         )}
 
+                        <p className="text-xs text-gray-500 mt-1">
+                          Tick as many products as you like. Search again to add products with other names.
+                        </p>
+
                         {/* Search Results Dropdown */}
                         {!productSearchLoading && showProductSearch && products.length > 0 && (
-                          <div className="mt-2 border border-gray-300 rounded-lg bg-white shadow-lg max-h-64 overflow-y-auto">
+                          <div className="mt-2 border border-gray-300 rounded-lg bg-white shadow-lg">
+                            <div className="flex items-center justify-between gap-2 px-3 py-2 border-b border-gray-200 bg-gray-50 rounded-t-lg">
+                              <span className="text-xs text-gray-600">
+                                {productSearchQuery.trim() ? `${products.length} result${products.length === 1 ? '' : 's'}` : 'Recent products'}
+                              </span>
+                              <div className="flex items-center gap-3">
+                                {products.some((product) => !selectedProducts.some((p) => p.id === product.id)) && (
+                                  <button
+                                    type="button"
+                                    onClick={handleSelectAllResults}
+                                    className="text-xs font-medium text-pink-600 hover:text-pink-700"
+                                  >
+                                    Select all {products.length}
+                                  </button>
+                                )}
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setShowProductSearch(false);
+                                    setProductSearchQuery('');
+                                  }}
+                                  className="text-xs font-medium text-gray-700 hover:text-gray-900"
+                                >
+                                  Done
+                                </button>
+                              </div>
+                            </div>
+                            <div className="max-h-64 overflow-y-auto">
                             {products.map((product) => {
                               const isSelected = selectedProducts.find(p => p.id === product.id);
                               return (
@@ -1053,6 +1095,7 @@ export default function OffersPage() {
                                 </button>
                               );
                             })}
+                            </div>
                           </div>
                         )}
 

@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import StrikingOfferCard from '@/src/components/offers/StrikingOfferCard';
+import { getOfferLink } from '@/src/lib/offers';
 import ProductCard from '@/src/components/products/ProductCard';
 import ProductCardSkeleton from '@/src/components/products/ProductCardSkeleton';
 import { brand } from '@/src/config/brand';
@@ -327,40 +328,6 @@ export default function Home() {
   };
 
   // Get the correct link for an offer (either custom URL, single product page, or offers page with multiple products)
-  const getOfferLink = (offer: Offer): string => {
-    const hasOfferProducts = offer.OfferProduct && offer.OfferProduct.length > 0;
-
-    console.log('🔗 Getting link for offer:', {
-      id: offer.id,
-      name: offer.name,
-      linkType: offer.linkType,
-      link: offer.link,
-      productId: offer.productId,
-      hasOfferProducts,
-      offerProductCount: offer.OfferProduct?.length || 0
-    });
-
-    if (offer.linkType === 'url' && offer.link) {
-      // Use custom URL
-      console.log('✅ Using custom URL:', offer.link);
-      return offer.link;
-    } else if (offer.linkType === 'product') {
-      if (offer.productId) {
-        // Single product link - go directly to the product page
-        const productLink = `/products/${offer.productId}`;
-        console.log('✅ Using single product link:', productLink);
-        return productLink;
-      } else if (hasOfferProducts) {
-        // Multiple products - go to offers page with this offer's products
-        const productsLink = `/offers?offerId=${offer.id}`;
-        console.log('✅ Using multiple products link:', productsLink);
-        return productsLink;
-      }
-    }
-    // Fallback to offers page
-    console.log('Using fallback link: /offers');
-    return '/offers';
-  };
 
   // Shop by concern
   const concerns = [

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
+import { getOfferLink } from '@/src/lib/offers';
 
 export interface CategoryOfferCardProps {
   offer: {
@@ -13,6 +14,7 @@ export interface CategoryOfferCardProps {
     link?: string;
     productId?: string;
     linkType?: 'url' | 'product';
+    OfferProduct?: Array<{ Product: { id: string; slug?: string } }>;
     discountType: 'PERCENTAGE' | 'FIXED';
     discountValue: number;
     // Style customization
@@ -25,14 +27,6 @@ export interface CategoryOfferCardProps {
 }
 
 export default function CategoryOfferCard({ offer }: CategoryOfferCardProps) {
-  // Determine the link
-  const getLink = () => {
-    if (offer.linkType === 'product' && offer.productId) {
-      return `/products/${offer.productId}`;
-    }
-    return offer.link || '/offers';
-  };
-
   // Default colors if not provided
   const bgColor = offer.backgroundColor || 'from-pink-400 via-pink-500 to-rose-600';
   const textColor = offer.textColor || 'text-white';
@@ -72,7 +66,7 @@ export default function CategoryOfferCard({ offer }: CategoryOfferCardProps) {
 
   return (
     <Link
-      href={getLink()}
+      href={getOfferLink(offer)}
       className="group block"
     >
       <div

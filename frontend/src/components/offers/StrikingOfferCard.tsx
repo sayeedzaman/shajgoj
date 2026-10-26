@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { Sparkles, ArrowRight, Tag, Gift } from 'lucide-react';
+import { getOfferLink } from '@/src/lib/offers';
 
 export interface StrikingOfferCardProps {
   offer: {
@@ -12,6 +13,7 @@ export interface StrikingOfferCardProps {
     link?: string;
     productId?: string;
     linkType?: 'url' | 'product';
+    OfferProduct?: Array<{ Product: { id: string; slug?: string } }>;
     discountType: 'PERCENTAGE' | 'FIXED';
     discountValue: number;
     // Style customization options
@@ -24,14 +26,6 @@ export interface StrikingOfferCardProps {
 }
 
 export default function StrikingOfferCard({ offer }: StrikingOfferCardProps) {
-  // Determine the link
-  const getLink = () => {
-    if (offer.linkType === 'product' && offer.productId) {
-      return `/products/${offer.productId}`;
-    }
-    return offer.link || '/offers';
-  };
-
   // Default colors if not provided
   const bgColor = offer.backgroundColor || 'from-pink-500 via-pink-500 to-rose-600';
   const textColor = offer.textColor || 'text-white';
@@ -71,7 +65,7 @@ export default function StrikingOfferCard({ offer }: StrikingOfferCardProps) {
 
   return (
     <Link
-      href={getLink()}
+      href={getOfferLink(offer)}
       className={`group relative overflow-hidden ${getBorderClass()} ${getBackgroundClass()}
         shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105
         min-h-[280px] flex flex-col justify-between p-6 ${textColor}`}
