@@ -53,7 +53,7 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
     const error = await response.json().catch(() => ({
       message: 'An error occurred',
     }));
-    const errorMessage = error.message || `HTTP error! status: ${response.status}`;
+    const errorMessage = error.message || error.error || `HTTP error! status: ${response.status}`;
     console.error(`API Error (${response.status}):`, errorMessage, error);
     // Include status code in error message for better debugging
     throw new Error(`${response.status}: ${errorMessage}`);
@@ -64,7 +64,7 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
 // Auth API
 export const authAPI = {
   login: async (data: LoginRequest): Promise<AuthResponse> => {
-    console.log('🔐 Attempting login with:', { email: data.email });
+    console.log('🔐 Attempting login with:', { identifier: data.identifier });
     console.log('🌐 API URL:', API_URL);
     const response = await fetch(`${API_URL}/api/auth/login`, {
       method: 'POST',

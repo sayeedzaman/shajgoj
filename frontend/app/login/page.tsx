@@ -4,12 +4,13 @@ import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/src/lib/AuthContext';
+import PasswordInput from '@/src/components/common/PasswordInput';
 
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { login, error, loading, clearError, user } = useAuth();
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
 
   const redirectPath = searchParams.get('redirect') || '/';
@@ -25,7 +26,7 @@ function LoginContent() {
     e.preventDefault();
 
     try {
-      await login({ email, password });
+      await login({ identifier: identifier.trim(), password });
       clearError();
 
       // Redirect after successful login
@@ -58,11 +59,13 @@ function LoginContent() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email or Phone</label>
             <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="text"
+              autoComplete="username"
+              placeholder="you@example.com or 01XXXXXXXXX"
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
               required
               disabled={loading}
               className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-pink-500 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -71,8 +74,7 @@ function LoginContent() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-            <input
-              type="password"
+            <PasswordInput
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required

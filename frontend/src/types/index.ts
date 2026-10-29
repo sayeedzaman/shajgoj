@@ -162,7 +162,7 @@ export interface ProductsResponse {
 
 // API Request Types
 export interface LoginRequest {
-  email: string;
+  identifier: string; // email or phone number
   password: string;
 }
 

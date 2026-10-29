@@ -104,7 +104,8 @@ export default function ProfilePage() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update profile');
+        const data = await response.json().catch(() => null);
+        throw new Error(data?.message || 'Failed to update profile. Please try again.');
       }
 
       const updatedUser = await response.json();
@@ -112,9 +113,9 @@ export default function ProfilePage() {
       setEditing(false);
       setSuccessMessage('Profile updated successfully!');
       setTimeout(() => setSuccessMessage(''), 3000);
-    } catch {
-      setErrorMessage('Failed to update profile. Please try again.');
-      setTimeout(() => setErrorMessage(''), 3000);
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Failed to update profile. Please try again.');
+      setTimeout(() => setErrorMessage(''), 4000);
     } finally {
       setSaving(false);
     }
@@ -126,7 +127,9 @@ export default function ProfilePage() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return '—';
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
@@ -284,15 +287,29 @@ export default function ProfilePage() {
                         type="tel"
                         value={formData.phone}
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        placeholder="+8801883096484"
+                        placeholder="01XXXXXXXXX"
                         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
                       />
-                    ) : (
+                    ) : user.phone ? (
                       <div className="flex items-center gap-3 px-4 py-2 bg-gray-50 rounded-lg text-gray-900">
                         <Phone className="w-5 h-5 text-gray-400" />
-                        {user.phone || 'Not set'}
+                        {user.phone}
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between gap-3 px-4 py-2 bg-pink-50 border border-pink-100 rounded-lg">
+                        <div className="flex items-center gap-3 text-gray-700">
+                          <Phone className="w-5 h-5 text-pink-400" />
+                          <span className="text-sm">No mobile number added</span>
+                        </div>
+                        <button
+                          onClick={handleEdit}
+                          className="text-sm font-medium text-pink-600 hover:text-pink-700 hover:underline"
+                        >
+                          + Add mobile number
+                        </button>
                       </div>
                     )}
+                    <p className="text-xs text-gray-500 mt-1">You can log in with your email or this mobile number</p>
                   </div>
 
                   {/* Member Since */}

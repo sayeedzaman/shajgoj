@@ -5,6 +5,26 @@ import { Role } from '@prisma/client';
 import { JWT_SECRET } from '../config/env.js';
 import { prisma } from '../lib/prisma.js';
 
+// Phone numbers are stored in free-form text, so compare on the last 10 digits
+// (e.g. "+880 1712-345678" and "01712345678" are the same number)
+const phoneKey = (phone: string) => phone.replace(/\D/g, '').slice(-10);
+
+// Phone doubles as a login identifier, so it must be a real number and belong to one account only.
+// Returns an error message, or null if the phone can be used.
+const validatePhone = async (phone: string, excludeUserId?: string): Promise<string | null> => {
+  const key = phoneKey(phone);
+  if (key.length < 10) return 'Please enter a valid mobile number';
+
+  const candidates = await prisma.user.findMany({
+    where: { phone: { endsWith: key.slice(-4) }, ...(excludeUserId && { id: { not: excludeUserId } }) },
+    select: { phone: true }
+  });
+  if (candidates.some((c) => c.phone && phoneKey(c.phone) === key)) {
+    return 'This mobile number is already used by another account';
+  }
+  return null;
+};
+
 export const register = async (req: Request, res: Response) => {
   try {
     const { firstName, lastName, email, password, phone, address, city, state, zipCode } = req.body;
@@ -15,6 +35,11 @@ export const register = async (req: Request, res: Response) => {
 
     if (existingUser) {
       return res.status(400).json({ message: 'User already exists' });
+    }
+
+    if (phone) {
+      const phoneError = await validatePhone(phone);
+      if (phoneError) return res.status(400).json({ message: phoneError });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -81,20 +106,36 @@ export const register = async (req: Request, res: Response) => {
 
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { email, password } = req.body;
+    const { identifier, email, password } = req.body;
+    const loginId = String(identifier ?? email ?? '').trim();
 
-    const user = await prisma.user.findUnique({
-      where: { email }
-    });
-
-    if (!user) {
-      res.status(401).json({ message: 'Invalid credentials' });
+    if (!loginId || !password) {
+      res.status(400).json({ message: 'Email or phone and password are required' });
       return;
     }
 
-    const isValidPassword = await bcrypt.compare(password, user.password);
+    let user = null;
 
-    if (!isValidPassword) {
+    if (loginId.includes('@')) {
+      const found = await prisma.user.findUnique({ where: { email: loginId } });
+      if (found && await bcrypt.compare(password, found.password)) user = found;
+    } else {
+      const key = phoneKey(loginId);
+      if (key.length >= 7) {
+        // Phone is not unique, so check the password against every account with this number
+        const candidates = await prisma.user.findMany({
+          where: { phone: { endsWith: key.slice(-4) } }
+        });
+        for (const candidate of candidates) {
+          if (candidate.phone && phoneKey(candidate.phone) === key && await bcrypt.compare(password, candidate.password)) {
+            user = candidate;
+            break;
+          }
+        }
+      }
+    }
+
+    if (!user) {
       res.status(401).json({ message: 'Invalid credentials' });
       return;
     }
@@ -143,6 +184,7 @@ export const getProfile = async (req: Request, res: Response): Promise<void> => 
         email: true,
         phone: true,
         role: true,
+        createdAt: true,
       }
     });
 
@@ -174,7 +216,17 @@ export const updateProfile = async (req: Request, res: Response): Promise<void> 
     const updateData: any = {};
     if (firstName !== undefined) updateData.firstName = firstName;
     if (lastName !== undefined) updateData.lastName = lastName;
-    if (phone !== undefined) updateData.phone = phone;
+    if (phone !== undefined) {
+      const trimmedPhone = String(phone ?? '').trim();
+      if (trimmedPhone) {
+        const phoneError = await validatePhone(trimmedPhone, userId);
+        if (phoneError) {
+          res.status(400).json({ message: phoneError });
+          return;
+        }
+      }
+      updateData.phone = trimmedPhone || null;
+    }
 
     const updatedUser = await prisma.user.update({
       where: { id: userId },
