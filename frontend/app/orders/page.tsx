@@ -65,6 +65,9 @@ export default function OrdersPage() {
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [cancelTarget, setCancelTarget] = useState<Order | null>(null);
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [reviewStates, setReviewStates] = useState<{ [productId: string]: ProductReview }>({});
   const [submittingReview, setSubmittingReview] = useState<string | null>(null);
@@ -148,12 +151,19 @@ export default function OrdersPage() {
     setShowModal(true);
   };
 
-  const handleCancelOrder = async (orderId: string) => {
-    if (!window.confirm('Are you sure you want to cancel this order?')) {
-      return;
-    }
+  // Opens the cancellation confirmation popup
+  const handleCancelOrder = (order: Order) => {
+    setCancelError('');
+    setCancelTarget(order);
+  };
+
+  const confirmCancelOrder = async () => {
+    if (!cancelTarget) return;
+    const orderId = cancelTarget.id;
 
     try {
+      setCancelling(true);
+      setCancelError('');
       const token = localStorage.getItem('token');
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/orders/${orderId}/cancel`,
@@ -171,14 +181,17 @@ export default function OrdersPage() {
         throw new Error(data?.error || 'Failed to cancel order. Please try again.');
       }
 
+      setCancelTarget(null);
       fetchOrders();
       if (selectedOrder?.id === orderId) {
         setShowModal(false);
       }
     } catch (error) {
-      alert(error instanceof Error ? error.message : 'Failed to cancel order. Please try again.');
+      setCancelError(error instanceof Error ? error.message : 'Failed to cancel order. Please try again.');
       // The order may have shipped meanwhile; refresh so the button goes away
       fetchOrders();
+    } finally {
+      setCancelling(false);
     }
   };
 
@@ -411,7 +424,7 @@ export default function OrdersPage() {
                 {canCustomerCancel(order.status) && (
                   <div className="px-6 pb-4">
                     <button
-                      onClick={() => handleCancelOrder(order.id)}
+                      onClick={() => handleCancelOrder(order)}
                       className="text-sm text-pink-600 hover:text-pink-700 font-medium"
                     >
                       Cancel Order
@@ -635,7 +648,7 @@ export default function OrdersPage() {
                       You can cancel this order until it ships.
                     </p>
                     <button
-                      onClick={() => handleCancelOrder(selectedOrder.id)}
+                      onClick={() => handleCancelOrder(selectedOrder)}
                       className="px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors text-sm font-medium"
                     >
                       Cancel Order
@@ -650,6 +663,78 @@ export default function OrdersPage() {
                   className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Cancel order confirmation popup (stacks above the order details popup) */}
+        {cancelTarget && (
+          <div
+            className="fixed inset-0 z-60 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="cancel-order-title"
+            onClick={() => !cancelling && setCancelTarget(null)}
+          >
+            <div
+              className="bg-white rounded-xl shadow-xl w-full max-w-md"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between p-5 border-b border-gray-200">
+                <h2 id="cancel-order-title" className="text-xl font-bold text-gray-900">Cancel this order?</h2>
+                <button
+                  onClick={() => setCancelTarget(null)}
+                  disabled={cancelling}
+                  className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-50"
+                  aria-label="Close"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="p-5 space-y-4">
+                <div className="bg-gray-50 rounded-lg p-3 text-sm space-y-1">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Order</span>
+                    <span className="font-semibold text-gray-900">{cancelTarget.orderNumber}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Items</span>
+                    <span className="text-gray-900">
+                      {cancelTarget.OrderItem.reduce((sum, item) => sum + item.quantity, 0)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Total</span>
+                    <span className="font-semibold text-pink-600">৳{cancelTarget.total.toFixed(2)}</span>
+                  </div>
+                </div>
+
+                <p className="text-sm text-gray-600">
+                  This can&apos;t be undone. If you still want these items, you&apos;ll need to place a new order.
+                </p>
+
+                {cancelError && (
+                  <p className="text-sm text-pink-700 bg-pink-50 border border-pink-200 rounded-lg p-3">{cancelError}</p>
+                )}
+              </div>
+
+              <div className="flex gap-3 p-5 border-t border-gray-200">
+                <button
+                  onClick={() => setCancelTarget(null)}
+                  disabled={cancelling}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
+                >
+                  Keep Order
+                </button>
+                <button
+                  onClick={confirmCancelOrder}
+                  disabled={cancelling || !!cancelError}
+                  className="flex-1 px-4 py-2 bg-pink-600 text-white rounded-lg font-medium hover:bg-pink-700 transition-colors disabled:opacity-50"
+                >
+                  {cancelling ? 'Cancelling...' : 'Yes, Cancel Order'}
                 </button>
               </div>
             </div>
