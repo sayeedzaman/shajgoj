@@ -540,41 +540,51 @@ export const updateOrderStatus = async (req: AuthRequest, res: Response): Promis
     const isCancelling = status === 'CANCELLED' && order.status !== 'CANCELLED';
     const isReopening = order.status === 'CANCELLED' && status !== 'CANCELLED';
 
-    const updatedOrder = await prisma.$transaction(async (tx) => {
-      for (const item of order.OrderItem) {
-        if (isCancelling) {
-          await tx.product.update({
-            where: { id: item.productId },
-            data: { stock: { increment: item.quantity } },
-          });
-        } else if (isReopening) {
-          // Conditional decrement so two admins can't oversell the same stock
-          const { count } = await tx.product.updateMany({
-            where: { id: item.productId, stock: { gte: item.quantity } },
-            data: { stock: { decrement: item.quantity } },
-          });
-          if (count === 0) {
-            throw new InsufficientStockError(item.Product.name);
+    const updateData = {
+      status: status as any,
+      ...(codCollected && { paymentStatus: 'PAID' as const, paidAt: new Date() }),
+      ...(status !== order.status && {
+        OrderStatusHistory: {
+          create: {
+            status: status as any,
+            ...(isCancelling && { note: 'Cancelled by store' }),
+          },
+        },
+      }),
+    };
+
+    if (isCancelling || isReopening) {
+      // Stock and status must change together. Only writes go in the transaction (the full
+      // order is loaded after it commits) to keep it short on a remote database.
+      await prisma.$transaction(async (tx) => {
+        for (const item of order.OrderItem) {
+          if (isCancelling) {
+            await tx.product.update({
+              where: { id: item.productId },
+              data: { stock: { increment: item.quantity } },
+            });
+          } else {
+            // Conditional decrement so two admins can't oversell the same stock
+            const { count } = await tx.product.updateMany({
+              where: { id: item.productId, stock: { gte: item.quantity } },
+              data: { stock: { decrement: item.quantity } },
+            });
+            if (count === 0) {
+              throw new InsufficientStockError(item.Product.name);
+            }
           }
         }
-      }
 
-      return tx.order.update({
-        where: { id: id },
-        data: {
-          status: status as any,
-          ...(codCollected && { paymentStatus: 'PAID', paidAt: new Date() }),
-          ...(status !== order.status && {
-            OrderStatusHistory: {
-              create: {
-                status: status as any,
-                ...(isCancelling && { note: 'Cancelled by store' }),
-              },
-            },
-          }),
-        },
-        include: ORDER_DETAIL_INCLUDE,
-      });
+        await tx.order.update({ where: { id }, data: updateData });
+      }, { maxWait: 10000, timeout: 20000 });
+    } else {
+      // A single update (with its nested history record) is already atomic
+      await prisma.order.update({ where: { id }, data: updateData });
+    }
+
+    const updatedOrder = await prisma.order.findUnique({
+      where: { id },
+      include: ORDER_DETAIL_INCLUDE,
     });
 
     res.json({
