@@ -1,5 +1,6 @@
 import type { Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
+import { Prisma } from '@prisma/client';
 import type { AuthRequest } from '../middleware/auth.middleware.js';
 import { prisma } from '../lib/prisma.js';
 import { applyOfferPricing } from '../lib/offerPricing.js';
@@ -49,6 +50,22 @@ const buildCartResponse = async (cart: CartWithProducts) => {
   };
 };
 
+// Get the user's cart, creating it if needed. Concurrent requests for a new user
+// (e.g. the cart loading twice on page load) can race to create it, so if another
+// request created it first (unique violation on userId), use that cart.
+const ensureCart = async (userId: string) => {
+  const existing = await prisma.cart.findUnique({ where: { userId } });
+  if (existing) return existing;
+  try {
+    return await prisma.cart.create({ data: { userId, updatedAt: new Date() } });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      return prisma.cart.findUniqueOrThrow({ where: { userId } });
+    }
+    throw error;
+  }
+};
+
 // Record cart activity (cart.updatedAt) so analytics can spot abandoned carts
 const touchCart = (cartId: string) =>
   prisma.cart.update({ where: { id: cartId }, data: { updatedAt: new Date() } });
@@ -63,8 +80,9 @@ export const getCart = async (req: AuthRequest, res: Response) => {
     }
 
     // Find or create cart for user
-    let cart = await prisma.cart.findUnique({
-      where: { userId },
+    const { id: cartId } = await ensureCart(userId);
+    const cart = await prisma.cart.findUniqueOrThrow({
+      where: { id: cartId },
       include: {
         CartItem: {
           include: {
@@ -91,41 +109,7 @@ export const getCart = async (req: AuthRequest, res: Response) => {
       },
     });
 
-    // If cart doesn't exist, create it
-    if (!cart) {
-      cart = await prisma.cart.create({
-        data: {
-          userId,
-          updatedAt: new Date(),
-        },
-        include: {
-          CartItem: {
-            include: {
-              Product: {
-                include: {
-                  Category: {
-                    select: {
-                      id: true,
-                      name: true,
-                      slug: true,
-                    },
-                  },
-                  Brand: {
-                    select: {
-                      id: true,
-                      name: true,
-                      slug: true,
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      });
-    }
-
-    const cartData = await buildCartResponse(cart!);
+    const cartData = await buildCartResponse(cart);
 
     res.json(cartData);
   } catch (error) {
@@ -170,18 +154,7 @@ export const addToCart = async (req: AuthRequest, res: Response) => {
     }
 
     // Find or create cart
-    let cart = await prisma.cart.findUnique({
-      where: { userId },
-    });
-
-    if (!cart) {
-      cart = await prisma.cart.create({
-        data: {
-          userId,
-          updatedAt: new Date(),
-        },
-      });
-    }
+    const cart = await ensureCart(userId);
 
     // Check if item already exists in cart
     const existingCartItem = await prisma.cartItem.findFirst({
