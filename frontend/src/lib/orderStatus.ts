@@ -13,5 +13,9 @@ export const ORDER_STATUS_INFO: Record<OrderStatusValue, { label: string; badge:
   CANCELLED: { label: 'Cancelled', badge: 'bg-pink-100 text-pink-800 border-pink-200' },
 };
 
-export const getOrderStatusLabel = (status: string) =>
+/** Customers can cancel until the order ships; once in transit it can't be cancelled (mirrors the backend) */
+export const canCustomerCancel = (status: string) =>
+  status === 'PENDING' || status === 'CONFIRMED' || status === 'PROCESSING';
+
+export const getOrderStatusLabel =(status: string) =>
   ORDER_STATUS_INFO[status as OrderStatusValue]?.label ?? status;

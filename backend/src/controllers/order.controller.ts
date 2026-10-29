@@ -354,7 +354,7 @@ export const getOrderById = async (req: AuthRequest, res: Response): Promise<any
   }
 };
 
-// Cancel order (only if status is PENDING)
+// Cancel order (customer) - allowed until the order ships
 export const cancelOrder = async (req: AuthRequest, res: Response): Promise<any> => {
   try {
     const userId = req.user?.userId;
@@ -382,9 +382,12 @@ export const cancelOrder = async (req: AuthRequest, res: Response): Promise<any>
       return res.status(404).json({ error: 'Order not found' });
     }
 
-    if (order.status !== 'PENDING') {
+    // Customers can cancel until the order ships; once it is in transit it can't be cancelled
+    if (!['PENDING', 'CONFIRMED', 'PROCESSING'].includes(order.status)) {
       return res.status(400).json({
-        error: 'Only pending orders can be cancelled',
+        error: order.status === 'CANCELLED'
+          ? 'This order is already cancelled'
+          : 'This order has already shipped and can no longer be cancelled',
       });
     }
 

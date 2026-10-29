@@ -41,7 +41,7 @@ router.get('/:id', authenticate, getOrderById);
 
 /**
  * @route   PUT /api/orders/:id/cancel
- * @desc    Cancel an order (only if status is PENDING)
+ * @desc    Cancel an order (allowed until it ships)
  * @access  Private (User)
  */
 router.put('/:id/cancel', authenticate, cancelOrder);

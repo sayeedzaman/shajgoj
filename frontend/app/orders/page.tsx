@@ -5,7 +5,7 @@ import { ShoppingBag, Package, X, ChevronLeft, Star } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import OrderTracker from '@/src/components/orders/OrderTracker';
-import { ORDER_STATUS_INFO, type OrderStatusValue } from '@/src/lib/orderStatus';
+import { ORDER_STATUS_INFO, canCustomerCancel, type OrderStatusValue } from '@/src/lib/orderStatus';
 import OrderItemPrice from '@/src/components/orders/OrderItemPrice';
 import type { OrderStatusHistoryEntry } from '@/src/types/index';
 import { PaymentMethodBadge, PaymentStatusBadge } from '@/src/components/payments/PaymentBadges';
@@ -167,7 +167,8 @@ export default function OrdersPage() {
       );
 
       if (!response.ok) {
-        throw new Error('Failed to cancel order');
+        const data = await response.json().catch(() => null);
+        throw new Error(data?.error || 'Failed to cancel order. Please try again.');
       }
 
       fetchOrders();
@@ -175,7 +176,9 @@ export default function OrdersPage() {
         setShowModal(false);
       }
     } catch (error) {
-      alert('Failed to cancel order. Please try again.');
+      alert(error instanceof Error ? error.message : 'Failed to cancel order. Please try again.');
+      // The order may have shipped meanwhile; refresh so the button goes away
+      fetchOrders();
     }
   };
 
@@ -405,7 +408,7 @@ export default function OrdersPage() {
                 </div>
 
                 {/* Order Actions */}
-                {order.status === 'PENDING' && (
+                {canCustomerCancel(order.status) && (
                   <div className="px-6 pb-4">
                     <button
                       onClick={() => handleCancelOrder(order.id)}
@@ -626,10 +629,10 @@ export default function OrdersPage() {
                 </div>
 
                 {/* Cancel Order */}
-                {selectedOrder.status === 'PENDING' && (
+                {canCustomerCancel(selectedOrder.status) && (
                   <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                     <p className="text-sm text-gray-700 mb-3">
-                      You can cancel this order while it&apos;s still pending.
+                      You can cancel this order until it ships.
                     </p>
                     <button
                       onClick={() => handleCancelOrder(selectedOrder.id)}
